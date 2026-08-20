@@ -19,7 +19,6 @@ export const CommandCenter: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [floodZonesActive, setFloodZonesActive] = useState(true);
   const [evacRoutesActive, setEvacRoutesActive] = useState(true);
-  const [activeMapType, setActiveMapType] = useState<'dark' | 'satellite'>('dark');
   const [inspectedRouteId, setInspectedRouteId] = useState<string | null>(null);
   const [dominoModalOpen, setDominoModalOpen] = useState<boolean>(false);
 
@@ -109,25 +108,6 @@ export const CommandCenter: React.FC = () => {
             <div className="flex flex-wrap gap-2 pointer-events-auto">
               <div className="bg-surface-container-high/90 backdrop-blur border border-outline-variant rounded flex items-center p-0.5">
                 <button
-                  onClick={() => setActiveMapType('dark')}
-                  className={`px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-data-label rounded transition-colors ${
-                    activeMapType === 'dark' ? 'bg-surface text-on-surface shadow' : 'text-on-surface-variant hover:text-on-surface'
-                  }`}
-                >
-                  Dark
-                </button>
-                <button
-                  onClick={() => setActiveMapType('satellite')}
-                  className={`px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-data-label rounded transition-colors ${
-                    activeMapType === 'satellite' ? 'bg-surface text-on-surface shadow' : 'text-on-surface-variant hover:text-on-surface'
-                  }`}
-                >
-                  Sat
-                </button>
-              </div>
-              
-              <div className="bg-surface-container-high/90 backdrop-blur border border-outline-variant rounded flex items-center p-0.5">
-                <button
                   onClick={() => setFloodZonesActive(!floodZonesActive)}
                   className={`px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-data-label rounded transition-colors ${
                     floodZonesActive ? 'bg-primary/20 text-primary' : 'text-on-surface-variant hover:text-on-surface'
@@ -164,7 +144,6 @@ export const CommandCenter: React.FC = () => {
 
           <div className="flex-1 w-full h-full">
             <InteractiveEOCMap
-              mapType={activeMapType}
               showFloodZones={floodZonesActive}
               showRoutes={evacRoutesActive}
               showShelters={true}
