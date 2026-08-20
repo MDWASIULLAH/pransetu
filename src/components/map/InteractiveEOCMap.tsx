@@ -224,48 +224,6 @@ export const InteractiveEOCMap: React.FC<InteractiveEOCMapProps> = ({
 
   return (
     <div className={`relative w-full h-full min-h-[400px] overflow-hidden ${className}`} style={{ height }}>
-      {/* Basemap Switcher */}
-      <div className="absolute bottom-4 left-4 z-[400] flex items-center gap-1 bg-surface-container-high/90 border border-outline-variant p-1 rounded-lg shadow-xl backdrop-blur-md">
-          <button
-            onClick={() => handleToggleMapType('light')}
-            className={`px-2 py-1 text-xs font-bold rounded transition-colors cursor-pointer flex items-center gap-1 ${
-              activeMapType === 'light' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface'
-            }`}
-          >
-            <span className="material-symbols-outlined text-[14px]">light_mode</span>
-            Day
-          </button>
-          <button
-            onClick={() => handleToggleMapType('dark')}
-            className={`px-2 py-1 text-xs font-bold rounded transition-colors cursor-pointer flex items-center gap-1 ${
-              activeMapType === 'dark' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface'
-            }`}
-          >
-            <span className="material-symbols-outlined text-[14px]">dark_mode</span>
-            Night
-          </button>
-          <button
-            onClick={() => handleToggleMapType('satellite')}
-            className={`px-2 py-1 text-xs font-bold rounded transition-colors cursor-pointer flex items-center gap-1 ${
-              activeMapType === 'satellite' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface'
-            }`}
-          >
-            <span className="material-symbols-outlined text-[14px]">satellite_alt</span>
-            Satellite
-          </button>
-        </div>
-
-      {/* Live Tactical GPS Location HUD Badge */}
-      <div className="absolute bottom-3 right-3 z-[400] bg-surface-container-high/95 border border-outline-variant/80 px-2.5 py-1.5 rounded-lg shadow-2xl backdrop-blur-md flex items-center gap-2 font-mono text-[11px] sm:text-xs text-on-surface select-none">
-        <span className="w-2 h-2 rounded-full bg-status-green animate-pulse"></span>
-        <span className="text-primary font-bold">GPS:</span>
-        <span className="text-status-green font-bold tracking-wider">
-          {liveCoords.lat.toFixed(4)}° N, {liveCoords.lng.toFixed(4)}° E
-        </span>
-        <span className="text-on-surface-variant text-[10px] hidden sm:inline border-l border-outline-variant pl-2">
-          SECTOR 4-B
-        </span>
-      </div>
 
       <MapContainer
         center={mapCenter}
@@ -514,6 +472,49 @@ export const InteractiveEOCMap: React.FC<InteractiveEOCMapProps> = ({
           );
         })}
       </MapContainer>
+
+      {/* Basemap Switcher */}
+      <div className="absolute bottom-4 left-4 z-[1000] flex items-center gap-1 bg-surface-container-high/90 border border-outline-variant p-1 rounded-lg shadow-xl backdrop-blur-md">
+        <button
+          onClick={() => handleToggleMapType('light')}
+          className={`px-2 py-1 text-xs font-bold rounded transition-colors cursor-pointer flex items-center gap-1 ${
+            activeMapType === 'light' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface'
+          }`}
+        >
+          <span className="material-symbols-outlined text-[14px]">light_mode</span>
+          Day
+        </button>
+        <button
+          onClick={() => handleToggleMapType('dark')}
+          className={`px-2 py-1 text-xs font-bold rounded transition-colors cursor-pointer flex items-center gap-1 ${
+            activeMapType === 'dark' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface'
+          }`}
+        >
+          <span className="material-symbols-outlined text-[14px]">dark_mode</span>
+          Night
+        </button>
+        <button
+          onClick={() => handleToggleMapType('satellite')}
+          className={`px-2 py-1 text-xs font-bold rounded transition-colors cursor-pointer flex items-center gap-1 ${
+            activeMapType === 'satellite' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface'
+          }`}
+        >
+          <span className="material-symbols-outlined text-[14px]">satellite_alt</span>
+          Satellite
+        </button>
+      </div>
+
+      {/* Live Tactical GPS Location HUD Badge */}
+      <div className="absolute bottom-3 right-[70px] z-[1000] bg-surface-container-high/95 border border-outline-variant/80 px-2.5 py-1.5 rounded-lg shadow-2xl backdrop-blur-md flex items-center gap-2 font-mono text-[11px] sm:text-xs text-on-surface select-none">
+        <span className="w-2 h-2 rounded-full bg-status-green animate-pulse"></span>
+        <span className="text-primary font-bold">GPS:</span>
+        <span className="text-status-green font-bold tracking-wider">
+          {liveCoords.lat.toFixed(4)}° N, {liveCoords.lng.toFixed(4)}° E
+        </span>
+        <span className="text-on-surface-variant text-[10px] hidden sm:inline border-l border-outline-variant pl-2">
+          SECTOR 4-B
+        </span>
+      </div>
     </div>
   );
 };
