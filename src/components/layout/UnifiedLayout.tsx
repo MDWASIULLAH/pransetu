@@ -75,7 +75,7 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-background text-on-background flex flex-col font-body-sm relative">
+    <div className="h-screen overflow-hidden bg-background text-on-background flex flex-col font-body-sm relative">
       
       {/* Toast Notification Banner - Muted, Enterprise Style */}
       {toastMessage && (
@@ -255,7 +255,7 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
       </nav>
 
       {/* Main Body */}
-      <div className="flex-1 flex pt-14 min-h-screen">
+      <div className="flex-1 flex pt-14 h-full overflow-hidden">
         
         {/* Sidebar (Minimalist, Seamless) */}
         <aside
@@ -355,7 +355,7 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
         )}
 
         {/* Central Content */}
-        <main className="flex-1 flex flex-col min-w-0 bg-background overflow-x-hidden">
+        <main className="flex-1 flex flex-col min-w-0 bg-background overflow-x-hidden overflow-y-auto">
           {children}
         </main>
       </div>
