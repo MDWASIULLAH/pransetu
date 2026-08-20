@@ -69,19 +69,19 @@ export const SOSLogs: React.FC = () => {
             {/* Modal Header */}
             <div className="p-4 sm:p-5 bg-surface-container-high border-b border-outline-variant flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-primary/15 border border-primary/40 flex items-center justify-center text-primary">
-                  <span className="material-symbols-outlined text-[22px]">route</span>
+                <div className="w-9 h-9 rounded bg-surface border border-outline-variant flex items-center justify-center text-on-surface-variant">
+                  <span className="material-symbols-outlined text-[20px]">route</span>
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="font-headline-sm text-sm sm:text-base font-bold text-on-surface">
+                    <h3 className="font-headline-sm text-sm sm:text-base font-semibold text-on-surface">
                       Canonical SOS Packet Inspector
                     </h3>
-                    <span className="font-mono text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded border border-primary/30 font-bold">
+                    <span className="font-mono text-[10px] bg-surface-container-highest text-on-surface-variant px-2 py-0.5 rounded border border-outline-variant font-medium">
                       {selectedLog.id}
                     </span>
                   </div>
-                  <p className="text-[11px] text-on-surface-variant font-mono">
+                  <p className="text-[11px] text-on-surface-variant font-mono mt-0.5">
                     Protocol: PRANSETU-MESH-CANONICAL v2.4 • Ingest: {selectedLog.source}
                   </p>
                 </div>
@@ -95,8 +95,8 @@ export const SOSLogs: React.FC = () => {
             </div>
 
             {/* Lifecycle Progression Timeline */}
-            <div className="px-4 sm:px-6 py-3 bg-surface-container-highest/60 border-b border-outline-variant">
-              <span className="text-[10px] font-mono font-bold text-on-surface-variant uppercase tracking-wider block mb-2">
+            <div className="px-4 sm:px-6 py-4 bg-surface-container-highest/30 border-b border-outline-variant">
+              <span className="text-[10px] font-mono font-medium text-on-surface-variant uppercase tracking-wider block mb-3">
                 Canonical Protocol Lifecycle Progression
               </span>
               <div className="flex items-center justify-between overflow-x-auto pb-1 gap-1">
@@ -109,24 +109,24 @@ export const SOSLogs: React.FC = () => {
                     <div key={step.key} className="flex-1 flex flex-col items-center min-w-[55px] text-center group">
                       <div className="flex items-center w-full">
                         {idx > 0 && (
-                          <div className={`flex-1 h-0.5 ${idx <= currentIdx ? 'bg-status-green' : 'bg-outline-variant'}`} />
+                          <div className={`flex-1 h-[1px] ${idx <= currentIdx ? 'bg-on-surface-variant' : 'bg-outline-variant'}`} />
                         )}
                         <div
-                          className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-mono font-bold shrink-0 transition-all ${
+                          className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-mono font-medium shrink-0 transition-all ${
                             isCurrent
-                              ? 'bg-primary text-on-primary ring-2 ring-primary/40 shadow-xs'
+                              ? 'bg-on-surface text-surface'
                               : isDone
-                              ? 'bg-status-green text-on-primary'
-                              : 'bg-surface-container border border-outline-variant text-on-surface-variant'
+                              ? 'bg-surface-container-highest text-on-surface-variant border border-outline-variant'
+                              : 'bg-surface text-outline-variant border border-outline-variant/50'
                           }`}
                         >
                           {isDone && !isCurrent ? '✓' : idx + 1}
                         </div>
                         {idx < LIFECYCLE_STEPS.length - 1 && (
-                          <div className={`flex-1 h-0.5 ${idx < currentIdx ? 'bg-status-green' : 'bg-outline-variant'}`} />
+                          <div className={`flex-1 h-[1px] ${idx < currentIdx ? 'bg-on-surface-variant' : 'bg-outline-variant'}`} />
                         )}
                       </div>
-                      <span className={`text-[9px] font-mono mt-1 leading-tight ${isCurrent ? 'text-primary font-bold' : isDone ? 'text-on-surface' : 'text-on-surface-variant/60'}`}>
+                      <span className={`text-[9px] font-mono mt-1.5 leading-tight ${isCurrent ? 'text-on-surface font-medium' : isDone ? 'text-on-surface-variant' : 'text-outline-variant'}`}>
                         {step.label}
                       </span>
                     </div>
@@ -183,7 +183,7 @@ export const SOSLogs: React.FC = () => {
 
                     <div className="p-2.5 bg-surface-container rounded-lg border border-outline-variant/60">
                       <span className="text-[10px] font-mono text-on-surface-variant block">SOURCE_TYPE</span>
-                      <span className="text-xs font-mono font-bold text-status-green flex items-center gap-1">
+                      <span className="text-xs font-mono font-medium text-on-surface flex items-center gap-1">
                         <span className="material-symbols-outlined text-[14px]">{selectedLog.sourceIcon}</span>
                         {selectedLog.source}
                       </span>
@@ -191,7 +191,7 @@ export const SOSLogs: React.FC = () => {
 
                     <div className="p-2.5 bg-surface-container rounded-lg border border-outline-variant/60">
                       <span className="text-[10px] font-mono text-on-surface-variant block">GPS FIX (WGS84)</span>
-                      <span className="text-xs font-mono font-bold text-status-green">
+                      <span className="text-xs font-mono font-medium text-on-surface">
                         {selectedLog.lat.toFixed(4)}° N, {selectedLog.lng.toFixed(4)}° E
                       </span>
                     </div>
@@ -203,7 +203,7 @@ export const SOSLogs: React.FC = () => {
 
                     <div className="p-2.5 bg-surface-container rounded-lg border border-outline-variant/60">
                       <span className="text-[10px] font-mono text-on-surface-variant block">SEVERITY / SCORE</span>
-                      <span className={`text-xs font-mono font-bold ${selectedLog.scoreColor}`}>
+                      <span className={`text-xs font-mono font-medium text-on-surface`}>
                         {selectedLog.status.toUpperCase()} ({selectedLog.score} pts)
                       </span>
                     </div>
@@ -255,7 +255,7 @@ export const SOSLogs: React.FC = () => {
                           </div>
                         </div>
                         <div className="text-right font-mono text-[11px]">
-                          <span className="text-status-green font-bold block">RSSI: -{64 + idx * 8} dBm</span>
+                          <span className="text-on-surface font-medium block">RSSI: -{64 + idx * 8} dBm</span>
                           <span className="text-on-surface-variant">Latency: {14 + idx * 12}ms</span>
                         </div>
                       </div>
@@ -265,7 +265,7 @@ export const SOSLogs: React.FC = () => {
               )}
 
               {activeTab === 'raw_json' && (
-                <pre className="p-3 bg-surface-container-lowest rounded-xl border border-outline-variant text-[11px] font-mono text-green-400 overflow-x-auto">
+                <pre className="p-3 bg-surface-container-lowest rounded-xl border border-outline-variant text-[11px] font-mono text-on-surface-variant overflow-x-auto">
 {JSON.stringify({
   sos_id: selectedLog.id,
   protocol_version: "2.4-canonical-mesh",
@@ -297,7 +297,7 @@ export const SOSLogs: React.FC = () => {
                   resolveSignal(selectedLog.id);
                   setSelectedLog(null);
                 }}
-                className="px-3 py-1.5 bg-surface-bright border border-status-green text-status-green rounded-lg font-data-label text-xs hover:bg-status-green/10 cursor-pointer font-bold"
+                className="px-3 py-1.5 bg-surface-bright border border-outline-variant text-on-surface rounded-lg font-data-label text-xs hover:bg-surface-container-highest cursor-pointer font-medium transition-colors"
               >
                 Mark Rescued / Closed
               </button>
@@ -398,43 +398,49 @@ export const SOSLogs: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-outline-variant/60 font-body-sm">
-              {filteredLogs.map((log) => (
-                <tr key={log.id} className="hover:bg-surface-bright transition-colors">
-                  <td className="p-3.5 font-mono font-bold text-primary">
+              {filteredLogs.map((log) => {
+                let badgeClass = "bg-surface-container text-on-surface border border-outline-variant";
+                if (log.status.toLowerCase() === 'critical') badgeClass = "bg-error/10 text-error border border-error/20";
+                if (log.status.toLowerCase() === 'urgent') badgeClass = "bg-primary/10 text-primary border border-primary/20";
+                if (log.status.toLowerCase() === 'pending') badgeClass = "bg-surface-container-highest text-on-surface-variant border border-outline-variant";
+
+                return (
+                <tr key={log.id} className="hover:bg-surface-bright transition-colors group cursor-default">
+                  <td className="p-3.5 font-mono font-medium text-on-surface">
                     {log.id}
                   </td>
-                  <td className="p-3.5 text-on-surface-variant font-mono text-xs">
+                  <td className="p-3.5 text-on-surface-variant font-mono text-[11px]">
                     {log.timestamp}
                   </td>
                   <td className="p-3.5">
-                    <span className="font-bold text-on-surface block">{log.loc}</span>
-                    <span className="text-[11px] text-status-green font-mono">
+                    <span className="font-medium text-on-surface block text-[13px]">{log.loc}</span>
+                    <span className="text-[10px] text-on-surface-variant font-mono">
                       GPS: {log.lat.toFixed(4)}° N, {log.lng.toFixed(4)}° E
                     </span>
                   </td>
-                  <td className="p-3.5 font-mono text-xs text-on-surface flex items-center gap-1.5 pt-4">
-                    <span className="material-symbols-outlined text-base text-primary">{log.sourceIcon}</span>
+                  <td className="p-3.5 font-mono text-[11px] text-on-surface-variant flex items-center gap-1.5 pt-4">
+                    <span className="material-symbols-outlined text-[14px]">{log.sourceIcon}</span>
                     {log.source}
                   </td>
                   <td className="p-3.5">
-                    <span className={`px-2 py-0.5 rounded font-mono font-bold text-[10px] uppercase ${log.badgeBg} ${log.badgeText}`}>
+                    <span className={`px-2 py-0.5 rounded font-mono font-medium text-[10px] uppercase ${badgeClass}`}>
                       {log.status} ({log.score} pts)
                     </span>
                   </td>
-                  <td className="p-3.5 font-mono text-xs text-primary font-bold">
-                    {log.hop} Hops (TTL: {8 - log.hop})
+                  <td className="p-3.5 font-mono text-[11px] text-on-surface-variant">
+                    <span className="font-medium text-on-surface">{log.hop} Hops</span> (TTL: {8 - log.hop})
                   </td>
                   <td className="p-3.5 text-right">
                     <button
                       onClick={() => setSelectedLog(log)}
-                      className="px-3 py-1 bg-primary-container text-primary hover:bg-primary hover:text-on-primary rounded-lg text-xs font-bold transition-colors cursor-pointer border border-primary/30 inline-flex items-center gap-1"
+                      className="px-3 py-1 bg-surface border border-outline-variant text-on-surface hover:bg-surface-container-highest rounded text-[11px] font-medium transition-colors cursor-pointer inline-flex items-center gap-1.5 opacity-0 group-hover:opacity-100 focus:opacity-100"
                     >
                       <span className="material-symbols-outlined text-[14px]">visibility</span>
-                      Inspect Packet
+                      Inspect
                     </button>
                   </td>
                 </tr>
-              ))}
+              )})}
             </tbody>
           </table>
         </div>

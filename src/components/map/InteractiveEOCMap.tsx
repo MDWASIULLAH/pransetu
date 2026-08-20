@@ -7,6 +7,7 @@ import {
   Circle,
   Polygon,
   Polyline,
+  ZoomControl,
   useMap,
   useMapEvents
 } from 'react-leaflet';
@@ -260,10 +261,11 @@ export const InteractiveEOCMap: React.FC<InteractiveEOCMapProps> = ({
       <MapContainer
         center={mapCenter}
         zoom={zoomLevel}
-        zoomControl={true}
+        zoomControl={false}
         scrollWheelZoom={true}
         style={{ height: '100%', width: '100%', minHeight: '400px', background: '#051424' }}
       >
+        <ZoomControl position="bottomright" />
         <MapAutoResizer center={mapCenter} zoom={zoomLevel} />
         <MapCoordinateTracker onCoordinatesChange={(coords) => setLiveCoords(coords)} />
 

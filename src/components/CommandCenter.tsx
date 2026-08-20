@@ -105,59 +105,61 @@ export const CommandCenter: React.FC = () => {
         <div className="col-span-12 xl:col-span-8 bg-surface border border-outline-variant rounded-lg flex flex-col overflow-hidden h-[500px] relative">
           
           {/* Floating Elegant Controls Over Map */}
-          <div className="absolute top-4 left-4 z-[1000] flex gap-2">
-            <div className="bg-surface-container-high/90 backdrop-blur border border-outline-variant rounded flex items-center p-0.5">
-              <button
-                onClick={() => setActiveMapType('dark')}
-                className={`px-3 py-1.5 text-data-label rounded transition-colors ${
-                  activeMapType === 'dark' ? 'bg-surface text-on-surface shadow' : 'text-on-surface-variant hover:text-on-surface'
-                }`}
-              >
-                Dark
-              </button>
-              <button
-                onClick={() => setActiveMapType('satellite')}
-                className={`px-3 py-1.5 text-data-label rounded transition-colors ${
-                  activeMapType === 'satellite' ? 'bg-surface text-on-surface shadow' : 'text-on-surface-variant hover:text-on-surface'
-                }`}
-              >
-                Sat
-              </button>
+          <div className="absolute top-4 left-4 sm:left-14 right-4 z-[1000] flex flex-wrap justify-between items-start gap-2 pointer-events-none">
+            <div className="flex flex-wrap gap-2 pointer-events-auto">
+              <div className="bg-surface-container-high/90 backdrop-blur border border-outline-variant rounded flex items-center p-0.5">
+                <button
+                  onClick={() => setActiveMapType('dark')}
+                  className={`px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-data-label rounded transition-colors ${
+                    activeMapType === 'dark' ? 'bg-surface text-on-surface shadow' : 'text-on-surface-variant hover:text-on-surface'
+                  }`}
+                >
+                  Dark
+                </button>
+                <button
+                  onClick={() => setActiveMapType('satellite')}
+                  className={`px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-data-label rounded transition-colors ${
+                    activeMapType === 'satellite' ? 'bg-surface text-on-surface shadow' : 'text-on-surface-variant hover:text-on-surface'
+                  }`}
+                >
+                  Sat
+                </button>
+              </div>
+              
+              <div className="bg-surface-container-high/90 backdrop-blur border border-outline-variant rounded flex items-center p-0.5">
+                <button
+                  onClick={() => setFloodZonesActive(!floodZonesActive)}
+                  className={`px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-data-label rounded transition-colors ${
+                    floodZonesActive ? 'bg-primary/20 text-primary' : 'text-on-surface-variant hover:text-on-surface'
+                  }`}
+                >
+                  Flood
+                </button>
+                <button
+                  onClick={() => setEvacRoutesActive(!evacRoutesActive)}
+                  className={`px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-data-label rounded transition-colors ${
+                    evacRoutesActive ? 'bg-primary/20 text-primary' : 'text-on-surface-variant hover:text-on-surface'
+                  }`}
+                >
+                  Routes
+                </button>
+              </div>
             </div>
-            
-            <div className="bg-surface-container-high/90 backdrop-blur border border-outline-variant rounded flex items-center p-0.5">
-              <button
-                onClick={() => setFloodZonesActive(!floodZonesActive)}
-                className={`px-3 py-1.5 text-data-label rounded transition-colors ${
-                  floodZonesActive ? 'bg-primary/20 text-primary' : 'text-on-surface-variant hover:text-on-surface'
-                }`}
-              >
-                Flood
-              </button>
-              <button
-                onClick={() => setEvacRoutesActive(!evacRoutesActive)}
-                className={`px-3 py-1.5 text-data-label rounded transition-colors ${
-                  evacRoutesActive ? 'bg-primary/20 text-primary' : 'text-on-surface-variant hover:text-on-surface'
-                }`}
-              >
-                Routes
-              </button>
-            </div>
-          </div>
 
-          <div className="absolute top-4 right-4 z-[1000] flex gap-2">
-             <button
-                onClick={() => setInspectedRouteId('marine-drive')}
-                className="px-3 py-1.5 rounded bg-surface-container-high/90 backdrop-blur border border-outline-variant text-primary text-data-label hover:bg-surface transition-colors shadow"
-              >
-                AI Route
-              </button>
-              <button
-                onClick={() => setDominoModalOpen(true)}
-                className="px-3 py-1.5 rounded bg-error/90 backdrop-blur border border-error/50 text-on-error text-data-label hover:bg-error transition-colors shadow"
-              >
-                Cascading Risk
-              </button>
+            <div className="flex flex-wrap gap-2 pointer-events-auto">
+               <button
+                  onClick={() => setInspectedRouteId('marine-drive')}
+                  className="px-2 sm:px-3 py-1 sm:py-1.5 rounded bg-surface-container-high/90 backdrop-blur border border-outline-variant text-primary text-[10px] sm:text-data-label hover:bg-surface transition-colors shadow"
+                >
+                  AI Route
+                </button>
+                <button
+                  onClick={() => setDominoModalOpen(true)}
+                  className="px-2 sm:px-3 py-1 sm:py-1.5 rounded bg-error/10 backdrop-blur border border-error/20 text-error text-[10px] sm:text-data-label hover:bg-error/20 transition-colors shadow font-medium"
+                >
+                  Cascading Risk
+                </button>
+            </div>
           </div>
 
           <div className="flex-1 w-full h-full">

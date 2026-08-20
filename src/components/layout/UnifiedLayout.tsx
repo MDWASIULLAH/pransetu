@@ -152,7 +152,7 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
       <nav className="bg-surface fixed top-0 left-0 w-full z-[1000] flex items-center justify-between px-4 h-14 border-b border-outline-variant">
         
         {/* Left: Brand & Sidebar Toggle */}
-        <div className="flex items-center gap-4 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="hidden md:flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors"
@@ -166,18 +166,18 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="md:hidden text-on-surface-variant hover:text-on-surface"
           >
-            <span className="material-symbols-outlined text-[24px]">menu</span>
+            <span className="material-symbols-outlined text-[22px] sm:text-[24px]">menu</span>
           </button>
 
           <div 
-            className="flex items-center gap-2 cursor-pointer" 
+            className="flex items-center gap-1.5 sm:gap-2 cursor-pointer" 
             onClick={() => onNavigate('command')}
           >
-            <div className="w-6 h-6 rounded bg-on-surface flex items-center justify-center text-surface shrink-0">
-              <span className="material-symbols-outlined text-[16px] icon-fill">shield</span>
+            <div className="w-5 h-5 sm:w-6 sm:h-6 rounded bg-on-surface flex items-center justify-center text-surface shrink-0">
+              <span className="material-symbols-outlined text-[14px] sm:text-[16px] icon-fill">shield</span>
             </div>
             <div className="flex flex-col leading-none">
-              <span className="font-semibold text-on-surface text-sm tracking-tight">PRANSETU</span>
+              <span className="font-semibold text-on-surface text-xs sm:text-sm tracking-tight">PRANSETU</span>
             </div>
           </div>
         </div>
@@ -198,33 +198,35 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
         </div>
 
         {/* Right Section: Actions & Profile */}
-        <div className="flex items-center gap-4 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
           <button 
             onClick={toggleSound}
             className={`text-on-surface-variant hover:text-on-surface transition-colors ${soundEnabled ? 'text-primary' : ''}`}
             title={soundEnabled ? 'Audio Enabled' : 'Audio Muted'}
           >
-            <span className="material-symbols-outlined text-[20px]">
+            <span className="material-symbols-outlined text-[18px] sm:text-[20px]">
               {soundEnabled ? 'volume_up' : 'volume_off'}
             </span>
           </button>
 
           <button 
             onClick={() => setAlertModalOpen(true)}
-            className="h-7 px-3 bg-error/10 text-error hover:bg-error/20 border border-error/20 rounded text-data-label font-semibold flex items-center transition-colors"
+            className="h-6 sm:h-7 px-2 sm:px-3 bg-error/10 text-error hover:bg-error/20 border border-error/20 rounded text-[10px] sm:text-data-label font-semibold flex items-center gap-1 transition-colors"
           >
-            RAISE ALERT
+            <span className="material-symbols-outlined text-[12px] sm:hidden">warning</span>
+            <span className="hidden sm:inline">RAISE ALERT</span>
+            <span className="sm:hidden">ALERT</span>
           </button>
 
-          <div className="w-px h-5 bg-outline-variant mx-1 hidden sm:block"></div>
+          <div className="w-px h-5 bg-outline-variant mx-0.5 sm:mx-1 hidden sm:block"></div>
 
           <div className="relative">
             <button
               onClick={() => setUserMenuOpen(!userMenuOpen)}
               className="flex items-center gap-2 text-on-surface-variant hover:text-on-surface transition-colors"
             >
-              <div className="w-7 h-7 rounded-full bg-surface-container-high border border-outline-variant flex items-center justify-center overflow-hidden">
-                <span className="material-symbols-outlined text-[16px]">person</span>
+              <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-surface-container-high border border-outline-variant flex items-center justify-center overflow-hidden">
+                <span className="material-symbols-outlined text-[14px] sm:text-[16px]">person</span>
               </div>
             </button>
 
