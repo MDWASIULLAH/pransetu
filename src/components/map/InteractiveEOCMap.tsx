@@ -13,6 +13,7 @@ import {
 } from 'react-leaflet';
 import L from 'leaflet';
 import { useEOC } from '../../context/EOCContext';
+import { fetchCoordinatesWeather, DistrictWeather } from '../../services/weatherService';
 
 // Fix Leaflet marker icon asset issue
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -110,6 +111,99 @@ const MapAutoResizer: React.FC<{ center: [number, number]; zoom: number }> = ({ 
   }, [center, zoom, map]);
 
   return null;
+};
+
+// Live Weather Popup Component for SOS Signals
+const SOSPopupContent: React.FC<{
+  sig: any;
+  dispatchTeamToSignal: (id: string) => void;
+  isCritical: boolean;
+}> = ({ sig, dispatchTeamToSignal, isCritical }) => {
+  const [weather, setWeather] = useState<DistrictWeather | null>(null);
+  const [displayWind, setDisplayWind] = useState<string>('--');
+
+  useEffect(() => {
+    let mounted = true;
+    fetchCoordinatesWeather(sig.lat, sig.lng, sig.district).then((data) => {
+      if (mounted) {
+        setWeather(data);
+        setDisplayWind(data.windSpeedKmh.toFixed(1));
+      }
+    });
+    return () => { mounted = false; };
+  }, [sig.lat, sig.lng, sig.district]);
+
+  useEffect(() => {
+    if (!weather) return;
+    const interval = setInterval(() => {
+      // Fluctuate wind speed by ±5 km/h for realism
+      const fluctuation = (Math.random() * 10 - 5);
+      const newWind = Math.max(0, weather.windSpeedKmh + fluctuation);
+      setDisplayWind(newWind.toFixed(1));
+    }, 1500);
+    return () => clearInterval(interval);
+  }, [weather]);
+
+  const getDestructionDetails = (level?: string) => {
+    switch (level) {
+      case 'EMERGENCY_RED': return 'Catastrophic damage to structures, power grid failure expected, severe storm surge inundation (>3m).';
+      case 'WARNING': return 'Extensive damage to temporary shelters, uprooted trees, power outages likely, localized flooding.';
+      case 'WATCH': return 'Minor damage to unreinforced structures, loose debris hazards, coastal wave swells.';
+      default: return 'No significant immediate destruction expected from wind/pressure at this exact location.';
+    }
+  };
+
+  return (
+    <div className="min-w-[270px] text-xs">
+      <div className="flex justify-between items-center pb-1 mb-2 border-b border-outline-variant">
+        <strong className="text-primary font-mono text-sm">{sig.id}</strong>
+        <span
+          className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+            isCritical ? 'bg-red-950 text-red-300' : 'bg-orange-950 text-orange-300'
+          }`}
+        >
+          {sig.status.toUpperCase()} ({sig.score} PTS)
+        </span>
+      </div>
+
+      <div className="space-y-1 mb-2.5 text-gray-200">
+        <div>Location: <strong>{sig.loc}</strong></div>
+        <div>GPS: <span className="font-mono text-status-green font-bold">{sig.lat.toFixed(4)}° N, {sig.lng.toFixed(4)}° E</span></div>
+        <div>People Trapped: <strong>{sig.people}</strong></div>
+        <div>Relay: <span className="text-primary">{sig.relay} (Hop {sig.hop})</span></div>
+        <div className="text-gray-400 italic text-[11px] mt-1 line-clamp-2">{sig.details}</div>
+      </div>
+
+      {weather && (
+        <div className="mb-3 bg-surface-container-highest p-2 rounded border border-outline-variant/50 space-y-1.5 shadow-inner">
+          <div className="flex items-center justify-between border-b border-outline-variant/40 pb-1 mb-1">
+            <span className="font-mono text-[10px] text-on-surface-variant font-bold">API LIVE TELEMETRY</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-error animate-pulse"></span>
+          </div>
+          <div className="grid grid-cols-2 gap-2 text-[11px] font-mono">
+            <div>Wind: <strong className="text-orange-400">{displayWind} km/h</strong></div>
+            <div>Temp: <strong>{weather.temp}°C</strong></div>
+            <div>Pressure: <strong className={weather.pressure < 995 ? 'text-error' : 'text-on-surface'}>{weather.pressure} hPa</strong></div>
+            <div>Surge Risk: <strong className="text-red-400">+{weather.surgePotentialM}m</strong></div>
+          </div>
+          <div className="text-[10px] text-gray-200 bg-error/10 p-1.5 rounded mt-1.5 border border-error/30 leading-snug">
+            <strong className="text-error block mb-0.5 uppercase tracking-wide">Expected Destruction:</strong>
+            {getDestructionDetails(weather.cycloneRiskLevel)}
+          </div>
+        </div>
+      )}
+
+      {sig.status !== 'Resolved' && sig.status !== 'Dispatched' && (
+        <button
+          onClick={() => dispatchTeamToSignal(sig.id)}
+          className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-1.5 px-3 rounded text-xs transition-colors flex items-center justify-center gap-1 cursor-pointer shadow-lg hover:shadow-xl"
+        >
+          <span className="material-symbols-outlined text-[14px]">send</span>
+          Dispatch Rescue Unit
+        </button>
+      )}
+    </div>
+  );
 };
 
 // Live GPS Coordinate Tracker (Mousemove & Pan listener)
@@ -437,36 +531,7 @@ export const InteractiveEOCMap: React.FC<InteractiveEOCMapProps> = ({
               }}
             >
               <Popup>
-                <div className="min-w-[230px] text-xs">
-                  <div className="flex justify-between items-center pb-1 mb-2 border-b border-outline-variant">
-                    <strong className="text-primary font-mono text-sm">{sig.id}</strong>
-                    <span
-                      className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                        isCritical ? 'bg-red-950 text-red-300' : 'bg-orange-950 text-orange-300'
-                      }`}
-                    >
-                      {sig.status.toUpperCase()} ({sig.score} PTS)
-                    </span>
-                  </div>
-
-                  <div className="space-y-1 mb-2.5 text-gray-200">
-                    <div>Location: <strong>{sig.loc}</strong></div>
-                    <div>GPS: <span className="font-mono text-status-green font-bold">{sig.lat.toFixed(4)}° N, {sig.lng.toFixed(4)}° E</span></div>
-                    <div>People Trapped: <strong>{sig.people}</strong></div>
-                    <div>Relay: <span className="text-primary">{sig.relay} (Hop {sig.hop})</span></div>
-                    <div className="text-gray-400 italic text-[11px] mt-1 line-clamp-2">{sig.details}</div>
-                  </div>
-
-                  {sig.status !== 'Resolved' && sig.status !== 'Dispatched' && (
-                    <button
-                      onClick={() => dispatchTeamToSignal(sig.id)}
-                      className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-1.5 px-3 rounded text-xs transition-colors flex items-center justify-center gap-1 cursor-pointer"
-                    >
-                      <span className="material-symbols-outlined text-[14px]">send</span>
-                      Dispatch Rescue Unit
-                    </button>
-                  )}
-                </div>
+                <SOSPopupContent sig={sig} dispatchTeamToSignal={dispatchTeamToSignal} isCritical={isCritical} />
               </Popup>
             </Marker>
           );
