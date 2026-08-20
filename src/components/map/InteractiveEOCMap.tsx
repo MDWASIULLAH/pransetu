@@ -225,8 +225,7 @@ export const InteractiveEOCMap: React.FC<InteractiveEOCMapProps> = ({
   return (
     <div className={`relative w-full h-full min-h-[400px] overflow-hidden ${className}`} style={{ height }}>
       {/* Basemap Switcher */}
-      {!controlledMapType && (
-        <div className="absolute bottom-4 left-4 z-[400] flex items-center gap-1 bg-surface-container-high/90 border border-outline-variant p-1 rounded-lg shadow-xl backdrop-blur-md">
+      <div className="absolute bottom-4 left-4 z-[400] flex items-center gap-1 bg-surface-container-high/90 border border-outline-variant p-1 rounded-lg shadow-xl backdrop-blur-md">
           <button
             onClick={() => handleToggleMapType('light')}
             className={`px-2 py-1 text-xs font-bold rounded transition-colors cursor-pointer flex items-center gap-1 ${
@@ -255,7 +254,6 @@ export const InteractiveEOCMap: React.FC<InteractiveEOCMapProps> = ({
             Satellite
           </button>
         </div>
-      )}
 
       {/* Live Tactical GPS Location HUD Badge */}
       <div className="absolute bottom-3 right-3 z-[400] bg-surface-container-high/95 border border-outline-variant/80 px-2.5 py-1.5 rounded-lg shadow-2xl backdrop-blur-md flex items-center gap-2 font-mono text-[11px] sm:text-xs text-on-surface select-none">
