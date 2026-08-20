@@ -2,180 +2,132 @@
 @import "leaflet/dist/leaflet.css";
 
 @theme {
-  --color-on-tertiary-fixed: #00174b;
-  --color-inverse-surface: #e2e8f0;
-  --color-surface: #070d18;
-  --color-on-secondary: #ffffff;
-  --color-on-tertiary-container: #60a5fa;
-  --color-tertiary-fixed: #dbeafe;
-  --color-on-surface-variant: #94a3b8;
-  --color-tertiary-container: #1e3a8a;
+  /* Enterprise Deep Zinc Palette */
+  --color-surface-dim: #09090b; /* Zinc 950 - Absolute Background */
+  --color-background: #09090b;
+  --color-surface-container-lowest: #09090b;
+  
+  --color-surface: #18181b; /* Zinc 900 - Cards/Panels */
+  --color-surface-container: #18181b;
+  --color-surface-container-low: #18181b;
+  
+  --color-surface-container-high: #27272a; /* Zinc 800 - Hover States / Elevated Panels */
+  --color-surface-bright: #27272a;
+  
+  --color-surface-container-highest: #3f3f46; /* Zinc 700 - Active / Borders */
+  --color-outline-variant: #27272a; /* Very subtle borders */
+  --color-outline: #3f3f46;
+  
+  --color-on-background: #fafafa; /* Zinc 50 - Primary Text */
+  --color-on-surface: #fafafa;
+  
+  --color-on-surface-variant: #a1a1aa; /* Zinc 400 - Secondary/Muted Text */
+  
+  /* Tactical Accents - Used extremely sparingly */
+  --color-primary: #3b82f6; /* Blue 500 */
   --color-on-primary: #ffffff;
-  --color-on-secondary-container: #fee2e2;
-  --color-surface-bright: #1e293b;
-  --color-on-secondary-fixed-variant: #991b1b;
-  --color-tertiary: #93c5fd;
-  --color-on-surface: #f8fafc;
-  --color-surface-dim: #030712;
-  --color-surface-container-lowest: #020617;
-  --color-outline: #475569;
-  --color-secondary-container: #dc2626;
-  --color-on-error-container: #fee2e2;
-  --color-on-primary-container: #dbeafe;
-  --color-outline-variant: #1e293b;
-  --color-on-tertiary: #ffffff;
-  --color-inverse-on-surface: #0f172a;
+  --color-primary-container: rgba(59, 130, 246, 0.1);
+  --color-on-primary-container: #60a5fa; /* Blue 400 */
+  
+  --color-secondary: #10b981; /* Emerald 500 */
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: rgba(16, 185, 129, 0.1);
+  
+  --color-error: #ef4444; /* Red 500 */
   --color-on-error: #ffffff;
-  --color-on-background: #f8fafc;
-  --color-error-container: #991b1b;
-  --color-surface-container-high: #131d31;
-  --color-background: #030712;
-  --color-secondary: #ef4444;
-  --color-secondary-fixed: #fee2e2;
-  --color-primary-fixed-dim: #93c5fd;
-  --color-primary-container: #1e3a8a;
-  --color-surface-container-low: #0b1322;
-  --color-inverse-primary: #2563eb;
-  --color-primary: #38bdf8;
-  --color-on-tertiary-fixed-variant: #1d4ed8;
-  --color-error: #ef4444;
-  --color-surface-container-highest: #1e293b;
-  --color-primary-fixed: #e0f2fe;
-  --color-on-secondary-fixed: #7f1d1d;
-  --color-tertiary-fixed-dim: #bfdbfe;
-  --color-surface-container: #0c1527;
-  --color-on-primary-fixed: #082f49;
-  --color-secondary-fixed-dim: #fca5a5;
-  --color-surface-variant: #1e293b;
-  --color-surface-tint: #38bdf8;
-  --color-on-primary-fixed-variant: #0369a1;
+  --color-error-container: rgba(239, 68, 68, 0.1);
+  --color-on-error-container: #f87171; /* Red 400 */
+  
+  --color-tertiary: #f59e0b; /* Amber 500 */
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: rgba(245, 158, 11, 0.1);
 
-  --color-brand-blue: #2563eb;
-  --color-brand-red: #dc2626;
-  --color-brand-orange: #f97316;
-  --color-brand-green: #10b981;
-
+  /* Status Colors */
   --color-rescue-blue: #3b82f6;
   --color-emergency-red: #ef4444;
   --color-status-orange: #f59e0b;
   --color-status-green: #10b981;
 
-  --spacing-stack-lg: 24px;
-  --spacing-gutter: 16px;
-  --spacing-unit: 4px;
-  --spacing-stack-sm: 8px;
-  --spacing-margin-desktop: 32px;
-  --spacing-stack-md: 16px;
-  --spacing-margin-mobile: 16px;
+  /* Strict Spacing System */
+  --spacing-stack-lg: 32px;
+  --spacing-stack-md: 24px;
+  --spacing-stack-sm: 16px;
+  --spacing-gutter: 24px;
 
+  /* Typography Hierarchy */
   --font-headline-sm: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-headline-lg-mobile: "Inter", sans-serif;
   --font-display-lg: "Inter", sans-serif;
   --font-body-lg: "Inter", sans-serif;
-  --font-headline-lg: "Inter", sans-serif;
-  --font-data-value: "JetBrains Mono", "SF Mono", monospace;
   --font-body-sm: "Inter", sans-serif;
+  
+  /* Data / Telemetry Only */
+  --font-data-value: "JetBrains Mono", "SF Mono", monospace;
   --font-data-label: "JetBrains Mono", monospace;
 }
 
-/* Explicit custom typography and utility helpers */
-.font-headline-sm { font-family: 'Inter', sans-serif; }
-.font-headline-lg-mobile { font-family: 'Inter', sans-serif; }
-.font-display-lg { font-family: 'Inter', sans-serif; }
-.font-body-lg { font-family: 'Inter', sans-serif; }
-.font-headline-lg { font-family: 'Inter', sans-serif; }
-.font-data-value { font-family: 'JetBrains Mono', monospace; }
-.font-body-sm { font-family: 'Inter', sans-serif; }
-.font-data-label { font-family: 'JetBrains Mono', monospace; }
+/* Base Body Styles */
+body {
+  background-color: var(--color-background);
+  color: var(--color-on-background);
+  font-family: var(--font-body-sm);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
 
-.text-headline-sm { font-size: 20px; line-height: 28px; font-weight: 600; }
-.text-headline-lg-mobile { font-size: 24px; line-height: 32px; font-weight: 600; }
-.text-display-lg { font-size: 48px; line-height: 56px; letter-spacing: -0.02em; font-weight: 700; }
-.text-body-lg { font-size: 16px; line-height: 24px; font-weight: 400; }
-.text-headline-lg { font-size: 32px; line-height: 40px; font-weight: 600; }
-.text-data-value { font-size: 14px; line-height: 18px; font-weight: 600; }
-.text-body-sm { font-size: 14px; line-height: 20px; font-weight: 400; }
-.text-data-label { font-size: 12px; line-height: 16px; letter-spacing: 0.05em; font-weight: 500; }
+/* Explicit custom typography helpers */
+.font-headline-sm { font-family: var(--font-headline-sm); }
+.font-display-lg { font-family: var(--font-display-lg); }
+.font-body-lg { font-family: var(--font-body-lg); }
+.font-body-sm { font-family: var(--font-body-sm); }
+.font-data-value { font-family: var(--font-data-value); }
+.font-data-label { font-family: var(--font-data-label); }
+
+/* Font Size Scales (Linear/Vercel inspired) */
+.text-display-lg { font-size: 36px; line-height: 1.2; letter-spacing: -0.02em; font-weight: 600; }
+.text-headline-sm { font-size: 18px; line-height: 1.4; font-weight: 500; }
+.text-body-lg { font-size: 15px; line-height: 1.6; font-weight: 400; }
+.text-body-sm { font-size: 13px; line-height: 1.5; font-weight: 400; }
+.text-data-value { font-size: 13px; line-height: 1.5; font-weight: 500; }
+.text-data-label { font-size: 11px; line-height: 1.4; letter-spacing: 0.05em; font-weight: 500; text-transform: uppercase; }
 
 .icon-fill { font-variation-settings: 'FILL' 1; }
 
-@keyframes radar-pulse {
-  0% {
-    transform: scale(0.6);
-    opacity: 0.8;
-  }
-  70% {
-    transform: scale(2.4);
-    opacity: 0;
-  }
-  100% {
-    transform: scale(2.4);
-    opacity: 0;
-  }
-}
-
-.radar-pulse-animation {
-  animation: radar-pulse 2.2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
-}
-
-/* Tactical HUD Grid Overlay for EOC */
-.hud-grid-background {
-  background-image: 
-    radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.05) 0%, transparent 60%),
-    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-  background-size: 100% 100%, 32px 32px, 32px 32px;
-}
-
-/* Glowing Tactical Border Helper */
-.tactical-card {
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.8) 0%, rgba(11, 19, 34, 0.95) 100%);
-  border: 1px solid rgba(51, 65, 85, 0.6);
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(8px);
-}
-
-.tactical-card:hover {
-  border-color: rgba(56, 189, 248, 0.3);
-}
-
-/* Custom Tactical Scrollbars */
+/* Subtle, elegant scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
 }
 ::-webkit-scrollbar-track {
-  background: #030712;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: var(--color-surface-container-high);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: var(--color-surface-container-highest);
 }
 
-/* Leaflet Container Overrides */
+/* Leaflet Overrides for Enterprise Dark Mode */
 .leaflet-container {
   width: 100% !important;
   min-width: 100% !important;
   height: 100% !important;
-  background: #030712 !important;
-  font-family: 'Inter', sans-serif !important;
+  background: var(--color-background) !important;
+  font-family: var(--font-body-sm) !important;
 }
 
 .leaflet-popup-content-wrapper {
-  background: #0c1527 !important;
-  color: #f8fafc !important;
-  border: 1px solid #1e293b !important;
-  border-radius: 12px !important;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.8), 0 8px 10px -6px rgba(0, 0, 0, 0.8) !important;
-  backdrop-filter: blur(12px) !important;
+  background: var(--color-surface) !important;
+  color: var(--color-on-background) !important;
+  border: 1px solid var(--color-outline-variant) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.4) !important;
 }
 
 .leaflet-popup-tip {
-  background: #0c1527 !important;
-  border: 1px solid #1e293b !important;
+  background: var(--color-surface) !important;
+  border: 1px solid var(--color-outline-variant) !important;
 }
 
 .leaflet-popup-content {
@@ -184,13 +136,13 @@
 }
 
 .leaflet-control-zoom a {
-  background-color: #0c1527 !important;
-  color: #38bdf8 !important;
-  border-color: #1e293b !important;
-  border-radius: 6px !important;
+  background-color: var(--color-surface) !important;
+  color: var(--color-on-surface-variant) !important;
+  border-color: var(--color-outline-variant) !important;
+  border-radius: 4px !important;
 }
 
 .leaflet-control-zoom a:hover {
-  background-color: #1e293b !important;
-  color: #ffffff !important;
+  background-color: var(--color-surface-container-high) !important;
+  color: var(--color-on-background) !important;
 }
