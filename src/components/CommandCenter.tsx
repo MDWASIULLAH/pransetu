@@ -3,6 +3,7 @@ import { useEOC } from '../context/EOCContext';
 import { InteractiveEOCMap } from './map/InteractiveEOCMap';
 import { AIRouteInspector } from './modules/AIRouteInspector';
 import { LiveWeatherWidget } from './modules/LiveWeatherWidget';
+import { DisasterDominoEffect } from './modules/DisasterDominoEffect';
 
 export const CommandCenter: React.FC = () => {
   const {
@@ -20,6 +21,7 @@ export const CommandCenter: React.FC = () => {
   const [evacRoutesActive, setEvacRoutesActive] = useState(true);
   const [activeMapType, setActiveMapType] = useState<'dark' | 'satellite'>('dark');
   const [inspectedRouteId, setInspectedRouteId] = useState<string | null>(null);
+  const [dominoModalOpen, setDominoModalOpen] = useState<boolean>(false);
 
   // Top critical signal recommendation for AI Priority Engine
   const topCriticalSignal = signals.find((s) => s.status === 'Critical') || signals[0];
@@ -39,6 +41,13 @@ export const CommandCenter: React.FC = () => {
         <AIRouteInspector
           routeId={inspectedRouteId}
           onClose={() => setInspectedRouteId(null)}
+        />
+      )}
+
+      {/* Disaster Domino Effect Cascading Risk Modal */}
+      {dominoModalOpen && (
+        <DisasterDominoEffect
+          onClose={() => setDominoModalOpen(false)}
         />
       )}
 
@@ -184,6 +193,15 @@ export const CommandCenter: React.FC = () => {
                 title="Verify AI Machine Learning Routing Algorithm & DEM Elevation Cross-Section"
               >
                 <span className="material-symbols-outlined text-[16px]">psychology</span> AI Route Inspector
+              </button>
+
+              {/* Disaster Domino Effect Cascading Risk Trigger */}
+              <button
+                onClick={() => setDominoModalOpen(true)}
+                className="px-2.5 sm:px-3 py-1 rounded font-data-label text-data-label flex items-center gap-1.5 bg-error/15 text-error border border-error/40 hover:bg-error/25 transition-colors cursor-pointer text-xs font-bold shadow-xs"
+                title="Inspect Cascading Disaster Domino Effect & Lifeline Vulnerabilities"
+              >
+                <span className="material-symbols-outlined text-[16px]">account_tree</span> Cascading Risk
               </button>
             </div>
           </div>
@@ -413,7 +431,7 @@ export const CommandCenter: React.FC = () => {
           </div>
         </div>
 
-        {/* 6. Live Weather & Atmospheric Telemetry Card (Bottom Right - OpenWeatherMap Integration) */}
+        {/* 6. Live Weather & Atmospheric Telemetry Card (Bottom Right - Worldwide Search) */}
         <div className="col-span-12 xl:col-span-4 rounded-lg sm:rounded-none overflow-hidden">
           <LiveWeatherWidget className="h-full" />
         </div>
