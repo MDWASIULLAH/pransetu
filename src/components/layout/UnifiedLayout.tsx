@@ -27,6 +27,8 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [alertSeverity, setAlertSeverity] = useState<'RED_CRITICAL' | 'ORANGE_WARNING' | 'YELLOW_WATCH'>('RED_CRITICAL');
   const [alertMessage, setAlertMessage] = useState('Cyclone Alert: Coastal storm surge warning. Immediate shelter movement advised.');
+  const [currentTime, setCurrentTime] = useState<string>('');
+  const [selectedLanguage, setSelectedLanguage] = useState<'EN' | 'OR' | 'HI'>('EN');
 
   const {
     activeAlert,
@@ -38,10 +40,23 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
     updateShelterOccupancy,
     autoSimulate,
     setAutoSimulate,
-    metrics
+    metrics,
+    signals,
+    shelters
   } = useEOC();
 
   const { soundEnabled, toggleSound } = useSound();
+
+  // Real-time ticking operational clock (IST)
+  useEffect(() => {
+    const updateClock = () => {
+      const now = new Date();
+      setCurrentTime(now.toLocaleTimeString('en-IN', { hour12: false }));
+    };
+    updateClock();
+    const timer = setInterval(updateClock, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Scroll to Top Listener
   useEffect(() => {
@@ -52,7 +67,7 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
         setShowScrollTop(false);
       }
     };
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -60,47 +75,44 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleRaiseAlert = (e: React.FormEvent) => {
-    e.preventDefault();
-    setAlertModalOpen(false);
-    raiseStateAlert(alertSeverity, alertMessage);
-  };
-
   const navItems = [
-    { id: 'command', label: 'Command Center', icon: 'dashboard', fillIcon: true },
-    { id: 'map', label: 'Mission Map', icon: 'map' },
-    { id: 'sos', label: 'SOS Logs', icon: 'list_alt' },
-    { id: 'voice', label: 'Voice Campaigns', icon: 'settings_voice' },
-    { id: 'resources', label: 'Resources', icon: 'inventory_2' },
-    { id: 'support', label: 'Support', icon: 'contact_support' }
+    { id: 'command', label: 'Command Center', icon: 'dashboard', badge: `${metrics.criticalCount} Crit` },
+    { id: 'map', label: 'Mission Map', icon: 'map', badge: 'GIS' },
+    { id: 'sos', label: 'SOS Canonical Logs', icon: 'list_alt', badge: `${signals.length}` },
+    { id: 'voice', label: 'Voice Campaigns', icon: 'record_voice_over', badge: 'IVR' },
+    { id: 'resources', label: 'Shelters & Logistics', icon: 'inventory_2', badge: `${shelters.length}` },
+    { id: 'support', label: 'Field Incident Support', icon: 'support_agent', badge: 'Live' }
   ];
 
+  const handleRaiseAlert = (e: React.FormEvent) => {
+    e.preventDefault();
+    raiseStateAlert(alertSeverity, alertMessage);
+    setAlertModalOpen(false);
+  };
+
   return (
-    <div className="min-h-screen bg-background text-on-background antialiased flex flex-col selection:bg-tertiary selection:text-on-tertiary overflow-x-hidden font-body-sm text-body-sm">
-      {/* Toast Banner */}
+    <div className="min-h-screen bg-background text-on-background flex flex-col font-body-sm relative hud-grid-background">
+      {/* Toast Notification Banner */}
       {toastMessage && (
-        <div className="fixed top-20 right-4 sm:right-8 z-[120] bg-surface-container-high border border-primary text-on-surface px-4 py-3 rounded-lg shadow-2xl flex items-center gap-3 animate-bounce max-w-sm sm:max-w-md">
-          <span className="material-symbols-outlined text-primary text-[22px] shrink-0">check_circle</span>
-          <span className="font-data-value text-data-value text-primary text-xs sm:text-sm">{toastMessage}</span>
+        <div className="fixed top-20 right-6 z-[9999] bg-surface-container-high border-2 border-primary/60 text-on-surface px-4 py-3 rounded-xl shadow-2xl backdrop-blur-md flex items-center gap-3 animate-in fade-in slide-in-from-top-5">
+          <span className="material-symbols-outlined text-primary text-[22px]">info</span>
+          <span className="font-bold text-xs font-mono">{toastMessage}</span>
         </div>
       )}
 
-      {/* Statewide Emergency Flashing Alert Bar */}
+      {/* Critical State Emergency Alert Banner */}
       {activeAlert && (
-        <div className="bg-error-container text-on-error-container px-3 sm:px-4 py-2 flex items-center justify-between z-[110] sticky top-0 border-b-2 border-error shadow-xl animate-pulse">
-          <div className="flex items-center gap-2 sm:gap-3 max-w-[85%]">
-            <span className="material-symbols-outlined text-error text-[22px] shrink-0">cell_tower</span>
-            <div className="truncate">
-              <span className="font-data-label font-bold uppercase tracking-wider bg-error text-surface px-1.5 py-0.5 rounded text-[10px] mr-1.5">
-                {activeAlert.severity.replace('_', ' ')}
-              </span>
-              <span className="font-headline-sm text-xs sm:text-sm font-bold">{activeAlert.message}</span>
-              <span className="text-[11px] opacity-80 ml-2 hidden sm:inline font-data-value">({activeAlert.timestamp})</span>
-            </div>
+        <div className="fixed top-16 left-0 right-0 z-50 bg-error text-on-error px-4 py-2.5 flex items-center justify-between shadow-2xl border-b-2 border-error-container animate-pulse">
+          <div className="flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-wider">
+            <span className="material-symbols-outlined text-[20px]">warning</span>
+            <span>[{activeAlert.severity.replace('_', ' ')} BROADCAST]</span>
+            <span className="normal-case font-body-sm text-xs font-semibold hidden sm:inline ml-2">
+              {activeAlert.message}
+            </span>
           </div>
           <button 
             onClick={clearStateAlert}
-            className="text-on-error-container hover:text-white px-2 py-1 rounded text-xs font-bold border border-error-container/50 hover:bg-error/30 cursor-pointer shrink-0"
+            className="text-on-error hover:text-white px-2 py-1 rounded text-xs font-bold border border-white/40 hover:bg-white/20 cursor-pointer shrink-0"
           >
             DISMISS
           </button>
@@ -110,7 +122,7 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
       {/* State Alert Broadcast Modal */}
       {alertModalOpen && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-          <div className="bg-surface-container border border-error-container p-6 rounded-xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-surface-container border border-error-container p-6 rounded-2xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-outline-variant">
               <div className="flex items-center gap-2 text-error">
                 <span className="material-symbols-outlined text-[26px]">warning</span>
@@ -132,10 +144,10 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
                 <select 
                   value={alertSeverity} 
                   onChange={(e) => setAlertSeverity(e.target.value as any)}
-                  className="w-full bg-surface-container-highest border border-outline-variant rounded p-2 text-on-surface font-data-value text-data-value focus:outline-none focus:border-error"
+                  className="w-full bg-surface-container-highest border border-outline-variant rounded-lg p-2.5 text-on-surface font-data-value text-data-value focus:outline-none focus:border-error"
                 >
-                  <option value="RED_CRITICAL">RED ALERT - Immediate Evacuation & Life Threat</option>
-                  <option value="ORANGE_WARNING">ORANGE ALERT - High Wind & Flood Warning</option>
+                  <option value="RED_CRITICAL">RED ALERT - Immediate Evacuation &amp; Life Threat</option>
+                  <option value="ORANGE_WARNING">ORANGE ALERT - High Wind &amp; Flood Warning</option>
                   <option value="YELLOW_WATCH">YELLOW WATCH - Preparedness Advisory</option>
                 </select>
               </div>
@@ -148,7 +160,7 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
                   rows={3} 
                   value={alertMessage}
                   onChange={(e) => setAlertMessage(e.target.value)}
-                  className="w-full bg-surface-container-highest border border-outline-variant rounded p-2 text-on-surface font-body-sm text-body-sm focus:outline-none focus:border-error"
+                  className="w-full bg-surface-container-highest border border-outline-variant rounded-lg p-2.5 text-on-surface font-body-sm text-body-sm focus:outline-none focus:border-error"
                   placeholder="Enter state alert bulletin..."
                 />
               </div>
@@ -157,16 +169,16 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
                 <button 
                   type="button"
                   onClick={() => setAlertModalOpen(false)}
-                  className="px-4 py-2 bg-surface-bright border border-outline-variant text-on-surface rounded font-data-label text-data-label hover:bg-surface-container-highest cursor-pointer"
+                  className="px-4 py-2 bg-surface-bright border border-outline-variant text-on-surface rounded-lg font-data-label text-data-label hover:bg-surface-container-highest cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button 
                   type="submit"
-                  className="px-4 py-2 bg-error-container text-on-error-container rounded font-headline-sm text-headline-sm hover:bg-secondary-container transition-colors flex items-center gap-2 cursor-pointer"
+                  className="px-4 py-2 bg-error text-on-error rounded-lg font-headline-sm text-headline-sm hover:bg-red-700 transition-colors flex items-center gap-2 cursor-pointer font-bold"
                 >
                   <span className="material-symbols-outlined text-[18px]">cell_tower</span>
-                  Broadcast Siren & IVR
+                  Broadcast Siren &amp; IVR
                 </button>
               </div>
             </form>
@@ -177,7 +189,7 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
       {/* Floating Simulation Control Panel (SIH Demo Helper) */}
       <div className="fixed bottom-16 md:bottom-6 right-4 z-50">
         {simDrawerOpen ? (
-          <div className="bg-surface-container-high border-2 border-primary/60 p-4 rounded-xl shadow-2xl backdrop-blur-md w-72 space-y-3 animate-in fade-in slide-in-from-bottom-5">
+          <div className="bg-surface-container-high border-2 border-primary/60 p-4 rounded-2xl shadow-2xl backdrop-blur-md w-72 space-y-3 animate-in fade-in slide-in-from-bottom-5">
             <div className="flex items-center justify-between pb-2 border-b border-outline-variant">
               <span className="font-data-label text-primary font-bold flex items-center gap-1.5">
                 <span className="material-symbols-outlined text-[18px]">precision_manufacturing</span>
@@ -194,57 +206,61 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
             <div className="space-y-2">
               <button 
                 onClick={() => injectNewSignal()}
-                className="w-full bg-surface-bright hover:bg-surface-container-highest border border-error-container text-on-surface text-xs font-bold py-2 px-3 rounded flex items-center gap-2 cursor-pointer transition-colors"
+                className="w-full bg-surface-bright hover:bg-surface-container-highest border border-error/50 text-on-surface text-xs font-bold py-2 px-3 rounded-lg flex items-center gap-2 cursor-pointer transition-colors"
               >
                 <span className="material-symbols-outlined text-error text-[16px]">emergency</span>
                 Simulate Inbound SOS
               </button>
 
               <button 
-                onClick={() => recordDTMF(Math.random() > 0.3 ? '1' : '2')}
-                className="w-full bg-surface-bright hover:bg-surface-container-highest border border-tertiary text-on-surface text-xs font-bold py-2 px-3 rounded flex items-center gap-2 cursor-pointer transition-colors"
+                onClick={() => recordDTMF('1')}
+                className="w-full bg-surface-bright hover:bg-surface-container-highest border border-outline-variant text-on-surface text-xs font-bold py-1.5 px-3 rounded-lg flex items-center justify-between cursor-pointer transition-colors"
               >
-                <span className="material-symbols-outlined text-tertiary text-[16px]">call</span>
-                Simulate IVR Response
-              </button>
-
-              <button 
-                onClick={() => updateShelterOccupancy('SH-01', 45)}
-                className="w-full bg-surface-bright hover:bg-surface-container-highest border border-primary text-on-surface text-xs font-bold py-2 px-3 rounded flex items-center gap-2 cursor-pointer transition-colors"
-              >
-                <span className="material-symbols-outlined text-primary text-[16px]">home_work</span>
-                Simulate Shelter Inflow (+45)
-              </button>
-
-              <button 
-                onClick={() => setAutoSimulate((prev) => !prev)}
-                className={`w-full text-xs font-bold py-2 px-3 rounded flex items-center justify-between cursor-pointer border transition-colors ${
-                  autoSimulate 
-                    ? 'bg-status-green/20 border-status-green text-status-green' 
-                    : 'bg-surface-bright border-outline-variant text-on-surface-variant'
-                }`}
-              >
-                <span className="flex items-center gap-2">
-                  <span className={`w-2 h-2 rounded-full ${autoSimulate ? 'bg-status-green animate-ping' : 'bg-outline'}`}></span>
-                  Live Auto-Telemetry
+                <span className="flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-status-green text-[16px]">check_circle</span>
+                  IVR Key 1 (Safe)
                 </span>
-                <span className="font-data-value text-[10px] uppercase">{autoSimulate ? 'ON' : 'OFF'}</span>
+                <span className="text-[10px] font-mono text-status-green">+1</span>
               </button>
+
+              <button 
+                onClick={() => updateShelterOccupancy('SH-PURI-01', 15)}
+                className="w-full bg-surface-bright hover:bg-surface-container-highest border border-outline-variant text-on-surface text-xs font-bold py-1.5 px-3 rounded-lg flex items-center justify-between cursor-pointer transition-colors"
+              >
+                <span className="flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-primary text-[16px]">home_work</span>
+                  Shelter +15 Occupants
+                </span>
+                <span className="text-[10px] font-mono text-primary">Inundation</span>
+              </button>
+
+              <div className="pt-2 border-t border-outline-variant flex items-center justify-between text-xs">
+                <span className="text-on-surface-variant font-mono">Continuous Telemetry</span>
+                <button 
+                  onClick={() => setAutoSimulate(!autoSimulate)}
+                  className={`px-2 py-1 rounded text-[10px] font-bold font-mono ${
+                    autoSimulate ? 'bg-status-green text-on-primary' : 'bg-surface-container text-on-surface-variant'
+                  }`}
+                >
+                  {autoSimulate ? 'RUNNING' : 'PAUSED'}
+                </button>
+              </div>
             </div>
           </div>
         ) : (
-          <button 
+          <button
             onClick={() => setSimDrawerOpen(true)}
-            className="bg-primary-container text-primary border border-primary/40 p-2.5 rounded-full shadow-2xl hover:scale-105 transition-transform flex items-center gap-2 cursor-pointer font-data-label text-xs"
-            title="Open SIH Live Simulator Controls"
+            className="bg-surface-container-high/95 hover:bg-surface-bright text-primary border border-primary/40 px-3.5 py-2.5 rounded-full shadow-2xl backdrop-blur-md flex items-center gap-2 font-mono text-xs font-bold cursor-pointer transition-all hover:scale-105"
+            title="Open SIH Simulation Engine"
           >
-            <span className="material-symbols-outlined text-[20px] animate-spin" style={{ animationDuration: '6s' }}>precision_manufacturing</span>
-            <span className="hidden sm:inline font-bold pr-1">SIM TOOLKIT</span>
+            <span className="material-symbols-outlined text-[18px] text-primary">precision_manufacturing</span>
+            <span>SIMULATOR</span>
+            <span className="w-2 h-2 rounded-full bg-status-green animate-pulse"></span>
           </button>
         )}
       </div>
 
-      {/* Floating Mobile Scroll-To-Top Button */}
+      {/* Floating Scroll to Top Button */}
       {showScrollTop && (
         <button
           onClick={scrollToTop}
@@ -255,8 +271,8 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
         </button>
       )}
 
-      {/* TopNavBar (Responsive for Desktop and Mobile Viewports) */}
-      <nav className="bg-surface-container-high fixed top-0 left-0 w-full z-[1000] flex items-center justify-between px-3 sm:px-4 md:px-6 h-16 border-b border-outline-variant">
+      {/* TopNavBar (Authoritative Government State EOC Header) */}
+      <nav className="bg-surface-container-high/95 fixed top-0 left-0 w-full z-[1000] flex items-center justify-between px-3 sm:px-4 md:px-6 h-16 border-b border-outline-variant backdrop-blur-md shadow-lg">
         {/* Left Section: Mobile Menu, Sidebar Toggle, and Brand Title */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0">
           {/* Mobile Hamburger Button */}
@@ -273,7 +289,7 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
           {/* Desktop Sidebar Toggle Button */}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="hidden md:flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-bright p-2 rounded-lg transition-colors cursor-pointer shrink-0"
+            className="hidden md:flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-bright p-2 rounded-lg transition-colors cursor-pointer shrink-0 border border-outline-variant/60"
             title={sidebarOpen ? "Close Sidebar (Full Width View)" : "Open Sidebar"}
           >
             <span className="material-symbols-outlined text-[22px]">
@@ -281,49 +297,61 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
             </span>
           </button>
 
-          {/* Brand Logo & Live Status Badge */}
+          {/* Brand Logo & Government Title */}
           <div 
             className="font-headline-sm sm:font-headline-lg text-sm sm:text-base md:text-lg font-bold text-primary tracking-tight cursor-pointer flex items-center gap-2 shrink-0" 
             onClick={() => onNavigate('command')}
           >
-            <span className="material-symbols-outlined text-secondary text-[22px] sm:text-[24px] shrink-0">shield</span>
-            <span className="whitespace-nowrap font-bold">
-              PRANSETU S <span className="hidden sm:inline text-[10px] font-mono font-bold text-primary-fixed bg-primary-container px-2 py-0.5 rounded ml-1 border border-primary/30 tracking-wider uppercase">WEB EOC</span>
-            </span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-primary/15 border border-primary/40 flex items-center justify-center text-primary shrink-0 shadow-xs">
+              <span className="material-symbols-outlined text-[20px] sm:text-[22px]">shield</span>
+            </div>
+            <div className="flex flex-col text-left leading-none">
+              <span className="whitespace-nowrap font-bold text-on-surface text-xs sm:text-sm md:text-base">
+                PRANSETU S <span className="hidden sm:inline text-[9px] font-mono font-bold text-primary-fixed bg-primary-container px-1.5 py-0.2 rounded ml-1 border border-primary/30 tracking-wider uppercase">WEB EOC</span>
+              </span>
+              <span className="hidden sm:inline text-[9px] font-mono text-on-surface-variant tracking-wider uppercase mt-0.5">
+                Odisha State Emergency Operations Centre
+              </span>
+            </div>
           </div>
 
-          {/* Live Tactical Status Indicator */}
-          <div className="hidden lg:flex items-center gap-2 pl-3 border-l border-outline-variant/60 ml-1">
+          {/* Live Tactical Sat-Com Uplink Badge */}
+          <div className="hidden xl:flex items-center gap-2 pl-3 border-l border-outline-variant/60 ml-2">
             <span className="w-2 h-2 rounded-full bg-status-green animate-pulse"></span>
-            <span className="font-mono text-[11px] text-on-surface-variant font-medium uppercase tracking-wider">
-              Odisha Sector Alpha • Live
+            <span className="font-mono text-[10px] text-status-green font-bold uppercase tracking-wider">
+              INSAT-3DR SYNCED
             </span>
           </div>
         </div>
 
-        {/* Center: Module Nav Links (Only on ultra-wide screens to prevent any overlap) */}
-        <ul className="hidden 2xl:flex items-center gap-1 mx-4">
-          {navItems.map((item) => {
-            const isActive = activeNav === item.id;
-            return (
-              <li key={item.id}>
-                <button 
-                  onClick={() => onNavigate(item.id)}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
-                    isActive
-                      ? 'bg-primary-container text-primary font-bold shadow-xs border border-primary/30'
-                      : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-bright'
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-[15px]">{item.icon}</span>
-                  <span>{item.label}</span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+        {/* Center: Live Real-Time Clock & Language Switcher */}
+        <div className="hidden lg:flex items-center gap-3">
+          {/* Live Operational Clock */}
+          <div className="bg-surface-container px-3 py-1 rounded-lg border border-outline-variant font-mono text-xs text-on-surface flex items-center gap-1.5 shadow-xs">
+            <span className="material-symbols-outlined text-[14px] text-primary">schedule</span>
+            <span className="font-bold text-primary">{currentTime || '00:00:00'}</span>
+            <span className="text-[10px] text-on-surface-variant font-mono">IST</span>
+          </div>
 
-        {/* Right Section: Trailing Actions (Strictly isolated with shrink-0 and clear margin) */}
+          {/* Multilingual Selector (English, Odia, Hindi) */}
+          <div className="flex items-center bg-surface-container border border-outline-variant rounded-lg p-0.5 text-xs font-mono">
+            {(['EN', 'OR', 'HI'] as const).map((lang) => (
+              <button
+                key={lang}
+                onClick={() => setSelectedLanguage(lang)}
+                className={`px-2 py-0.5 rounded transition-colors cursor-pointer text-[11px] font-bold ${
+                  selectedLanguage === lang
+                    ? 'bg-primary text-on-primary shadow-xs'
+                    : 'text-on-surface-variant hover:text-on-surface'
+                }`}
+              >
+                {lang === 'EN' ? 'English' : lang === 'OR' ? 'ଓଡ଼ିଆ' : 'हिन्दी'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Right Section: Trailing Actions */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-auto">
           {/* Sound Siren Toggle */}
           <button 
@@ -343,18 +371,18 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
           {/* Raise Alert Trigger (Top Bar Quick Action) */}
           <button 
             onClick={() => setAlertModalOpen(true)}
-            className="h-8 sm:h-9 bg-error-container text-on-error-container hover:bg-secondary-container px-2.5 sm:px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0 border border-error/40 shadow-xs"
+            className="h-8 sm:h-9 bg-error text-on-error hover:bg-red-700 px-2.5 sm:px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0 border border-error/50 shadow-xs"
             title="Broadcast State Emergency Alert"
           >
             <span className="material-symbols-outlined text-[16px]">warning</span>
             <span className="hidden sm:inline">RAISE ALERT</span>
           </button>
 
-          {/* User Profile Popover (Always accessible and cleanly padded) */}
+          {/* User Profile Popover */}
           <div className="relative shrink-0">
             <button
               onClick={() => setUserMenuOpen(!userMenuOpen)}
-              className="h-8 sm:h-9 flex items-center gap-1.5 sm:gap-2 px-2 rounded-lg bg-surface-container-highest/60 border border-outline-variant/70 hover:bg-surface-bright transition-colors cursor-pointer"
+              className="h-8 sm:h-9 flex items-center gap-1.5 sm:gap-2 px-2 rounded-lg bg-surface-container border border-outline-variant hover:bg-surface-bright transition-colors cursor-pointer"
               title="User Account & Role Menu"
             >
               <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center overflow-hidden shrink-0">
@@ -364,7 +392,7 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
                 <span className="text-xs font-bold text-on-surface whitespace-nowrap truncate max-w-[120px]">
                   {user?.name || 'Dr. S. Mohanty'}
                 </span>
-                <span className="text-[10px] text-primary uppercase font-mono font-bold whitespace-nowrap truncate max-w-[120px] mt-0.5">
+                <span className="text-[9px] text-primary uppercase font-mono font-bold whitespace-nowrap truncate max-w-[120px] mt-0.5">
                   {user?.role === 'DISASTER_MANAGEMENT_OFFICER'
                     ? 'DMO • Officer'
                     : user?.role === 'SUPER_ADMIN'
@@ -386,11 +414,11 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
                   className="fixed inset-0 z-[1001]"
                   onClick={() => setUserMenuOpen(false)}
                 />
-                <div className="absolute right-0 top-12 w-64 bg-surface-container-high border border-outline-variant rounded-xl shadow-2xl p-3 z-[1002] animate-in fade-in slide-in-from-top-2">
+                <div className="absolute right-0 top-12 w-64 bg-surface-container-high border border-outline-variant rounded-2xl shadow-2xl p-3 z-[1002] animate-in fade-in slide-in-from-top-2">
                   <div className="pb-3 border-b border-outline-variant">
                     <p className="font-bold text-xs text-on-surface">{user?.name || 'Dr. S. Mohanty'}</p>
                     <p className="text-[11px] text-on-surface-variant font-mono">{user?.email || 'dmo@pransetus.gov.in'}</p>
-                    <span className="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-primary/20 text-primary border border-primary/30">
+                    <span className="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-primary/20 text-primary border border-primary/30 font-mono">
                       {user?.role.replace(/_/g, ' ') || 'DISASTER MANAGEMENT OFFICER'}
                     </span>
                   </div>
@@ -401,7 +429,7 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
                         setUserMenuOpen(false);
                         onNavigate('command');
                       }}
-                      className="w-full text-left px-2 py-1.5 rounded hover:bg-surface-bright text-xs text-on-surface flex items-center gap-2 cursor-pointer transition-colors"
+                      className="w-full text-left px-2 py-1.5 rounded-lg hover:bg-surface-bright text-xs text-on-surface flex items-center gap-2 cursor-pointer transition-colors"
                     >
                       <span className="material-symbols-outlined text-[16px] text-primary">dashboard</span>
                       Command Center
@@ -411,7 +439,7 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
                         setUserMenuOpen(false);
                         onNavigateToRegister?.();
                       }}
-                      className="w-full text-left px-2 py-1.5 rounded hover:bg-surface-bright text-xs text-on-surface flex items-center gap-2 cursor-pointer transition-colors"
+                      className="w-full text-left px-2 py-1.5 rounded-lg hover:bg-surface-bright text-xs text-on-surface flex items-center gap-2 cursor-pointer transition-colors"
                     >
                       <span className="material-symbols-outlined text-[16px] text-primary">how_to_reg</span>
                       Operator Registration
@@ -424,7 +452,7 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
                         setUserMenuOpen(false);
                         onLogout?.();
                       }}
-                      className="w-full text-left px-2.5 py-2 rounded-lg bg-error-container/20 hover:bg-error-container/40 text-error text-xs font-bold flex items-center gap-2 cursor-pointer transition-colors border border-error/30"
+                      className="w-full text-left px-2.5 py-2 rounded-lg bg-error/15 hover:bg-error/25 text-error text-xs font-bold flex items-center gap-2 cursor-pointer transition-colors border border-error/30"
                     >
                       <span className="material-symbols-outlined text-[16px]">logout</span>
                       Sign Out / Lock Session
@@ -437,202 +465,142 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
         </div>
       </nav>
 
-      {/* Mobile Slide-Over Sidebar Drawer (With Full Scroll Support & User Card) */}
-      {mobileMenuOpen && (
-        <div className="fixed inset-0 z-[9995] md:hidden flex">
-          <div 
-            className="fixed inset-0 bg-black/60 backdrop-blur-xs" 
-            onClick={() => setMobileMenuOpen(false)}
-          />
-          <div className="relative bg-surface w-72 max-w-[85vw] h-full flex flex-col p-4 z-10 border-r border-outline-variant shadow-2xl pt-4 overflow-y-auto">
-            {/* Mobile Drawer Header with Close Button */}
-            <div className="mb-4 px-1 flex items-center justify-between pb-3 border-b border-outline-variant">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded bg-surface-container-highest border border-outline-variant flex items-center justify-center">
-                  <span className="material-symbols-outlined text-primary text-[22px]">security</span>
-                </div>
-                <div>
-                  <div className="font-headline-sm text-headline-sm font-bold text-on-surface text-sm">PRANSETU S</div>
-                  <div className="font-data-label text-data-label text-on-surface-variant uppercase text-[10px]">EOC State Command</div>
-                </div>
-              </div>
-              <button
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-on-surface-variant hover:text-on-surface p-1.5 rounded-lg cursor-pointer hover:bg-surface-container-highest"
-                title="Close Navigation Drawer"
-              >
-                <span className="material-symbols-outlined text-[22px]">close</span>
-              </button>
-            </div>
+      {/* Main App Body with Collapsible Sidebar and Central Content */}
+      <div className="flex-1 flex pt-16 min-h-screen">
+        {/* Desktop Collapsible Left Navigation Sidebar */}
+        <aside
+          className={`hidden md:flex flex-col bg-surface-container border-r border-outline-variant transition-all duration-300 z-30 shrink-0 sticky top-16 h-[calc(100vh-4rem)] ${
+            sidebarOpen ? 'w-64' : 'w-16'
+          }`}
+        >
+          {/* Module Navigation List */}
+          <div className="p-2 space-y-1.5 flex-1 overflow-y-auto">
+            {navItems.map((item) => {
+              const isActive = activeNav === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => onNavigate(item.id)}
+                  className={`w-full flex items-center justify-between p-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                    isActive
+                      ? 'bg-primary-container text-primary font-bold shadow-xs border border-primary/30'
+                      : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-bright'
+                  }`}
+                  title={!sidebarOpen ? item.label : undefined}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="material-symbols-outlined text-[20px] shrink-0">{item.icon}</span>
+                    {sidebarOpen && <span className="truncate">{item.label}</span>}
+                  </div>
+                  {sidebarOpen && (
+                    <span className={`text-[10px] font-mono font-bold px-1.5 py-0.2 rounded ${
+                      isActive ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-on-surface-variant'
+                    }`}>
+                      {item.badge}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
 
-            {/* Mobile Logged In User Profile Card */}
-            <div className="mb-4 p-3 bg-surface-container border border-outline-variant rounded-xl flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center overflow-hidden shrink-0">
-                <span className="material-symbols-outlined text-primary text-[22px]">person</span>
+          {/* Sidebar Footer Info */}
+          {sidebarOpen && (
+            <div className="p-3 border-t border-outline-variant bg-surface-container-low text-[10px] font-mono text-on-surface-variant space-y-1">
+              <div className="flex justify-between items-center">
+                <span>SEOC SECTOR:</span>
+                <span className="text-status-green font-bold">ALPHA-01 (ACTIVE)</span>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold text-on-surface truncate">{user?.name || 'Dr. S. Mohanty'}</p>
-                <p className="text-[10px] text-primary font-mono font-bold truncate uppercase">{user?.role?.replace(/_/g, ' ') || 'DMO'}</p>
-                <p className="text-[10px] text-on-surface-variant font-mono truncate">{user?.email || 'dmo@pransetus.gov.in'}</p>
+              <div className="flex justify-between items-center">
+                <span>MESH PROTOCOL:</span>
+                <span className="text-primary font-bold">v2.4-CANONICAL</span>
               </div>
             </div>
+          )}
+        </aside>
 
-            {/* Nav links */}
-            <nav className="flex-1 space-y-1">
-              {navItems.map((item) => {
-                const isActive = activeNav === item.id;
-                return (
-                  <button 
-                    key={item.id}
-                    onClick={() => {
-                      onNavigate(item.id);
-                      setMobileMenuOpen(false);
-                    }}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors cursor-pointer text-sm ${
-                      isActive 
-                        ? 'bg-primary-container text-on-primary-container font-bold' 
-                        : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest'
-                    }`}
-                  >
-                    <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
-                    <span>{item.label}</span>
+        {/* Mobile Slide-Over Drawer Navigation */}
+        {mobileMenuOpen && (
+          <div className="fixed inset-0 z-[9995] md:hidden">
+            <div 
+              className="fixed inset-0 bg-black/80 backdrop-blur-md"
+              onClick={() => setMobileMenuOpen(false)}
+            />
+            <div className="relative w-72 max-w-[80vw] bg-surface-container h-full p-4 flex flex-col justify-between shadow-2xl border-r border-outline-variant animate-in slide-in-from-left">
+              <div>
+                <div className="flex items-center justify-between pb-4 border-b border-outline-variant mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary">
+                      <span className="material-symbols-outlined text-[20px]">shield</span>
+                    </div>
+                    <span className="font-bold text-sm text-primary">PRANSETU S EOC</span>
+                  </div>
+                  <button onClick={() => setMobileMenuOpen(false)}>
+                    <span className="material-symbols-outlined text-[20px] text-on-surface-variant">close</span>
                   </button>
-                );
-              })}
-            </nav>
+                </div>
 
-            {/* Bottom Actions inside Drawer */}
-            <div className="mt-auto pt-4 border-t border-outline-variant space-y-2">
-              <button 
-                onClick={() => {
-                  setAlertModalOpen(true);
-                  setMobileMenuOpen(false);
-                }}
-                className="w-full bg-error-container text-on-error-container py-2.5 rounded-lg text-xs font-bold flex items-center justify-center gap-2 cursor-pointer shadow-md"
-              >
-                <span className="material-symbols-outlined text-[16px]">warning</span>
-                RAISE STATE ALERT
-              </button>
+                <div className="space-y-1.5">
+                  {navItems.map((item) => {
+                    const isActive = activeNav === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => {
+                          onNavigate(item.id);
+                          setMobileMenuOpen(false);
+                        }}
+                        className={`w-full flex items-center justify-between p-3 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
+                          isActive
+                            ? 'bg-primary-container text-primary font-bold border border-primary/30'
+                            : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-bright'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
+                          <span>{item.label}</span>
+                        </div>
+                        <span className="text-[10px] font-mono font-bold bg-surface-container-highest px-2 py-0.5 rounded">
+                          {item.badge}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
-              <button 
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  onLogout?.();
-                }}
-                className="w-full bg-surface-container-highest hover:bg-surface-bright text-on-surface py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-2 cursor-pointer border border-outline-variant transition-colors"
-              >
-                <span className="material-symbols-outlined text-[16px] text-error">logout</span>
-                Sign Out / Switch Operator
-              </button>
+              <div className="pt-4 border-t border-outline-variant space-y-2">
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    onLogout?.();
+                  }}
+                  className="w-full py-2 bg-error/15 text-error rounded-xl text-xs font-bold flex items-center justify-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-[16px]">logout</span>
+                  Sign Out Session
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* SideNavBar (Desktop Collapsible) */}
-      <aside 
-        className={`hidden md:flex bg-surface dark:bg-surface docked h-screen fixed left-0 top-0 w-64 z-30 flex-col pt-20 pb-4 px-4 border-r border-outline-variant transition-transform duration-300 ease-in-out ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
-        {/* Header with Close Sidebar Button */}
-        <div className="mb-stack-lg px-2 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded bg-surface-container-highest border border-outline-variant flex items-center justify-center">
-              <span className="material-symbols-outlined text-primary">security</span>
-            </div>
-            <div>
-              <div className="font-headline-sm text-headline-sm font-bold text-on-surface">PRANSETU S</div>
-              <div className="font-data-label text-data-label text-on-surface-variant uppercase text-[11px]">State Level Command</div>
-            </div>
-          </div>
-
-          {/* Close Sidebar Icon Button */}
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest p-1.5 rounded-lg transition-colors cursor-pointer"
-            title="Collapse Sidebar"
-          >
-            <span className="material-symbols-outlined text-[20px]">chevron_left</span>
-          </button>
-        </div>
-
-        {/* Main Navigation */}
-        <nav className="flex-1 flex flex-col gap-unit overflow-y-auto">
-          {navItems.map((item) => {
-            const isActive = activeNav === item.id;
-            return (
-              <button 
-                key={item.id}
-                onClick={() => onNavigate(item.id)}
-                className={`flex items-center gap-3 px-3 py-2 font-body-sm text-body-sm rounded-lg text-left transition-colors cursor-pointer ${
-                  isActive
-                    ? 'bg-primary-container text-on-primary-container font-bold opacity-90'
-                    : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest'
-                }`}
-              >
-                <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
-                <span>{item.label}</span>
-              </button>
-            );
-          })}
-        </nav>
-
-        {/* Footer / CTA */}
-        <div className="mt-auto flex flex-col gap-stack-sm pt-stack-sm border-t border-outline-variant">
-          <button 
-            onClick={() => setAlertModalOpen(true)}
-            className="w-full bg-error-container text-on-error-container hover:bg-secondary-container font-headline-sm text-headline-sm py-2 rounded transition-colors flex items-center justify-center gap-2 mb-2 cursor-pointer"
-          >
-            <span className="material-symbols-outlined">warning</span>
-            RAISE ALERT
-          </button>
-          <div className="px-2 text-xs font-data-label text-on-surface-variant/80">
-            <div>TEAMS: {metrics.teamsDeployedCount}/{metrics.teamsTotalCount} ACTIVE</div>
-            <div>OCCUPANCY: {metrics.sheltersOccupancyPercent}%</div>
-          </div>
-        </div>
-      </aside>
-
-      {/* Main App Content Viewport (Auto-expands to full width when sidebar is closed) */}
-      <div 
-        className={`flex-1 pt-16 pb-16 md:pb-0 min-h-screen transition-all duration-300 ease-in-out ${
-          sidebarOpen ? 'md:ml-64' : 'md:ml-0'
-        }`}
-      >
-        {/* Quick Reopen Button (Floating on the left edge when sidebar is closed) */}
-        {!sidebarOpen && (
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="hidden md:flex fixed left-0 top-24 z-30 bg-surface-container-high hover:bg-surface-bright text-on-surface border border-l-0 border-outline-variant py-2.5 px-1.5 rounded-r-lg shadow-xl transition-all cursor-pointer items-center justify-center group"
-            title="Open Sidebar Navigation"
-          >
-            <span className="material-symbols-outlined text-[22px] text-primary group-hover:scale-110 transition-transform">
-              chevron_right
-            </span>
-          </button>
         )}
 
-        {children}
-      </div>
+        {/* Central Viewport Content */}
+        <main className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
+          {children}
 
-      {/* Bottom Navigation Bar (Mobile Thumb Reach) */}
-      <div className="md:hidden fixed bottom-0 left-0 w-full bg-surface-container-high border-t border-outline-variant z-40 flex justify-around items-center h-14 px-1">
-        {navItems.map((item) => {
-          const isActive = activeNav === item.id;
-          return (
-            <button 
-              key={item.id}
-              onClick={() => onNavigate(item.id)}
-              className={`flex flex-col items-center justify-center flex-1 py-1 cursor-pointer transition-colors ${
-                isActive ? 'text-primary' : 'text-on-surface-variant hover:text-on-surface'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
-              <span className="text-[10px] font-medium truncate max-w-[55px]">{item.label.split(' ')[0]}</span>
-            </button>
-          );
-        })}
+          {/* Official Government Prototype EOC Footer */}
+          <footer className="mt-auto border-t border-outline-variant/60 bg-surface-container/80 p-4 text-center text-xs font-mono text-on-surface-variant/80">
+            <div className="max-w-[1400px] mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
+              <span>
+                PRANSETU S • Government of Odisha Disaster Management Authority (OSDMA) / NDMA Web EOC
+              </span>
+              <span className="text-[11px] text-primary">
+                Store-and-Forward Mesh Protocol v2.4 • TLS 1.3 End-to-End Encrypted
+              </span>
+            </div>
+          </footer>
+        </main>
       </div>
     </div>
   );
