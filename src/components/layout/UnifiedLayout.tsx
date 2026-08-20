@@ -25,6 +25,22 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
   const [alertSeverity, setAlertSeverity] = useState<'RED_CRITICAL' | 'ORANGE_WARNING' | 'YELLOW_WATCH'>('RED_CRITICAL');
   const [alertMessage, setAlertMessage] = useState('Cyclone Alert: Coastal storm surge warning. Immediate shelter movement advised.');
   const [currentTime, setCurrentTime] = useState<string>('');
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const saved = localStorage.getItem('theme');
+    if (saved) return saved === 'dark';
+    // Default to dark mode if nothing saved
+    return true;
+  });
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDarkMode]);
 
   const {
     raiseStateAlert,
@@ -199,6 +215,16 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
 
         {/* Right Section: Actions & Profile */}
         <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+          <button 
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className="text-on-surface-variant hover:text-on-surface transition-colors"
+            title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          >
+            <span className="material-symbols-outlined text-[18px] sm:text-[20px]">
+              {isDarkMode ? 'light_mode' : 'dark_mode'}
+            </span>
+          </button>
+
           <button 
             onClick={toggleSound}
             className={`text-on-surface-variant hover:text-on-surface transition-colors ${soundEnabled ? 'text-primary' : ''}`}

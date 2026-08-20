@@ -2,51 +2,47 @@
 @import "leaflet/dist/leaflet.css";
 
 @theme {
-  /* Enterprise Deep Zinc Palette */
-  --color-surface-dim: #09090b; /* Zinc 950 - Absolute Background */
-  --color-background: #09090b;
-  --color-surface-container-lowest: #09090b;
+  --color-surface-dim: var(--surface-dim);
+  --color-background: var(--background);
+  --color-surface-container-lowest: var(--surface-container-lowest);
   
-  --color-surface: #18181b; /* Zinc 900 - Cards/Panels */
-  --color-surface-container: #18181b;
-  --color-surface-container-low: #18181b;
+  --color-surface: var(--surface);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-low: var(--surface-container-low);
   
-  --color-surface-container-high: #27272a; /* Zinc 800 - Hover States / Elevated Panels */
-  --color-surface-bright: #27272a;
+  --color-surface-container-high: var(--surface-container-high);
+  --color-surface-bright: var(--surface-bright);
   
-  --color-surface-container-highest: #3f3f46; /* Zinc 700 - Active / Borders */
-  --color-outline-variant: #27272a; /* Very subtle borders */
-  --color-outline: #3f3f46;
+  --color-surface-container-highest: var(--surface-container-highest);
+  --color-outline-variant: var(--outline-variant);
+  --color-outline: var(--outline);
   
-  --color-on-background: #fafafa; /* Zinc 50 - Primary Text */
-  --color-on-surface: #fafafa;
+  --color-on-background: var(--on-background);
+  --color-on-surface: var(--on-surface);
+  --color-on-surface-variant: var(--on-surface-variant);
   
-  --color-on-surface-variant: #a1a1aa; /* Zinc 400 - Secondary/Muted Text */
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-primary-container: var(--primary-container);
+  --color-on-primary-container: var(--on-primary-container);
   
-  /* Tactical Accents - Used extremely sparingly */
-  --color-primary: #3b82f6; /* Blue 500 */
-  --color-on-primary: #ffffff;
-  --color-primary-container: rgba(59, 130, 246, 0.1);
-  --color-on-primary-container: #60a5fa; /* Blue 400 */
+  --color-secondary: var(--secondary);
+  --color-on-secondary: var(--on-secondary);
+  --color-secondary-container: var(--secondary-container);
   
-  --color-secondary: #10b981; /* Emerald 500 */
-  --color-on-secondary: #ffffff;
-  --color-secondary-container: rgba(16, 185, 129, 0.1);
+  --color-error: var(--error);
+  --color-on-error: var(--on-error);
+  --color-error-container: var(--error-container);
+  --color-on-error-container: var(--on-error-container);
   
-  --color-error: #ef4444; /* Red 500 */
-  --color-on-error: #ffffff;
-  --color-error-container: rgba(239, 68, 68, 0.1);
-  --color-on-error-container: #f87171; /* Red 400 */
-  
-  --color-tertiary: #f59e0b; /* Amber 500 */
-  --color-on-tertiary: #ffffff;
-  --color-tertiary-container: rgba(245, 158, 11, 0.1);
+  --color-tertiary: var(--tertiary);
+  --color-on-tertiary: var(--on-tertiary);
+  --color-tertiary-container: var(--tertiary-container);
 
-  /* Status Colors */
-  --color-rescue-blue: #3b82f6;
-  --color-emergency-red: #ef4444;
-  --color-status-orange: #f59e0b;
-  --color-status-green: #10b981;
+  --color-rescue-blue: var(--primary);
+  --color-emergency-red: var(--error);
+  --color-status-orange: var(--tertiary);
+  --color-status-green: var(--secondary);
 
   /* Strict Spacing System */
   --spacing-stack-lg: 32px;
@@ -63,6 +59,86 @@
   /* Data / Telemetry Only */
   --font-data-value: "JetBrains Mono", "SF Mono", monospace;
   --font-data-label: "JetBrains Mono", monospace;
+}
+
+:root {
+  /* LIGHT MODE (Zinc 50-100 base) */
+  --background: #fafafa;
+  --surface-dim: #f4f4f5;
+  --surface-container-lowest: #ffffff;
+  
+  --surface: #ffffff;
+  --surface-container: #f4f4f5;
+  --surface-container-low: #fafafa;
+  
+  --surface-container-high: #e4e4e7;
+  --surface-bright: #ffffff;
+  
+  --surface-container-highest: #d4d4d8;
+  --outline-variant: #e4e4e7;
+  --outline: #d4d4d8;
+  
+  --on-background: #18181b;
+  --on-surface: #18181b;
+  --on-surface-variant: #52525b;
+  
+  --primary: #2563eb;
+  --on-primary: #ffffff;
+  --primary-container: #dbeafe;
+  --on-primary-container: #1e3a8a;
+  
+  --secondary: #059669;
+  --on-secondary: #ffffff;
+  --secondary-container: #d1fae5;
+  
+  --error: #dc2626;
+  --on-error: #ffffff;
+  --error-container: #fee2e2;
+  --on-error-container: #991b1b;
+  
+  --tertiary: #d97706;
+  --on-tertiary: #ffffff;
+  --tertiary-container: #fef3c7;
+}
+
+.dark {
+  /* DARK MODE (Zinc 900-950 base) */
+  --background: #09090b;
+  --surface-dim: #09090b;
+  --surface-container-lowest: #09090b;
+  
+  --surface: #18181b;
+  --surface-container: #18181b;
+  --surface-container-low: #18181b;
+  
+  --surface-container-high: #27272a;
+  --surface-bright: #27272a;
+  
+  --surface-container-highest: #3f3f46;
+  --outline-variant: #27272a;
+  --outline: #3f3f46;
+  
+  --on-background: #fafafa;
+  --on-surface: #fafafa;
+  --on-surface-variant: #a1a1aa;
+  
+  --primary: #3b82f6;
+  --on-primary: #ffffff;
+  --primary-container: rgba(59, 130, 246, 0.15);
+  --on-primary-container: #93c5fd;
+  
+  --secondary: #10b981;
+  --on-secondary: #ffffff;
+  --secondary-container: rgba(16, 185, 129, 0.15);
+  
+  --error: #ef4444;
+  --on-error: #ffffff;
+  --error-container: rgba(239, 68, 68, 0.15);
+  --on-error-container: #fca5a5;
+  
+  --tertiary: #f59e0b;
+  --on-tertiary: #ffffff;
+  --tertiary-container: rgba(245, 158, 11, 0.15);
 }
 
 html, body {
