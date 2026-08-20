@@ -109,7 +109,7 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
 
       {/* State Alert Broadcast Modal */}
       {alertModalOpen && (
-        <div className="fixed inset-0 z-[130] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
           <div className="bg-surface-container border border-error-container p-6 rounded-xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-outline-variant">
               <div className="flex items-center gap-2 text-error">
@@ -432,7 +432,7 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
 
       {/* Mobile Slide-Over Sidebar Drawer (With Full Scroll Support & User Card) */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-50 md:hidden flex">
+        <div className="fixed inset-0 z-[9995] md:hidden flex">
           <div 
             className="fixed inset-0 bg-black/60 backdrop-blur-xs" 
             onClick={() => setMobileMenuOpen(false)}

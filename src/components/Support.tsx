@@ -634,7 +634,7 @@ export const Support: React.FC = () => {
 
       {/* Modal: New Support Ticket */}
       {newTicketModal && (
-        <div className="fixed inset-0 z-[140] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
           <div className="bg-surface-container border border-outline-variant p-6 rounded-xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-outline-variant">
               <div className="flex items-center gap-2 text-primary">

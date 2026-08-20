@@ -32,7 +32,7 @@ export const MissionMap: React.FC = () => {
     <div className="flex-1 flex flex-col lg:flex-row h-full min-h-[calc(100vh-4rem)] w-full overflow-hidden bg-background text-on-background relative">
       {/* Deploy Assets Modal */}
       {deployModalOpen && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
           <div className="bg-surface-container border border-outline-variant p-6 rounded-xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-outline-variant">
               <div className="flex items-center gap-2 text-secondary">

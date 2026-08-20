@@ -27,7 +27,7 @@ export const DispatchModal = ({ onClose, initialIncident }: { onClose: () => voi
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/80 z-[9999] backdrop-blur-md flex items-center justify-center p-4">
       <div className="bg-[#0a0e17] border border-[#1f2937] rounded-xl w-full max-w-lg shadow-2xl overflow-hidden">
         <div className="p-4 border-b border-[#1f2937] flex justify-between items-center bg-[#111827]">
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
