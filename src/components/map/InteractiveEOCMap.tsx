@@ -13,7 +13,7 @@ import {
 } from 'react-leaflet';
 import L from 'leaflet';
 import { useEOC } from '../../context/EOCContext';
-import { fetchCoordinatesWeather, DistrictWeather } from '../../services/weatherService';
+import { fetchCoordinatesWeather, type DistrictWeather } from '../../services/weatherService';
 
 // Fix Leaflet marker icon asset issue
 delete (L.Icon.Default.prototype as any)._getIconUrl;
