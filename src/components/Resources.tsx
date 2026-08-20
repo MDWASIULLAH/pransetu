@@ -30,7 +30,7 @@ export const Resources: React.FC = () => {
           <div className="bg-surface-container border border-outline-variant p-6 rounded-xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-outline-variant">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#2563EB] text-[24px]">local_shipping</span>
+                <span className="material-symbols-outlined text-primary text-[24px]">local_shipping</span>
                 <h3 className="font-headline-sm text-headline-sm font-bold text-on-surface">
                   Dispatch Fleet &amp; Supplies
                 </h3>
@@ -51,7 +51,7 @@ export const Resources: React.FC = () => {
                 <select 
                   value={targetFacilityId}
                   onChange={(e) => setTargetFacilityId(e.target.value)}
-                  className="w-full bg-[#020617] border border-outline-variant rounded p-2 text-on-surface font-body-sm text-xs sm:text-sm focus:outline-none focus:border-[#2563EB] cursor-pointer"
+                  className="w-full bg-surface-container-highest border border-outline-variant rounded p-2 text-on-surface font-body-sm text-xs sm:text-sm focus:outline-none focus:border-primary cursor-pointer"
                 >
                   {shelters.map((s) => {
                     const occPct = Math.round((s.occupied / s.capacity) * 100);
@@ -71,7 +71,7 @@ export const Resources: React.FC = () => {
                 <select 
                   value={resourceType}
                   onChange={(e) => setResourceType(e.target.value)}
-                  className="w-full bg-[#020617] border border-outline-variant rounded p-2 text-on-surface font-body-sm text-xs sm:text-sm focus:outline-none focus:border-[#2563EB] cursor-pointer"
+                  className="w-full bg-surface-container-highest border border-outline-variant rounded p-2 text-on-surface font-body-sm text-xs sm:text-sm focus:outline-none focus:border-primary cursor-pointer"
                 >
                   <option value="Rescue Boats (Outboard Motor)">Rescue Boats (Outboard Motor - Available: {fleet.boats.ready})</option>
                   <option value="Advanced Life Support Ambulances">ALS Ambulances (Available: {fleet.ambulances.ready})</option>
@@ -90,7 +90,7 @@ export const Resources: React.FC = () => {
                   max={20}
                   value={resourceQuantity}
                   onChange={(e) => setResourceQuantity(Math.max(1, Number(e.target.value)))}
-                  className="w-full bg-[#020617] border border-outline-variant rounded p-2 text-on-surface font-data-value text-data-value focus:outline-none focus:border-[#2563EB]"
+                  className="w-full bg-surface-container-highest border border-outline-variant rounded p-2 text-on-surface font-data-value text-data-value focus:outline-none focus:border-primary"
                 />
               </div>
 
@@ -104,7 +104,7 @@ export const Resources: React.FC = () => {
                 </button>
                 <button 
                   type="submit"
-                  className="px-5 py-2 bg-[#2563EB] hover:bg-blue-700 text-white font-bold rounded flex items-center gap-2 cursor-pointer shadow-md text-xs sm:text-sm"
+                  className="px-5 py-2 bg-primary hover:bg-primary/90 text-on-primary font-bold rounded flex items-center gap-2 cursor-pointer shadow-md text-xs sm:text-sm"
                 >
                   <span className="material-symbols-outlined text-[18px]">send</span>
                   Confirm Dispatch
@@ -144,7 +144,7 @@ export const Resources: React.FC = () => {
                 </div>
                 <div>
                   <span className="font-data-label text-data-label text-on-surface-variant block">CURRENT OCCUPANCY</span>
-                  <span className="font-data-value text-data-value text-[#F59E0B] text-base sm:text-lg">
+                  <span className="font-data-value text-data-value text-on-surface text-base sm:text-lg">
                     {selectedShelter.occupied} ({Math.round((selectedShelter.occupied / selectedShelter.capacity) * 100)}%)
                   </span>
                 </div>
@@ -187,7 +187,7 @@ export const Resources: React.FC = () => {
                     setTargetFacilityId(targetId);
                     setDispatchModalOpen(true);
                   }}
-                  className="px-4 py-2 bg-[#2563EB] hover:bg-blue-700 text-white font-bold rounded flex items-center gap-2 cursor-pointer text-xs"
+                  className="px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary font-bold rounded flex items-center gap-2 cursor-pointer text-xs"
                 >
                   <span className="material-symbols-outlined text-[16px]">local_shipping</span>
                   Send Supplies Here
@@ -218,7 +218,7 @@ export const Resources: React.FC = () => {
           </button>
           <button 
             onClick={() => setDispatchModalOpen(true)}
-            className="bg-[#2563EB] hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded flex items-center gap-1.5 font-body-sm text-xs sm:text-sm font-bold transition-colors cursor-pointer"
+            className="bg-primary hover:bg-primary/90 text-on-primary px-3 sm:px-4 py-2 rounded flex items-center gap-1.5 font-body-sm text-xs sm:text-sm font-bold transition-colors cursor-pointer"
           >
             <span className="material-symbols-outlined text-sm">local_shipping</span>
             Dispatch Resource
@@ -235,8 +235,8 @@ export const Resources: React.FC = () => {
               <span className="material-symbols-outlined text-primary">shelves</span>
               Shelter Network Status ({shelters.length} Facilities)
             </h2>
-            <span className="bg-[#10B981] text-[#022c22] px-2 py-0.5 rounded text-xs font-bold flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-[#022c22] animate-pulse"></span>
+            <span className="bg-surface-bright text-status-green border border-status-green/30 px-2 py-0.5 rounded text-xs font-bold flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-status-green animate-pulse"></span>
               LIVE
             </span>
           </div>
@@ -262,7 +262,7 @@ export const Resources: React.FC = () => {
               <div className="font-data-label text-data-label text-on-surface-variant uppercase text-[10px] sm:text-xs">
                 Current Occ.
               </div>
-              <div className="font-display-lg text-2xl sm:text-display-lg text-[#F59E0B] mt-1 font-bold">
+              <div className="font-display-lg text-2xl sm:text-display-lg text-on-surface mt-1 font-bold">
                 {overallOccupancyPercent}%
               </div>
             </div>
@@ -351,11 +351,11 @@ export const Resources: React.FC = () => {
             <div className="bg-surface-container-high border border-outline-variant rounded-xl p-4 flex items-center justify-between shadow-md">
               <div>
                 <div className="font-data-label text-data-label text-on-surface-variant uppercase text-xs">Units Ready</div>
-                <div className="font-headline-lg text-xl sm:text-headline-lg text-[#10B981] mt-1 font-bold">
+                <div className="font-headline-lg text-xl sm:text-headline-lg text-status-green mt-1 font-bold">
                   {fleet.boats.ready + fleet.ambulances.ready + fleet.teams.ready}
                 </div>
               </div>
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-surface-container-highest border border-outline-variant flex items-center justify-center text-[#10B981] shrink-0">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-surface-container-highest border border-outline-variant flex items-center justify-center text-status-green shrink-0">
                 <span className="material-symbols-outlined text-[20px] sm:text-[24px]">check_circle</span>
               </div>
             </div>
@@ -382,17 +382,17 @@ export const Resources: React.FC = () => {
                 </div>
                 <div className="flex h-3 sm:h-4 rounded-full overflow-hidden mb-1">
                   <div 
-                    className="bg-[#2563EB] transition-all duration-500" 
+                    className="bg-primary transition-all duration-500" 
                     style={{ width: `${(fleet.boats.deployed / fleet.boats.total) * 100}%` }}
                     title={`Deployed: ${fleet.boats.deployed}`}
                   ></div>
                   <div 
-                    className="bg-[#10B981] transition-all duration-500" 
+                    className="bg-status-green transition-all duration-500" 
                     style={{ width: `${(fleet.boats.ready / fleet.boats.total) * 100}%` }}
                     title={`Ready: ${fleet.boats.ready}`}
                   ></div>
                   <div 
-                    className="bg-[#DC2626] transition-all duration-500" 
+                    className="bg-error transition-all duration-500" 
                     style={{ width: `${(fleet.boats.maintenance / fleet.boats.total) * 100}%` }}
                     title={`Maintenance: ${fleet.boats.maintenance}`}
                   ></div>
@@ -414,12 +414,12 @@ export const Resources: React.FC = () => {
                 </div>
                 <div className="flex h-3 sm:h-4 rounded-full overflow-hidden mb-1">
                   <div 
-                    className="bg-[#2563EB] transition-all duration-500" 
+                    className="bg-primary transition-all duration-500" 
                     style={{ width: `${(fleet.ambulances.deployed / fleet.ambulances.total) * 100}%` }}
                     title={`Deployed: ${fleet.ambulances.deployed}`}
                   ></div>
                   <div 
-                    className="bg-[#10B981] transition-all duration-500" 
+                    className="bg-status-green transition-all duration-500" 
                     style={{ width: `${(fleet.ambulances.ready / fleet.ambulances.total) * 100}%` }}
                     title={`Ready: ${fleet.ambulances.ready}`}
                   ></div>
@@ -441,12 +441,12 @@ export const Resources: React.FC = () => {
                 </div>
                 <div className="flex h-3 sm:h-4 rounded-full overflow-hidden mb-1">
                   <div 
-                    className="bg-[#2563EB] transition-all duration-500" 
+                    className="bg-primary transition-all duration-500" 
                     style={{ width: `${(fleet.foodPallets.deployed / fleet.foodPallets.total) * 100}%` }}
                     title={`Dispatched: ${fleet.foodPallets.deployed}`}
                   ></div>
                   <div 
-                    className="bg-[#10B981] transition-all duration-500" 
+                    className="bg-status-green transition-all duration-500" 
                     style={{ width: `${(fleet.foodPallets.ready / fleet.foodPallets.total) * 100}%` }}
                     title={`Warehouse: ${fleet.foodPallets.ready}`}
                   ></div>
