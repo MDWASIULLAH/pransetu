@@ -140,8 +140,8 @@ export interface InteractiveEOCMapProps {
   showShelters?: boolean;
   showRoutes?: boolean;
   showRescueUnits?: boolean;
-  mapType?: 'dark' | 'satellite';
-  onMapTypeToggle?: (type: 'dark' | 'satellite') => void;
+  mapType?: 'light' | 'dark' | 'satellite';
+  onMapTypeToggle?: (type: 'light' | 'dark' | 'satellite') => void;
   onInspectRoute?: (routeId: string) => void;
   height?: string;
   className?: string;
@@ -160,10 +160,10 @@ export const InteractiveEOCMap: React.FC<InteractiveEOCMapProps> = ({
 }) => {
   const { signals, selectedSignalId, setSelectedSignalId, shelters, dispatchTeamToSignal } = useEOC();
 
-  const [internalMapType, setInternalMapType] = useState<'dark' | 'satellite'>('dark');
+  const [internalMapType, setInternalMapType] = useState<'light' | 'dark' | 'satellite'>('dark');
   const activeMapType = controlledMapType || internalMapType;
 
-  const handleToggleMapType = (type: 'dark' | 'satellite') => {
+  const handleToggleMapType = (type: 'light' | 'dark' | 'satellite') => {
     if (onMapTypeToggle) {
       onMapTypeToggle(type);
     } else {
@@ -226,22 +226,33 @@ export const InteractiveEOCMap: React.FC<InteractiveEOCMapProps> = ({
     <div className={`relative w-full h-full min-h-[400px] overflow-hidden ${className}`} style={{ height }}>
       {/* Basemap Switcher */}
       {!controlledMapType && (
-        <div className="absolute bottom-4 left-4 z-[400] flex items-center gap-1.5 bg-surface-container-high/90 border border-outline-variant p-1 rounded-lg shadow-xl backdrop-blur-md">
+        <div className="absolute bottom-4 left-4 z-[400] flex items-center gap-1 bg-surface-container-high/90 border border-outline-variant p-1 rounded-lg shadow-xl backdrop-blur-md">
+          <button
+            onClick={() => handleToggleMapType('light')}
+            className={`px-2 py-1 text-xs font-bold rounded transition-colors cursor-pointer flex items-center gap-1 ${
+              activeMapType === 'light' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[14px]">light_mode</span>
+            Day
+          </button>
           <button
             onClick={() => handleToggleMapType('dark')}
-            className={`px-2.5 py-1 text-xs font-bold rounded transition-colors cursor-pointer ${
+            className={`px-2 py-1 text-xs font-bold rounded transition-colors cursor-pointer flex items-center gap-1 ${
               activeMapType === 'dark' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface'
             }`}
           >
-            Tactical Dark
+            <span className="material-symbols-outlined text-[14px]">dark_mode</span>
+            Night
           </button>
           <button
             onClick={() => handleToggleMapType('satellite')}
-            className={`px-2.5 py-1 text-xs font-bold rounded transition-colors cursor-pointer ${
+            className={`px-2 py-1 text-xs font-bold rounded transition-colors cursor-pointer flex items-center gap-1 ${
               activeMapType === 'satellite' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface'
             }`}
           >
-            Satellite GIS
+            <span className="material-symbols-outlined text-[14px]">satellite_alt</span>
+            Satellite
           </button>
         </div>
       )}
@@ -270,7 +281,13 @@ export const InteractiveEOCMap: React.FC<InteractiveEOCMapProps> = ({
         <MapCoordinateTracker onCoordinatesChange={(coords) => setLiveCoords(coords)} />
 
         {/* Real Dynamic Tile Layers */}
-        {activeMapType === 'dark' ? (
+        {activeMapType === 'light' ? (
+          <TileLayer
+            attribution='&copy; <a href="https://carto.com/">CARTO</a> &copy; OpenStreetMap'
+            url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+            maxZoom={18}
+          />
+        ) : activeMapType === 'dark' ? (
           <TileLayer
             attribution='&copy; <a href="https://carto.com/">CARTO</a> &copy; OpenStreetMap'
             url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"

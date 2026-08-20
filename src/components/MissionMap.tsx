@@ -10,7 +10,6 @@ export const MissionMap: React.FC = () => {
   const [evacShelters, setEvacShelters] = useState(true);
   const [evacRoutes, setEvacRoutes] = useState(true);
   const [rescueUnits, setRescueUnits] = useState(true);
-  const [mapType, setMapType] = useState<'dark' | 'satellite'>('dark');
   const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(signals[0]?.id || 'OD-7A92');
   const [deployModalOpen, setDeployModalOpen] = useState(false);
   const [operationsPanelOpen, setOperationsPanelOpen] = useState(true);
@@ -131,7 +130,6 @@ export const MissionMap: React.FC = () => {
       <div className="flex-1 relative bg-surface-container-lowest overflow-hidden min-h-[480px] lg:min-h-full" id="map-container">
         {/* Real Interactive Leaflet Map with Live Cursor GPS Tracker & Route Inspector */}
         <InteractiveEOCMap
-          mapType={mapType}
           showFloodZones={floodZones}
           showShelters={evacShelters}
           showRoutes={evacRoutes}
