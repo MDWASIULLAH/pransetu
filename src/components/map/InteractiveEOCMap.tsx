@@ -154,40 +154,68 @@ const SOSPopupContent: React.FC<{
   };
 
   return (
-    <div className="min-w-[270px] text-xs">
-      <div className="flex justify-between items-center pb-1 mb-2 border-b border-outline-variant">
-        <strong className="text-primary font-mono text-sm">{sig.id}</strong>
+    <div className="min-w-[290px] text-xs">
+      <div className="flex justify-between items-center pb-1.5 mb-2.5 border-b border-outline-variant">
+        <strong className="text-primary font-mono text-sm tracking-wide">{sig.id}</strong>
         <span
-          className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
-            isCritical ? 'bg-red-950 text-red-300' : 'bg-orange-950 text-orange-300'
+          className={`px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wide ${
+            isCritical ? 'bg-red-950 text-red-300 border border-red-800/50' : 'bg-orange-950 text-orange-300 border border-orange-800/50'
           }`}
         >
           {sig.status.toUpperCase()} ({sig.score} PTS)
         </span>
       </div>
 
-      <div className="space-y-1 mb-2.5 text-gray-200">
-        <div>Location: <strong>{sig.loc}</strong></div>
-        <div>GPS: <span className="font-mono text-status-green font-bold">{sig.lat.toFixed(4)}° N, {sig.lng.toFixed(4)}° E</span></div>
-        <div>People Trapped: <strong>{sig.people}</strong></div>
-        <div>Relay: <span className="text-primary">{sig.relay} (Hop {sig.hop})</span></div>
-        <div className="text-gray-400 italic text-[11px] mt-1 line-clamp-2">{sig.details}</div>
+      <div className="space-y-1.5 mb-3 text-gray-200">
+        <div className="flex justify-between">
+          <span className="text-on-surface-variant">Location:</span> 
+          <strong className="text-on-surface">{sig.loc}</strong>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-on-surface-variant">GPS:</span> 
+          <span className="font-mono text-status-green font-bold">{sig.lat.toFixed(4)}° N, {sig.lng.toFixed(4)}° E</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-on-surface-variant">Trapped:</span> 
+          <strong className="text-on-surface">{sig.people}</strong>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-on-surface-variant">Relay:</span> 
+          <span className="text-primary">{sig.relay} <span className="opacity-75">(Hop {sig.hop})</span></span>
+        </div>
+        <div className="text-gray-300 italic text-[11px] mt-2 pt-1.5 border-t border-outline-variant/30 leading-snug">
+          "{sig.details}"
+        </div>
       </div>
 
       {weather && (
-        <div className="mb-3 bg-surface-container-highest p-2 rounded border border-outline-variant/50 space-y-1.5 shadow-inner">
-          <div className="flex items-center justify-between border-b border-outline-variant/40 pb-1 mb-1">
-            <span className="font-mono text-[10px] text-on-surface-variant font-bold">API LIVE TELEMETRY</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-error animate-pulse"></span>
+        <div className="mb-3 bg-[#0c1522] p-2.5 rounded-lg border border-outline-variant shadow-inner">
+          <div className="flex items-center justify-between border-b border-outline-variant/50 pb-1.5 mb-2">
+            <span className="font-mono text-[10px] text-primary/80 font-bold uppercase tracking-wider">Live Telemetry Feed</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-error animate-pulse shadow-[0_0_5px_rgba(239,68,68,0.8)]"></span>
           </div>
-          <div className="grid grid-cols-2 gap-2 text-[11px] font-mono">
-            <div>Wind: <strong className="text-orange-400">{displayWind} km/h</strong></div>
-            <div>Temp: <strong>{weather.temp}°C</strong></div>
-            <div>Pressure: <strong className={weather.pressure < 995 ? 'text-error' : 'text-on-surface'}>{weather.pressure} hPa</strong></div>
-            <div>Surge Risk: <strong className="text-red-400">+{weather.surgePotentialM}m</strong></div>
+          
+          <div className="grid grid-cols-2 gap-y-2 gap-x-3 text-[11px] font-mono mb-2.5">
+            <div className="flex items-center justify-between bg-surface-container-highest px-1.5 py-1 rounded">
+              <span className="text-on-surface-variant text-[10px]">WIND</span>
+              <strong className="text-orange-400">{displayWind} <span className="text-[9px] opacity-70">km/h</span></strong>
+            </div>
+            <div className="flex items-center justify-between bg-surface-container-highest px-1.5 py-1 rounded">
+              <span className="text-on-surface-variant text-[10px]">TEMP</span>
+              <strong className="text-on-surface">{weather.temp}°C</strong>
+            </div>
+            <div className="flex items-center justify-between bg-surface-container-highest px-1.5 py-1 rounded">
+              <span className="text-on-surface-variant text-[10px]">PRES</span>
+              <strong className={weather.pressure < 995 ? 'text-error' : 'text-on-surface'}>{weather.pressure} <span className="text-[9px] opacity-70">hPa</span></strong>
+            </div>
+            <div className="flex items-center justify-between bg-surface-container-highest px-1.5 py-1 rounded">
+              <span className="text-on-surface-variant text-[10px]">SURGE</span>
+              <strong className="text-red-400">+{weather.surgePotentialM}m</strong>
+            </div>
           </div>
-          <div className="text-[10px] text-gray-200 bg-error/10 p-1.5 rounded mt-1.5 border border-error/30 leading-snug">
-            <strong className="text-error block mb-0.5 uppercase tracking-wide">Expected Destruction:</strong>
+          
+          <div className="text-[11px] text-red-100 bg-red-950/40 p-2 rounded border border-red-900/50 leading-snug">
+            <strong className="text-red-400 block mb-0.5 text-[10px] uppercase tracking-wider font-bold">⚠️ Expected Impact:</strong>
             {getDestructionDetails(weather.cycloneRiskLevel)}
           </div>
         </div>
@@ -196,10 +224,10 @@ const SOSPopupContent: React.FC<{
       {sig.status !== 'Resolved' && sig.status !== 'Dispatched' && (
         <button
           onClick={() => dispatchTeamToSignal(sig.id)}
-          className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-1.5 px-3 rounded text-xs transition-colors flex items-center justify-center gap-1 cursor-pointer shadow-lg hover:shadow-xl"
+          className="w-full bg-error hover:bg-error-fixed text-white font-bold py-2 px-3 rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-lg hover:shadow-error/20"
         >
-          <span className="material-symbols-outlined text-[14px]">send</span>
-          Dispatch Rescue Unit
+          <span className="material-symbols-outlined text-[16px]">send</span>
+          DISPATCH RESCUE UNIT
         </button>
       )}
     </div>
