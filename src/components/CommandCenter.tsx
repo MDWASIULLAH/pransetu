@@ -105,7 +105,7 @@ export const CommandCenter: React.FC = () => {
         <div className="col-span-12 xl:col-span-8 bg-surface border border-outline-variant rounded-lg flex flex-col overflow-hidden h-[500px] relative">
           
           {/* Floating Elegant Controls Over Map */}
-          <div className="absolute top-4 left-4 z-[400] flex gap-2">
+          <div className="absolute top-4 left-4 z-[1000] flex gap-2">
             <div className="bg-surface-container-high/90 backdrop-blur border border-outline-variant rounded flex items-center p-0.5">
               <button
                 onClick={() => setActiveMapType('dark')}
@@ -145,7 +145,7 @@ export const CommandCenter: React.FC = () => {
             </div>
           </div>
 
-          <div className="absolute top-4 right-4 z-[400] flex gap-2">
+          <div className="absolute top-4 right-4 z-[1000] flex gap-2">
              <button
                 onClick={() => setInspectedRouteId('marine-drive')}
                 className="px-3 py-1.5 rounded bg-surface-container-high/90 backdrop-blur border border-outline-variant text-primary text-data-label hover:bg-surface transition-colors shadow"

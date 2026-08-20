@@ -47,6 +47,18 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
     return () => clearInterval(timer);
   }, []);
 
+  // Prevent background scrolling when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [mobileMenuOpen]);
+
   const navItems = [
     { id: 'command', label: 'Command Center', icon: 'dashboard', badge: `${metrics.criticalCount} Crit` },
     { id: 'map', label: 'Mission Map', icon: 'map', badge: 'GIS' },
