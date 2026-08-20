@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useEOC } from '../context/EOCContext';
 import { InteractiveEOCMap } from './map/InteractiveEOCMap';
+import { AIRouteInspector } from './modules/AIRouteInspector';
 
 export const CommandCenter: React.FC = () => {
   const {
@@ -17,6 +18,7 @@ export const CommandCenter: React.FC = () => {
   const [floodZonesActive, setFloodZonesActive] = useState(true);
   const [evacRoutesActive, setEvacRoutesActive] = useState(true);
   const [activeMapType, setActiveMapType] = useState<'dark' | 'satellite'>('dark');
+  const [inspectedRouteId, setInspectedRouteId] = useState<string | null>(null);
 
   // Top critical signal recommendation for AI Priority Engine
   const topCriticalSignal = signals.find((s) => s.status === 'Critical') || signals[0];
@@ -31,6 +33,14 @@ export const CommandCenter: React.FC = () => {
 
   return (
     <div className="p-4 md:p-stack-lg max-w-[1600px] mx-auto w-full">
+      {/* AI Machine Learning Route Inspector Modal */}
+      {inspectedRouteId && (
+        <AIRouteInspector
+          routeId={inspectedRouteId}
+          onClose={() => setInspectedRouteId(null)}
+        />
+      )}
+
       {/* 1. Metric Ticker (Top) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-gutter mb-stack-sm">
         {/* Metric 1: Active SOS */}
@@ -39,89 +49,91 @@ export const CommandCenter: React.FC = () => {
           <span className="font-data-label text-data-label text-on-surface-variant uppercase tracking-wider mb-2">
             Active SOS
           </span>
-          <div className="flex items-baseline gap-2">
-            <span className="font-display-lg text-display-lg text-on-surface">{metrics.activeSOSCount}</span>
-            <span className="font-data-value text-data-value text-error">
+          <div className="flex items-baseline gap-2 mb-2">
+            <span className="font-display-lg text-3xl sm:text-display-lg text-on-surface font-bold">
+              {metrics.activeSOSCount}
+            </span>
+            <span className="font-data-label text-data-label text-error font-semibold text-xs">
               (Critical: {metrics.criticalCount})
             </span>
           </div>
-          <div className="mt-2 flex items-center gap-1 text-on-surface-variant">
-            <span className="material-symbols-outlined text-[16px] text-error">trending_up</span>
-            <span className="font-data-label text-data-label">+4 in last hour</span>
+          <div className="mt-auto flex items-center text-error text-xs font-data-label">
+            <span className="material-symbols-outlined text-[16px] mr-1">trending_up</span>
+            +{signals.filter((s) => s.status === 'Critical').length} in last hour
           </div>
         </div>
 
-        {/* Metric 2: Total Affected */}
-        <div className="bg-surface-container border border-outline-variant p-stack-md flex flex-col relative rounded-lg sm:rounded-none">
+        {/* Metric 2: Total Affected (EST) */}
+        <div className="bg-surface-container border border-outline-variant p-stack-md flex flex-col relative overflow-hidden group rounded-lg sm:rounded-none">
           <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
           <span className="font-data-label text-data-label text-on-surface-variant uppercase tracking-wider mb-2">
-            Total Affected (Est)
+            Total Affected (EST)
           </span>
-          <div className="flex items-baseline gap-2">
-            <span className="font-display-lg text-display-lg text-on-surface">
+          <div className="flex items-baseline gap-2 mb-2">
+            <span className="font-display-lg text-3xl sm:text-display-lg text-on-surface font-bold">
               {metrics.totalAffectedCount.toLocaleString()}
             </span>
           </div>
-          <div className="mt-2 flex items-center gap-1 text-on-surface-variant">
-            <span className="material-symbols-outlined text-[16px] text-primary">groups</span>
-            <span className="font-data-label text-data-label">Across 3 coastal districts</span>
+          <div className="mt-auto flex items-center text-on-surface-variant text-xs font-data-label">
+            <span className="material-symbols-outlined text-[16px] mr-1">group</span>
+            Across 3 coastal districts
           </div>
         </div>
 
         {/* Metric 3: Shelters Occupied */}
-        <div className="bg-surface-container border border-outline-variant p-stack-md flex flex-col relative rounded-lg sm:rounded-none">
+        <div className="bg-surface-container border border-outline-variant p-stack-md flex flex-col relative overflow-hidden group rounded-lg sm:rounded-none">
           <div className="absolute left-0 top-0 bottom-0 w-1 bg-tertiary"></div>
           <span className="font-data-label text-data-label text-on-surface-variant uppercase tracking-wider mb-2">
             Shelters Occupied
           </span>
-          <div className="flex items-baseline gap-2">
-            <span className="font-display-lg text-display-lg text-on-surface">
+          <div className="flex items-baseline gap-2 mb-2">
+            <span className="font-display-lg text-3xl sm:text-display-lg text-on-surface font-bold">
               {metrics.sheltersOccupancyPercent}%
             </span>
           </div>
-          <div className="w-full bg-surface-container-high h-1.5 rounded-full mt-2 overflow-hidden">
+          <div className="w-full bg-surface-container-highest h-1 mt-auto rounded-full overflow-hidden">
             <div
-              className={`h-full transition-all duration-500 ${
-                metrics.sheltersOccupancyPercent > 85 ? 'bg-error' : 'bg-tertiary'
-              }`}
+              className="bg-tertiary h-full transition-all duration-500"
               style={{ width: `${metrics.sheltersOccupancyPercent}%` }}
             ></div>
           </div>
         </div>
 
         {/* Metric 4: Rescue Teams */}
-        <div className="bg-surface-container border border-outline-variant p-stack-md flex flex-col relative rounded-lg sm:rounded-none">
-          <div className="absolute left-0 top-0 bottom-0 w-1 bg-outline"></div>
+        <div className="bg-surface-container border border-outline-variant p-stack-md flex flex-col relative overflow-hidden group rounded-lg sm:rounded-none">
+          <div className="absolute left-0 top-0 bottom-0 w-1 bg-status-green"></div>
           <span className="font-data-label text-data-label text-on-surface-variant uppercase tracking-wider mb-2">
             Rescue Teams
           </span>
-          <div className="flex items-baseline gap-2">
-            <span className="font-display-lg text-display-lg text-on-surface">
+          <div className="flex items-baseline gap-2 mb-2">
+            <span className="font-display-lg text-3xl sm:text-display-lg text-on-surface font-bold">
               {metrics.teamsDeployedCount}
-              <span className="text-headline-lg text-on-surface-variant">/{metrics.teamsTotalCount}</span>
+            </span>
+            <span className="font-headline-sm text-headline-sm text-on-surface-variant text-base">
+              /{metrics.teamsTotalCount}
             </span>
           </div>
-          <div className="mt-2 flex items-center gap-1 text-on-surface-variant">
-            <span className="material-symbols-outlined text-[16px]">local_shipping</span>
-            <span className="font-data-label text-data-label">
-              {metrics.teamsTotalCount - metrics.teamsDeployedCount} teams on standby
-            </span>
+          <div className="mt-auto flex items-center text-on-surface-variant text-xs font-data-label">
+            <span className="material-symbols-outlined text-[16px] mr-1 text-status-green">local_shipping</span>
+            {metrics.teamsTotalCount - metrics.teamsDeployedCount} teams on standby
           </div>
         </div>
       </div>
 
-      {/* 12-Column Main Canvas Grid */}
+      {/* Main Operations Grid */}
       <div className="grid grid-cols-12 gap-gutter">
-        {/* 2. Real Interactive Mission Map (Center Left, Large) */}
-        <div className="col-span-12 xl:col-span-8 bg-surface-container border border-outline-variant flex flex-col min-h-[480px] lg:min-h-[520px] rounded-lg sm:rounded-none overflow-hidden">
+        {/* 2. Real Interactive Leaflet GIS Map Canvas (Center Left) */}
+        <div className="col-span-12 xl:col-span-8 bg-surface-container border border-outline-variant flex flex-col h-[450px] lg:h-[500px] rounded-lg sm:rounded-none overflow-hidden">
+          {/* Map Header Controls */}
           <div className="border-b border-outline-variant p-3 flex flex-wrap justify-between items-center bg-surface-container-low gap-2 z-10">
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-primary">map</span>
-              <h2 className="font-headline-sm text-headline-sm text-on-surface text-base sm:text-lg font-bold">
+              <h2 className="font-headline-sm text-headline-sm text-on-surface text-base font-bold">
                 Live Topography &amp; Deployments
               </h2>
             </div>
-            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+
+            <div className="flex items-center gap-2 flex-wrap">
               {/* Basemap Switcher */}
               <div className="flex items-center bg-surface-container-highest border border-outline-variant rounded p-0.5">
                 <button
@@ -163,6 +175,15 @@ export const CommandCenter: React.FC = () => {
               >
                 <span className="material-symbols-outlined text-[16px]">ev_station</span> Evac Routes
               </button>
+
+              {/* AI Route & ML Model Verification Trigger */}
+              <button
+                onClick={() => setInspectedRouteId('marine-drive')}
+                className="px-2.5 sm:px-3 py-1 rounded font-data-label text-data-label flex items-center gap-1.5 bg-primary/20 text-primary border border-primary/40 hover:bg-primary/30 transition-colors cursor-pointer text-xs font-bold shadow-xs"
+                title="Verify AI Machine Learning Routing Algorithm & DEM Elevation Cross-Section"
+              >
+                <span className="material-symbols-outlined text-[16px]">psychology</span> AI Route Inspector
+              </button>
             </div>
           </div>
 
@@ -174,6 +195,7 @@ export const CommandCenter: React.FC = () => {
               showRoutes={evacRoutesActive}
               showShelters={true}
               showRescueUnits={true}
+              onInspectRoute={(routeId) => setInspectedRouteId(routeId)}
               height="100%"
             />
           </div>
@@ -194,9 +216,9 @@ export const CommandCenter: React.FC = () => {
             </span>
           </div>
 
-          {/* Quick Search */}
-          <div className="p-2 border-b border-outline-variant/40 bg-surface-container-lowest">
-            <div className="flex items-center bg-surface-container px-2 py-1 rounded border border-outline-variant">
+          {/* Filter Bar */}
+          <div className="p-2 border-b border-outline-variant bg-surface-container">
+            <div className="flex items-center bg-surface-container-highest px-2 py-1 rounded border border-outline-variant">
               <span className="material-symbols-outlined text-on-surface-variant text-sm mr-1">search</span>
               <input
                 value={searchQuery}
@@ -260,23 +282,24 @@ export const CommandCenter: React.FC = () => {
           </div>
         </div>
 
-        {/* 4. Rescue Priority Engine (Bottom Left) */}
+        {/* 4. AI Priority Engine (Bottom Left) */}
         <div className="col-span-12 xl:col-span-6 bg-surface-container border border-outline-variant p-4 sm:p-stack-md flex flex-col rounded-lg sm:rounded-none">
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary">psychology</span>
+              <span className="material-symbols-outlined text-secondary">psychology</span>
               <h2 className="font-headline-sm text-headline-sm text-on-surface text-base font-bold">
                 AI Priority Engine
               </h2>
             </div>
-            <span className="font-data-label text-data-label text-on-surface-variant border border-outline-variant px-2 py-1 rounded text-xs">
-              Top Recommendation
+            <span className="font-data-label text-data-label text-on-surface-variant text-xs">
+              Algorithmic Triage Active
             </span>
           </div>
 
-          <div className="bg-surface-container-highest p-4 rounded border border-outline-variant flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
-            {/* Score Circle */}
-            <div className="relative w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 flex items-center justify-center rounded-full border-4 border-error-container bg-surface-container shadow-xl">
+          <div className="flex flex-col sm:flex-row items-center gap-stack-md flex-1">
+            {/* Score Ring / Display */}
+            <div className="w-24 h-24 sm:w-32 sm:h-32 border-4 border-error rounded-full flex flex-col items-center justify-center p-2 text-center bg-surface-container-highest shrink-0 shadow-lg">
+              <span className="font-data-label text-[10px] text-on-surface-variant uppercase">Highest Priority</span>
               <span className="font-display-lg text-3xl sm:text-display-lg text-error font-bold">
                 {topCriticalSignal?.score || 94}
               </span>
@@ -328,68 +351,62 @@ export const CommandCenter: React.FC = () => {
               <span className="material-symbols-outlined text-[16px] animate-spin" style={{ animationDuration: '3s' }}>
                 sync
               </span>
-              {activeCampaign.status.toUpperCase()}
+              Campaign: {activeCampaign.title}
             </span>
           </div>
 
-          <div className="mb-4">
-            <h3 className="font-headline-sm text-body-lg text-on-surface font-bold truncate">
-              "{activeCampaign.title}"
-            </h3>
-            <div className="w-full bg-surface-container-highest h-2.5 rounded-full mt-2 overflow-hidden flex">
-              <div
-                className="bg-primary h-full transition-all duration-500"
-                style={{ width: `${Math.round((activeCampaign.answeredCount / activeCampaign.totalReach) * 100)}%` }}
-                title="Answered"
-              ></div>
-              <div className="bg-outline h-full flex-1" title="Pending"></div>
-            </div>
-            <div className="flex justify-between mt-1 font-data-label text-data-label text-on-surface-variant text-xs">
-              <span>{activeCampaign.totalReach.toLocaleString()} Calls Initiated</span>
-              <span>
-                {Math.round((activeCampaign.answeredCount / activeCampaign.totalReach) * 100)}% Connection Rate
+          <div className="space-y-stack-sm flex-1">
+            <div className="flex justify-between items-center text-xs">
+              <span className="font-data-label text-data-label text-on-surface-variant">
+                Calls Dispatched ({activeCampaign.answeredCount.toLocaleString()} / {activeCampaign.totalReach.toLocaleString()})
+              </span>
+              <span className="font-data-value text-data-value text-on-surface font-bold">
+                {Math.round((activeCampaign.answeredCount / activeCampaign.totalReach) * 100)}%
               </span>
             </div>
-          </div>
-
-          {/* DTMF Responses with Click-to-Test */}
-          <div className="grid grid-cols-3 gap-2 mt-auto">
-            <div
-              onClick={() => recordDTMF('1')}
-              className="bg-surface-container-highest p-2 rounded text-center border-t-2 border-tertiary cursor-pointer hover:bg-surface-bright transition-colors group"
-              title="Click to simulate citizen pressing 1"
-            >
-              <div className="font-display-lg text-[20px] sm:text-[24px] leading-tight text-on-surface">
-                {activeCampaign.safeCount.toLocaleString()}
-              </div>
-              <div className="font-data-label text-data-label text-on-surface-variant uppercase text-[9px] sm:text-[10px] group-hover:text-tertiary">
-                Press 1: Safe
-              </div>
+            <div className="w-full bg-surface-container-highest h-2 rounded-full overflow-hidden">
+              <div
+                className="bg-primary h-full transition-all duration-500"
+                style={{ width: `${(activeCampaign.answeredCount / activeCampaign.totalReach) * 100}%` }}
+              ></div>
             </div>
 
-            <div
-              onClick={() => recordDTMF('2')}
-              className="bg-surface-container-highest p-2 rounded text-center border-t-2 border-primary cursor-pointer hover:bg-surface-bright transition-colors group"
-              title="Click to simulate citizen pressing 2"
-            >
-              <div className="font-display-lg text-[20px] sm:text-[24px] leading-tight text-on-surface">
-                {activeCampaign.foodWaterCount.toLocaleString()}
+            <div className="grid grid-cols-3 gap-2 mt-4">
+              <div 
+                onClick={() => recordDTMF('1')}
+                className="bg-surface-container-highest p-2 rounded text-center border border-outline-variant/30 hover:border-status-green cursor-pointer transition-colors"
+                title="Click to simulate Press 1 Safe response"
+              >
+                <span className="block font-data-label text-data-label text-status-green text-xs font-bold">
+                  KEY 1 (Safe)
+                </span>
+                <span className="font-data-value text-data-value text-on-surface text-sm sm:text-base font-bold">
+                  {activeCampaign.safeCount.toLocaleString()}
+                </span>
               </div>
-              <div className="font-data-label text-data-label text-on-surface-variant uppercase text-[9px] sm:text-[10px] group-hover:text-primary">
-                Press 2: Need Food
+              <div 
+                onClick={() => recordDTMF('2')}
+                className="bg-surface-container-highest p-2 rounded text-center border border-outline-variant/30 hover:border-status-orange cursor-pointer transition-colors"
+                title="Click to simulate Press 2 Needs Help response"
+              >
+                <span className="block font-data-label text-data-label text-status-orange text-xs font-bold">
+                  KEY 2 (Need Aid)
+                </span>
+                <span className="font-data-value text-data-value text-on-surface text-sm sm:text-base font-bold">
+                  {activeCampaign.foodWaterCount.toLocaleString()}
+                </span>
               </div>
-            </div>
-
-            <div
-              onClick={() => recordDTMF('3')}
-              className="bg-surface-container-highest p-2 rounded text-center border-t-2 border-error-container cursor-pointer hover:bg-surface-bright transition-colors group"
-              title="Click to simulate citizen pressing 3"
-            >
-              <div className="font-display-lg text-[20px] sm:text-[24px] leading-tight text-error">
-                {activeCampaign.medicalCount.toLocaleString()}
-              </div>
-              <div className="font-data-label text-data-label text-error uppercase text-[9px] sm:text-[10px] font-bold">
-                Press 3: Medical
+              <div 
+                onClick={() => recordDTMF('3')}
+                className="bg-surface-container-highest p-2 rounded text-center border border-outline-variant/30 hover:border-error cursor-pointer transition-colors"
+                title="Click to simulate Press 3 Medical Emergency"
+              >
+                <span className="block font-data-label text-data-label text-error text-xs font-bold">
+                  KEY 3 (Critical)
+                </span>
+                <span className="font-data-value text-data-value text-on-surface text-sm sm:text-base font-bold">
+                  {activeCampaign.medicalCount.toLocaleString()}
+                </span>
               </div>
             </div>
           </div>

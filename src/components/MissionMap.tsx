@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useEOC } from '../context/EOCContext';
 import { InteractiveEOCMap } from './map/InteractiveEOCMap';
+import { AIRouteInspector } from './modules/AIRouteInspector';
 
 export const MissionMap: React.FC = () => {
   const { signals, fleet, dispatchTeamToSignal, showToast } = useEOC();
@@ -12,7 +13,8 @@ export const MissionMap: React.FC = () => {
   const [mapType, setMapType] = useState<'dark' | 'satellite'>('dark');
   const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(signals[0]?.id || 'OD-7A92');
   const [deployModalOpen, setDeployModalOpen] = useState(false);
-  const [operationsPanelOpen, setOperationsPanelOpen] = useState(true); // Close/open right sidebar
+  const [operationsPanelOpen, setOperationsPanelOpen] = useState(true);
+  const [inspectedRouteId, setInspectedRouteId] = useState<string | null>(null);
   const [teamSelection, setTeamSelection] = useState('NDRF-Alpha (Battalion 03)');
   const [assetType, setAssetType] = useState('Inflatable Rescue Boats (IRB)');
 
@@ -30,6 +32,14 @@ export const MissionMap: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col lg:flex-row h-full min-h-[calc(100vh-4rem)] w-full overflow-hidden bg-background text-on-background relative">
+      {/* AI Machine Learning Route Inspector Modal */}
+      {inspectedRouteId && (
+        <AIRouteInspector
+          routeId={inspectedRouteId}
+          onClose={() => setInspectedRouteId(null)}
+        />
+      )}
+
       {/* Deploy Assets Modal */}
       {deployModalOpen && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
@@ -119,13 +129,14 @@ export const MissionMap: React.FC = () => {
 
       {/* Map Canvas (Expands to 100% full width when operations panel is closed) */}
       <div className="flex-1 relative bg-surface-container-lowest overflow-hidden min-h-[480px] lg:min-h-full" id="map-container">
-        {/* Real Interactive Leaflet Map with Live Cursor GPS Tracker */}
+        {/* Real Interactive Leaflet Map with Live Cursor GPS Tracker & Route Inspector */}
         <InteractiveEOCMap
           mapType={mapType}
           showFloodZones={floodZones}
           showShelters={evacShelters}
           showRoutes={evacRoutes}
           showRescueUnits={rescueUnits}
+          onInspectRoute={(routeId) => setInspectedRouteId(routeId)}
           height="100%"
         />
 
@@ -319,6 +330,17 @@ export const MissionMap: React.FC = () => {
                   }`} />
                 </div>
               </label>
+
+              {/* AI Route Verification & ML Model Trigger Button */}
+              <div className="pt-2">
+                <button
+                  onClick={() => setInspectedRouteId('marine-drive')}
+                  className="w-full bg-primary/15 hover:bg-primary/25 text-primary border border-primary/40 p-2.5 rounded-xl font-headline-sm text-xs font-bold transition-colors cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-[18px]">psychology</span>
+                  AI Route &amp; ML Model Inspector
+                </button>
+              </div>
             </div>
           </div>
 

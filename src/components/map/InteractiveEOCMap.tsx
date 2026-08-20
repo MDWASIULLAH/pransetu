@@ -134,13 +134,14 @@ const MapCoordinateTracker: React.FC<{ onCoordinatesChange: (coords: { lat: numb
   return null;
 };
 
-interface InteractiveEOCMapProps {
+export interface InteractiveEOCMapProps {
   showFloodZones?: boolean;
   showShelters?: boolean;
   showRoutes?: boolean;
   showRescueUnits?: boolean;
   mapType?: 'dark' | 'satellite';
   onMapTypeToggle?: (type: 'dark' | 'satellite') => void;
+  onInspectRoute?: (routeId: string) => void;
   height?: string;
   className?: string;
 }
@@ -152,6 +153,7 @@ export const InteractiveEOCMap: React.FC<InteractiveEOCMapProps> = ({
   showRescueUnits = true,
   mapType: controlledMapType,
   onMapTypeToggle,
+  onInspectRoute,
   height = '100%',
   className = ''
 }) => {
@@ -221,7 +223,7 @@ export const InteractiveEOCMap: React.FC<InteractiveEOCMapProps> = ({
 
   return (
     <div className={`relative w-full h-full min-h-[400px] overflow-hidden ${className}`} style={{ height }}>
-      {/* Basemap Switcher (Positioned cleanly at bottom-left so it never overlaps top controls) */}
+      {/* Basemap Switcher */}
       {!controlledMapType && (
         <div className="absolute bottom-4 left-4 z-[400] flex items-center gap-1.5 bg-surface-container-high/90 border border-outline-variant p-1 rounded-lg shadow-xl backdrop-blur-md">
           <button
@@ -280,7 +282,7 @@ export const InteractiveEOCMap: React.FC<InteractiveEOCMapProps> = ({
           />
         )}
 
-        {/* Flood Inundation Zones (Real Vector Overlays) */}
+        {/* Flood Inundation Zones */}
         {showFloodZones && (
           <>
             <Polygon
@@ -334,22 +336,40 @@ export const InteractiveEOCMap: React.FC<InteractiveEOCMapProps> = ({
           </>
         )}
 
-        {/* Evacuation Corridors & High-Priority Routes */}
+        {/* Evacuation Corridors & High-Priority Routes with ML Verification Inspection */}
         {showRoutes && (
           <>
             <Polyline
               positions={marineDriveRoute}
               pathOptions={{
                 color: '#f97316',
-                weight: 3.5,
-                opacity: 0.85,
+                weight: 4,
+                opacity: 0.9,
                 dashArray: '8, 6'
               }}
             >
               <Popup>
-                <div className="text-xs">
-                  <strong className="text-orange-400 block">Marine Drive Evacuation Corridor</strong>
-                  <span className="text-gray-300">Cleared for Emergency First Responder Convoys</span>
+                <div className="min-w-[240px] text-xs">
+                  <div className="flex items-center justify-between border-b border-gray-700 pb-1.5 mb-1.5">
+                    <strong className="text-orange-400 font-bold">Marine Drive Corridor</strong>
+                    <span className="bg-green-950 text-status-green border border-green-800 text-[10px] font-mono font-bold px-1.5 py-0.2 rounded">
+                      97.4% SAFE
+                    </span>
+                  </div>
+
+                  <div className="space-y-1 mb-2 text-gray-300 font-mono text-[11px]">
+                    <div>DEM Clearance: <span className="text-primary font-bold">+2.4m Above Surge</span></div>
+                    <div>Length &amp; ETA: <span className="text-white">34.8 km (28 mins)</span></div>
+                    <div>ML Model: <span className="text-yellow-400">HydraNet-DEM GNN</span></div>
+                  </div>
+
+                  <button
+                    onClick={() => onInspectRoute?.('marine-drive')}
+                    className="w-full bg-primary-container hover:bg-primary text-primary hover:text-on-primary font-bold py-1.5 px-3 rounded text-xs transition-colors flex items-center justify-center gap-1.5 border border-primary/40 cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">psychology</span>
+                    Verify AI Route &amp; ML Model
+                  </button>
                 </div>
               </Popup>
             </Polyline>
@@ -357,16 +377,34 @@ export const InteractiveEOCMap: React.FC<InteractiveEOCMapProps> = ({
             <Polyline
               positions={khordhaPuriHighway}
               pathOptions={{
-                color: '#f97316',
-                weight: 3.5,
-                opacity: 0.85,
+                color: '#22c55e',
+                weight: 4,
+                opacity: 0.9,
                 dashArray: '8, 6'
               }}
             >
               <Popup>
-                <div className="text-xs">
-                  <strong className="text-orange-400 block">NH-316 Coastal Arterial Route</strong>
-                  <span className="text-gray-300">Active convoy transit towards Bhubaneswar</span>
+                <div className="min-w-[240px] text-xs">
+                  <div className="flex items-center justify-between border-b border-gray-700 pb-1.5 mb-1.5">
+                    <strong className="text-green-400 font-bold">NH-316 Arterial Corridor</strong>
+                    <span className="bg-green-950 text-status-green border border-green-800 text-[10px] font-mono font-bold px-1.5 py-0.2 rounded">
+                      98.8% OPTIMAL
+                    </span>
+                  </div>
+
+                  <div className="space-y-1 mb-2 text-gray-300 font-mono text-[11px]">
+                    <div>Raised Embankment: <span className="text-primary font-bold">+6.2m Datum</span></div>
+                    <div>Length &amp; ETA: <span className="text-white">56.2 km (45 mins)</span></div>
+                    <div>ML Model: <span className="text-yellow-400">TransFlow A* Spatial</span></div>
+                  </div>
+
+                  <button
+                    onClick={() => onInspectRoute?.('nh-316')}
+                    className="w-full bg-primary-container hover:bg-primary text-primary hover:text-on-primary font-bold py-1.5 px-3 rounded text-xs transition-colors flex items-center justify-center gap-1.5 border border-primary/40 cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">psychology</span>
+                    Verify AI Route &amp; ML Model
+                  </button>
                 </div>
               </Popup>
             </Polyline>
