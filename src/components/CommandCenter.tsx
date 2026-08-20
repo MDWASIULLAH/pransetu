@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useEOC } from '../context/EOCContext';
 import { InteractiveEOCMap } from './map/InteractiveEOCMap';
 import { AIRouteInspector } from './modules/AIRouteInspector';
+import { LiveWeatherWidget } from './modules/LiveWeatherWidget';
 
 export const CommandCenter: React.FC = () => {
   const {
@@ -283,7 +284,7 @@ export const CommandCenter: React.FC = () => {
         </div>
 
         {/* 4. AI Priority Engine (Bottom Left) */}
-        <div className="col-span-12 xl:col-span-6 bg-surface-container border border-outline-variant p-4 sm:p-stack-md flex flex-col rounded-lg sm:rounded-none">
+        <div className="col-span-12 xl:col-span-4 bg-surface-container border border-outline-variant p-4 sm:p-stack-md flex flex-col rounded-lg sm:rounded-none">
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-secondary">psychology</span>
@@ -298,9 +299,9 @@ export const CommandCenter: React.FC = () => {
 
           <div className="flex flex-col sm:flex-row items-center gap-stack-md flex-1">
             {/* Score Ring / Display */}
-            <div className="w-24 h-24 sm:w-32 sm:h-32 border-4 border-error rounded-full flex flex-col items-center justify-center p-2 text-center bg-surface-container-highest shrink-0 shadow-lg">
-              <span className="font-data-label text-[10px] text-on-surface-variant uppercase">Highest Priority</span>
-              <span className="font-display-lg text-3xl sm:text-display-lg text-error font-bold">
+            <div className="w-24 h-24 sm:w-28 sm:h-28 border-4 border-error rounded-full flex flex-col items-center justify-center p-2 text-center bg-surface-container-highest shrink-0 shadow-lg">
+              <span className="font-data-label text-[9px] text-on-surface-variant uppercase">Highest Priority</span>
+              <span className="font-display-lg text-2xl sm:text-3xl text-error font-bold">
                 {topCriticalSignal?.score || 94}
               </span>
             </div>
@@ -308,39 +309,39 @@ export const CommandCenter: React.FC = () => {
             {/* Factors */}
             <div className="flex-1 flex flex-col gap-2 w-full">
               <div className="flex justify-between items-center border-b border-outline-variant/50 pb-1">
-                <span className="font-body-sm text-body-sm text-on-surface text-xs sm:text-sm">
-                  Medical Urgency Detected ({topCriticalSignal?.loc})
+                <span className="font-body-sm text-body-sm text-on-surface text-xs">
+                  Medical ({topCriticalSignal?.loc})
                 </span>
                 <span className="font-data-value text-data-value text-error">+40 pts</span>
               </div>
               <div className="flex justify-between items-center border-b border-outline-variant/50 pb-1">
-                <span className="font-body-sm text-body-sm text-on-surface text-xs sm:text-sm">
-                  High Density Cluster ({topCriticalSignal?.people})
+                <span className="font-body-sm text-body-sm text-on-surface text-xs">
+                  Cluster ({topCriticalSignal?.people} pax)
                 </span>
                 <span className="font-data-value text-data-value text-tertiary">+30 pts</span>
               </div>
               <div className="flex justify-between items-center border-b border-outline-variant/50 pb-1">
-                <span className="font-body-sm text-body-sm text-on-surface text-xs sm:text-sm">
-                  Signal Relay Aging (Unresolved)
+                <span className="font-body-sm text-body-sm text-on-surface text-xs">
+                  Relay Aging
                 </span>
                 <span className="font-data-value text-data-value text-primary">+24 pts</span>
               </div>
-              <div className="mt-2">
+              <div className="mt-1">
                 <button
                   onClick={() => dispatchTeamToSignal(topCriticalSignal?.id || 'OD-7A92')}
-                  className="bg-error-container text-on-error-container font-headline-sm text-xs sm:text-[14px] px-4 py-2 rounded hover:bg-secondary-container transition-colors w-full flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+                  className="bg-error-container text-on-error-container font-headline-sm text-xs px-3 py-1.5 rounded hover:bg-secondary-container transition-colors w-full flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.99]"
                 >
-                  <span className="material-symbols-outlined text-[16px]">send</span>
-                  Deploy Team to {topCriticalSignal?.id || 'OD-7A92'}
+                  <span className="material-symbols-outlined text-[15px]">send</span>
+                  Deploy to {topCriticalSignal?.id || 'OD-7A92'}
                 </button>
               </div>
             </div>
           </div>
         </div>
 
-        {/* 5. Voice Campaign Status (Bottom Right) */}
-        <div className="col-span-12 xl:col-span-6 bg-surface-container border border-outline-variant p-4 sm:p-stack-md flex flex-col rounded-lg sm:rounded-none">
-          <div className="flex justify-between items-center mb-4">
+        {/* 5. Voice Campaign Status (Bottom Center) */}
+        <div className="col-span-12 xl:col-span-4 bg-surface-container border border-outline-variant p-4 sm:p-stack-md flex flex-col rounded-lg sm:rounded-none">
+          <div className="flex justify-between items-center mb-3">
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-primary">record_voice_over</span>
               <h2 className="font-headline-sm text-headline-sm text-on-surface text-base font-bold">
@@ -355,10 +356,10 @@ export const CommandCenter: React.FC = () => {
             </span>
           </div>
 
-          <div className="space-y-stack-sm flex-1">
+          <div className="space-y-stack-sm flex-1 flex flex-col justify-between">
             <div className="flex justify-between items-center text-xs">
               <span className="font-data-label text-data-label text-on-surface-variant">
-                Calls Dispatched ({activeCampaign.answeredCount.toLocaleString()} / {activeCampaign.totalReach.toLocaleString()})
+                Dispatched ({activeCampaign.answeredCount.toLocaleString()} / {activeCampaign.totalReach.toLocaleString()})
               </span>
               <span className="font-data-value text-data-value text-on-surface font-bold">
                 {Math.round((activeCampaign.answeredCount / activeCampaign.totalReach) * 100)}%
@@ -371,7 +372,7 @@ export const CommandCenter: React.FC = () => {
               ></div>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 mt-4">
+            <div className="grid grid-cols-3 gap-2 mt-2">
               <div 
                 onClick={() => recordDTMF('1')}
                 className="bg-surface-container-highest p-2 rounded text-center border border-outline-variant/30 hover:border-status-green cursor-pointer transition-colors"
@@ -380,7 +381,7 @@ export const CommandCenter: React.FC = () => {
                 <span className="block font-data-label text-data-label text-status-green text-xs font-bold">
                   KEY 1 (Safe)
                 </span>
-                <span className="font-data-value text-data-value text-on-surface text-sm sm:text-base font-bold">
+                <span className="font-data-value text-data-value text-on-surface text-sm font-bold">
                   {activeCampaign.safeCount.toLocaleString()}
                 </span>
               </div>
@@ -390,9 +391,9 @@ export const CommandCenter: React.FC = () => {
                 title="Click to simulate Press 2 Needs Help response"
               >
                 <span className="block font-data-label text-data-label text-status-orange text-xs font-bold">
-                  KEY 2 (Need Aid)
+                  KEY 2 (Aid)
                 </span>
-                <span className="font-data-value text-data-value text-on-surface text-sm sm:text-base font-bold">
+                <span className="font-data-value text-data-value text-on-surface text-sm font-bold">
                   {activeCampaign.foodWaterCount.toLocaleString()}
                 </span>
               </div>
@@ -404,12 +405,17 @@ export const CommandCenter: React.FC = () => {
                 <span className="block font-data-label text-data-label text-error text-xs font-bold">
                   KEY 3 (Critical)
                 </span>
-                <span className="font-data-value text-data-value text-on-surface text-sm sm:text-base font-bold">
+                <span className="font-data-value text-data-value text-on-surface text-sm font-bold">
                   {activeCampaign.medicalCount.toLocaleString()}
                 </span>
               </div>
             </div>
           </div>
+        </div>
+
+        {/* 6. Live Weather & Atmospheric Telemetry Card (Bottom Right - OpenWeatherMap Integration) */}
+        <div className="col-span-12 xl:col-span-4 rounded-lg sm:rounded-none overflow-hidden">
+          <LiveWeatherWidget className="h-full" />
         </div>
       </div>
     </div>
