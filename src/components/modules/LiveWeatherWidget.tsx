@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import type { DistrictWeather } from '../../services/weatherService';
+import type { DistrictWeather, PresetLocation } from '../../services/weatherService';
 import {
-  ODISHA_COASTAL_STATIONS,
-  DEFAULT_OPENWEATHER_API_KEY,
-  fetchDistrictWeather
+  GLOBAL_PRESET_LOCATIONS,
+  fetchGlobalCityWeather,
+  fetchCoordinatesWeather
 } from '../../services/weatherService';
 
 interface LiveWeatherWidgetProps {
@@ -15,152 +15,165 @@ export const LiveWeatherWidget: React.FC<LiveWeatherWidgetProps> = ({
   onWeatherUpdate,
   className = ''
 }) => {
-  const [selectedStationIndex, setSelectedStationIndex] = useState<number>(0);
+  const [selectedLocation, setSelectedLocation] = useState<PresetLocation>(GLOBAL_PRESET_LOCATIONS[0]);
   const [currentWeather, setCurrentWeather] = useState<DistrictWeather | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [apiKey, setApiKey] = useState<string>(DEFAULT_OPENWEATHER_API_KEY);
-  const [showKeyModal, setShowKeyModal] = useState<boolean>(false);
-  const [tempApiKey, setTempApiKey] = useState<string>(DEFAULT_OPENWEATHER_API_KEY);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [activeCategory, setActiveCategory] = useState<'All' | 'India Disaster Grid' | 'Global Hurricane/Typhoon' | 'World Capitals'>('All');
+  const [searchError, setSearchError] = useState<string | null>(null);
 
-  const selectedStation = ODISHA_COASTAL_STATIONS[selectedStationIndex];
-
-  const loadWeather = async () => {
+  const loadWeather = async (loc?: PresetLocation) => {
     setLoading(true);
-    const data = await fetchDistrictWeather(selectedStation, apiKey);
+    setSearchError(null);
+    const targetLoc = loc || selectedLocation;
+    const data = await fetchCoordinatesWeather(targetLoc.lat, targetLoc.lon, targetLoc.name);
     setCurrentWeather(data);
     setLoading(false);
     onWeatherUpdate?.(data);
+  };
+
+  const handleSearchSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+
+    setLoading(true);
+    setSearchError(null);
+    try {
+      const data = await fetchGlobalCityWeather(searchQuery.trim());
+      setCurrentWeather(data);
+      setSelectedLocation({
+        name: data.district,
+        category: 'World Capitals',
+        lat: data.lat,
+        lon: data.lon,
+        country: data.country || 'GLOBAL'
+      });
+      onWeatherUpdate?.(data);
+    } catch (err) {
+      setSearchError('City not found. Please verify spelling.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     loadWeather();
     const interval = setInterval(() => {
       loadWeather();
-    }, 60000); // 1-minute live auto-refresh
+    }, 60000); // 1-minute auto refresh
     return () => clearInterval(interval);
-  }, [selectedStationIndex, apiKey]);
+  }, [selectedLocation]);
 
-  const handleSaveApiKey = (e: React.FormEvent) => {
-    e.preventDefault();
-    setApiKey(tempApiKey.trim());
-    setShowKeyModal(false);
-    loadWeather();
-  };
+  const filteredPresets = activeCategory === 'All'
+    ? GLOBAL_PRESET_LOCATIONS
+    : GLOBAL_PRESET_LOCATIONS.filter((l) => l.category === activeCategory);
 
   return (
     <div className={`bg-surface-container border border-outline-variant rounded-xl p-4 shadow-lg overflow-hidden flex flex-col ${className}`}>
-      {/* API Key Configuration Modal */}
-      {showKeyModal && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in">
-          <div className="bg-surface-container-high border border-outline-variant p-6 rounded-2xl w-full max-w-md shadow-2xl">
-            <div className="flex justify-between items-center pb-3 border-b border-outline-variant">
-              <div className="flex items-center gap-2 text-primary font-bold">
-                <span className="material-symbols-outlined text-[22px]">key</span>
-                <h3 className="font-headline-sm text-sm sm:text-base text-on-surface">
-                  OpenWeatherMap API Key Settings
-                </h3>
-              </div>
-              <button
-                onClick={() => setShowKeyModal(false)}
-                className="text-on-surface-variant hover:text-on-surface cursor-pointer"
-              >
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveApiKey} className="mt-4 space-y-4">
-              <div>
-                <label className="text-xs font-mono text-on-surface-variant block mb-1">
-                  Active OpenWeather API Key
-                </label>
-                <input
-                  type="text"
-                  value={tempApiKey}
-                  onChange={(e) => setTempApiKey(e.target.value)}
-                  placeholder="Enter 32-character API key"
-                  className="w-full bg-surface-container-highest border border-outline-variant rounded-lg p-2.5 text-on-surface font-mono text-xs focus:outline-none focus:border-primary"
-                />
-                <span className="text-[11px] text-on-surface-variant/80 mt-1 block">
-                  New OpenWeather keys activate within 10-30 minutes on global servers. The app automatically provides IMD Doppler telemetry in the meantime.
-                </span>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowKeyModal(false)}
-                  className="px-3 py-1.5 bg-surface-bright border border-outline-variant text-on-surface rounded-lg text-xs font-bold hover:bg-surface-container-highest cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-1.5 bg-primary text-on-primary rounded-lg text-xs font-bold hover:bg-primary-fixed cursor-pointer transition-colors"
-                >
-                  Save &amp; Sync
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Header */}
+      {/* Header with Global Live Indicator */}
       <div className="flex flex-wrap justify-between items-center pb-3 border-b border-outline-variant gap-2">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-primary/15 border border-primary/40 flex items-center justify-center text-primary">
-            <span className="material-symbols-outlined text-[20px]">air</span>
+            <span className="material-symbols-outlined text-[20px]">public</span>
           </div>
           <div>
             <h3 className="font-headline-sm text-sm font-bold text-on-surface flex items-center gap-1.5">
-              Live Coastal Atmospheric Telemetry
+              Global Atmospheric &amp; Storm Telemetry
             </h3>
             <span className="text-[10px] font-mono text-on-surface-variant block">
-              {currentWeather?.isRealApi ? '🟢 OpenWeatherMap Live Feed' : '🔵 IMD Doppler Satellite Radar'} • Sync: {currentWeather?.lastUpdated || 'Now'}
+              Worldwide Doppler Feed • Live Sync: {currentWeather?.lastUpdated || 'Now'}
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5">
-          <button
-            onClick={loadWeather}
-            disabled={loading}
-            className="p-1.5 rounded-lg bg-surface-container-highest hover:bg-surface-bright text-on-surface-variant hover:text-primary transition-colors cursor-pointer border border-outline-variant"
-            title="Sync Live Weather"
-          >
-            <span className={`material-symbols-outlined text-[16px] ${loading ? 'animate-spin' : ''}`}>
-              sync
-            </span>
-          </button>
-          <button
-            onClick={() => setShowKeyModal(true)}
-            className="px-2 py-1 rounded-lg bg-surface-container-highest hover:bg-surface-bright text-on-surface text-[11px] font-mono font-bold flex items-center gap-1 border border-outline-variant cursor-pointer transition-colors"
-            title="Configure OpenWeather API Key"
-          >
-            <span className="material-symbols-outlined text-[13px] text-primary">vpn_key</span>
-            <span>API</span>
-          </button>
-        </div>
+        <button
+          onClick={() => loadWeather()}
+          disabled={loading}
+          className="p-1.5 rounded-lg bg-surface-container-highest hover:bg-surface-bright text-on-surface-variant hover:text-primary transition-colors cursor-pointer border border-outline-variant flex items-center gap-1 text-xs"
+          title="Refresh Live Weather"
+        >
+          <span className={`material-symbols-outlined text-[16px] ${loading ? 'animate-spin' : ''}`}>
+            sync
+          </span>
+          <span className="hidden sm:inline text-[11px] font-mono">Sync</span>
+        </button>
       </div>
 
-      {/* District Selector Tabs */}
-      <div className="flex gap-1.5 py-2.5 overflow-x-auto border-b border-outline-variant">
-        {ODISHA_COASTAL_STATIONS.map((station, idx) => (
+      {/* Worldwide City Search Bar */}
+      <form onSubmit={handleSearchSubmit} className="pt-2.5 pb-2">
+        <div className="flex items-center gap-1.5 bg-surface-container-highest rounded-lg border border-outline-variant px-2.5 py-1">
+          <span className="material-symbols-outlined text-on-surface-variant text-[18px]">search</span>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search any city or country worldwide (e.g. Tokyo, Miami, London, Mumbai)..."
+            className="w-full bg-transparent text-on-surface text-xs focus:outline-none placeholder:text-on-surface-variant/60 font-mono"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              className="text-on-surface-variant hover:text-on-surface text-xs cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[16px]">close</span>
+            </button>
+          )}
           <button
-            key={station.district}
-            onClick={() => setSelectedStationIndex(idx)}
-            className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
-              selectedStationIndex === idx
-                ? 'bg-primary text-on-primary font-bold shadow-xs'
-                : 'bg-surface-container-highest border border-outline-variant/60 text-on-surface-variant hover:text-on-surface'
+            type="submit"
+            disabled={loading || !searchQuery.trim()}
+            className="px-2.5 py-0.5 bg-primary text-on-primary rounded text-[11px] font-bold hover:bg-primary-fixed cursor-pointer transition-colors shrink-0 disabled:opacity-50"
+          >
+            Locate
+          </button>
+        </div>
+        {searchError && (
+          <span className="text-[11px] text-error font-mono mt-1 block">{searchError}</span>
+        )}
+      </form>
+
+      {/* Region Category Filter Pills */}
+      <div className="flex gap-1 py-1.5 overflow-x-auto border-b border-outline-variant text-[11px] font-mono">
+        {(['All', 'India Disaster Grid', 'Global Hurricane/Typhoon', 'World Capitals'] as const).map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setActiveCategory(cat)}
+            className={`px-2 py-0.5 rounded transition-colors cursor-pointer whitespace-nowrap ${
+              activeCategory === cat
+                ? 'bg-primary-container text-primary font-bold border border-primary/30'
+                : 'text-on-surface-variant hover:text-on-surface'
             }`}
           >
-            {station.district}
+            {cat}
           </button>
         ))}
       </div>
 
-      {/* Weather Metrics Grid */}
+      {/* Preset Location Badges */}
+      <div className="flex gap-1.5 py-2 overflow-x-auto border-b border-outline-variant">
+        {filteredPresets.map((loc) => {
+          const isSelected = selectedLocation.name === loc.name;
+          return (
+            <button
+              key={loc.name}
+              onClick={() => {
+                setSelectedLocation(loc);
+                setSearchQuery('');
+              }}
+              className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1 ${
+                isSelected
+                  ? 'bg-primary text-on-primary font-bold shadow-xs'
+                  : 'bg-surface-container-highest border border-outline-variant/60 text-on-surface-variant hover:text-on-surface'
+              }`}
+            >
+              <span className="text-[10px] opacity-75 font-mono">[{loc.country}]</span>
+              <span>{loc.name.split(' ')[0]}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Current Weather Display */}
       {currentWeather && (
         <div className="pt-3 space-y-3 flex-1 flex flex-col justify-between">
           <div className="flex items-center justify-between bg-surface-container-high p-3 rounded-xl border border-outline-variant/70">
@@ -169,12 +182,16 @@ export const LiveWeatherWidget: React.FC<LiveWeatherWidgetProps> = ({
                 {currentWeather.temp}°C
               </span>
               <div>
-                <span className="font-bold text-xs text-primary block">{currentWeather.condition}</span>
-                <span className="text-[10px] text-on-surface-variant font-mono">Feels like {currentWeather.feelsLike}°C</span>
+                <span className="font-bold text-xs text-primary block">
+                  {currentWeather.district} {currentWeather.country ? `(${currentWeather.country})` : ''}
+                </span>
+                <span className="text-[10px] text-on-surface-variant font-mono">
+                  {currentWeather.condition} • Feels {currentWeather.feelsLike}°C
+                </span>
               </div>
             </div>
 
-            {/* Cyclone Alert Badge */}
+            {/* Cyclone / Hazard Classification */}
             <div className="text-right">
               <span
                 className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider inline-block ${
@@ -190,11 +207,12 @@ export const LiveWeatherWidget: React.FC<LiveWeatherWidgetProps> = ({
                 {currentWeather.cycloneRiskLevel.replace('_', ' ')}
               </span>
               <span className="text-[10px] text-on-surface-variant font-mono block mt-0.5">
-                Surge Est: +{currentWeather.surgePotentialM}m
+                Surge Risk: +{currentWeather.surgePotentialM}m
               </span>
             </div>
           </div>
 
+          {/* 4 Telemetry Metrics */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <div className="p-2.5 bg-surface-container-highest rounded-lg border border-outline-variant/50">
               <span className="text-[10px] text-on-surface-variant font-mono block">WIND SPEED &amp; GUSTS</span>
@@ -214,7 +232,7 @@ export const LiveWeatherWidget: React.FC<LiveWeatherWidgetProps> = ({
                 <span className="text-[10px] text-on-surface-variant font-mono">hPa</span>
               </div>
               <span className="text-[10px] text-on-surface-variant font-mono">
-                {currentWeather.pressure < 995 ? '⚠️ Low Depression' : 'Stable'}
+                {currentWeather.pressure < 995 ? '⚠️ Low Depression' : 'Stable Atmospheric'}
               </span>
             </div>
 

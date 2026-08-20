@@ -256,7 +256,7 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
       )}
 
       {/* TopNavBar (Responsive for Desktop and Mobile Viewports) */}
-      <nav className="bg-surface-container-high fixed top-0 left-0 w-full z-40 flex items-center justify-between px-3 sm:px-4 md:px-6 h-16 border-b border-outline-variant">
+      <nav className="bg-surface-container-high fixed top-0 left-0 w-full z-[1000] flex items-center justify-between px-3 sm:px-4 md:px-6 h-16 border-b border-outline-variant">
         {/* Left Section: Mobile Menu, Sidebar Toggle, and Brand Title */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0">
           {/* Mobile Hamburger Button */}
@@ -380,51 +380,58 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
             </button>
 
             {userMenuOpen && (
-              <div className="absolute right-0 top-12 w-64 bg-surface-container-high border border-outline-variant rounded-xl shadow-2xl p-3 z-50 animate-in fade-in slide-in-from-top-2">
-                <div className="pb-3 border-b border-outline-variant">
-                  <p className="font-bold text-xs text-on-surface">{user?.name || 'Dr. S. Mohanty'}</p>
-                  <p className="text-[11px] text-on-surface-variant font-mono">{user?.email || 'dmo@pransetus.gov.in'}</p>
-                  <span className="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-primary/20 text-primary border border-primary/30">
-                    {user?.role.replace(/_/g, ' ') || 'DISASTER MANAGEMENT OFFICER'}
-                  </span>
-                </div>
+              <>
+                {/* Transparent click-outside overlay */}
+                <div
+                  className="fixed inset-0 z-[1001]"
+                  onClick={() => setUserMenuOpen(false)}
+                />
+                <div className="absolute right-0 top-12 w-64 bg-surface-container-high border border-outline-variant rounded-xl shadow-2xl p-3 z-[1002] animate-in fade-in slide-in-from-top-2">
+                  <div className="pb-3 border-b border-outline-variant">
+                    <p className="font-bold text-xs text-on-surface">{user?.name || 'Dr. S. Mohanty'}</p>
+                    <p className="text-[11px] text-on-surface-variant font-mono">{user?.email || 'dmo@pransetus.gov.in'}</p>
+                    <span className="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-primary/20 text-primary border border-primary/30">
+                      {user?.role.replace(/_/g, ' ') || 'DISASTER MANAGEMENT OFFICER'}
+                    </span>
+                  </div>
 
-                <div className="py-2 space-y-1">
-                  <button
-                    onClick={() => {
-                      setUserMenuOpen(false);
-                      onNavigate('command');
-                    }}
-                    className="w-full text-left px-2 py-1.5 rounded hover:bg-surface-bright text-xs text-on-surface flex items-center gap-2 cursor-pointer"
-                  >
-                    <span className="material-symbols-outlined text-[16px]">dashboard</span>
-                    Command Center
-                  </button>
-                  <button
-                    onClick={() => {
-                      setUserMenuOpen(false);
-                      onNavigateToRegister?.();
-                    }}
-                    className="w-full text-left px-2 py-1.5 rounded hover:bg-surface-bright text-xs text-on-surface flex items-center gap-2 cursor-pointer"
-                  >
-                    <span className="material-symbols-outlined text-[16px]">how_to_reg</span>
-                    Operator Registration
-                  </button>
-                </div>
+                  <div className="py-2 space-y-1">
+                    <button
+                      onClick={() => {
+                        setUserMenuOpen(false);
+                        onNavigate('command');
+                      }}
+                      className="w-full text-left px-2 py-1.5 rounded hover:bg-surface-bright text-xs text-on-surface flex items-center gap-2 cursor-pointer transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-[16px] text-primary">dashboard</span>
+                      Command Center
+                    </button>
+                    <button
+                      onClick={() => {
+                        setUserMenuOpen(false);
+                        onNavigateToRegister?.();
+                      }}
+                      className="w-full text-left px-2 py-1.5 rounded hover:bg-surface-bright text-xs text-on-surface flex items-center gap-2 cursor-pointer transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-[16px] text-primary">how_to_reg</span>
+                      Operator Registration
+                    </button>
+                  </div>
 
-                <div className="pt-2 border-t border-outline-variant">
-                  <button
-                    onClick={() => {
-                      setUserMenuOpen(false);
-                      onLogout?.();
-                    }}
-                    className="w-full text-left px-2 py-1.5 rounded bg-error-container/20 hover:bg-error-container/40 text-error text-xs font-bold flex items-center gap-2 cursor-pointer transition-colors"
-                  >
-                    <span className="material-symbols-outlined text-[16px]">logout</span>
-                    Sign Out / Lock Session
-                  </button>
+                  <div className="pt-2 border-t border-outline-variant">
+                    <button
+                      onClick={() => {
+                        setUserMenuOpen(false);
+                        onLogout?.();
+                      }}
+                      className="w-full text-left px-2.5 py-2 rounded-lg bg-error-container/20 hover:bg-error-container/40 text-error text-xs font-bold flex items-center gap-2 cursor-pointer transition-colors border border-error/30"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">logout</span>
+                      Sign Out / Lock Session
+                    </button>
+                  </div>
                 </div>
-              </div>
+              </>
             )}
           </div>
         </div>
