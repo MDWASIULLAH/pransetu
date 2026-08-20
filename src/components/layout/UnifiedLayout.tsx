@@ -256,8 +256,9 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
       )}
 
       {/* TopNavBar (Responsive for Desktop and Mobile Viewports) */}
-      <nav className="bg-surface-container-high fixed top-0 left-0 w-full z-40 flex items-center justify-between px-2 sm:px-4 md:px-margin-desktop h-16 border-b border-outline-variant">
-        <div className="flex items-center gap-1 sm:gap-2 md:gap-stack-lg min-w-0 flex-1">
+      <nav className="bg-surface-container-high fixed top-0 left-0 w-full z-40 flex items-center justify-between px-3 sm:px-4 md:px-6 h-16 border-b border-outline-variant">
+        {/* Left Section: Mobile Menu, Sidebar Toggle, and Brand Title */}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0">
           {/* Mobile Hamburger Button */}
           <button 
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -280,50 +281,61 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
             </span>
           </button>
 
-          {/* Brand Logo (Responsive single-line typography with shrink safety) */}
+          {/* Brand Logo & Live Status Badge */}
           <div 
-            className="font-headline-sm sm:font-headline-lg text-sm sm:text-base md:text-headline-lg font-bold text-primary tracking-tight cursor-pointer flex items-center gap-1.5 shrink min-w-0" 
+            className="font-headline-sm sm:font-headline-lg text-sm sm:text-base md:text-lg font-bold text-primary tracking-tight cursor-pointer flex items-center gap-2 shrink-0" 
             onClick={() => onNavigate('command')}
           >
-            <span className="material-symbols-outlined text-secondary text-[20px] sm:text-[24px] shrink-0">shield</span>
-            <span className="whitespace-nowrap font-bold truncate">
-              PRANSETU S<span className="hidden sm:inline font-normal opacity-90"> Web EOC</span>
+            <span className="material-symbols-outlined text-secondary text-[22px] sm:text-[24px] shrink-0">shield</span>
+            <span className="whitespace-nowrap font-bold">
+              PRANSETU S <span className="hidden sm:inline text-[10px] font-mono font-bold text-primary-fixed bg-primary-container px-2 py-0.5 rounded ml-1 border border-primary/30 tracking-wider uppercase">WEB EOC</span>
             </span>
           </div>
 
-          {/* Navigation Links (Desktop) */}
-          <ul className="hidden md:flex items-center gap-stack-md ml-stack-lg">
-            {navItems.map((item) => {
-              const isActive = activeNav === item.id;
-              return (
-                <li key={item.id}>
-                  <button 
-                    onClick={() => onNavigate(item.id)}
-                    className={`font-headline-sm text-headline-sm transition-transform flex items-center h-full pt-1 cursor-pointer whitespace-nowrap ${
-                      isActive
-                        ? 'text-primary border-b-2 border-primary pb-1 scale-[0.98]'
-                        : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-bright transition-colors duration-200 px-2 py-1 rounded'
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
+          {/* Live Tactical Status Indicator */}
+          <div className="hidden lg:flex items-center gap-2 pl-3 border-l border-outline-variant/60 ml-1">
+            <span className="w-2 h-2 rounded-full bg-status-green animate-pulse"></span>
+            <span className="font-mono text-[11px] text-on-surface-variant font-medium uppercase tracking-wider">
+              Odisha Sector Alpha • Live
+            </span>
+          </div>
         </div>
 
-        {/* Trailing Actions (Right-aligned with strict gap spacing) */}
-        <div className="flex items-center gap-1 sm:gap-2 shrink-0 ml-2">
-          {/* Sound Toggle */}
+        {/* Center: Module Nav Links (Only on ultra-wide screens to prevent any overlap) */}
+        <ul className="hidden 2xl:flex items-center gap-1 mx-4">
+          {navItems.map((item) => {
+            const isActive = activeNav === item.id;
+            return (
+              <li key={item.id}>
+                <button 
+                  onClick={() => onNavigate(item.id)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                    isActive
+                      ? 'bg-primary-container text-primary font-bold shadow-xs border border-primary/30'
+                      : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-bright'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[15px]">{item.icon}</span>
+                  <span>{item.label}</span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+
+        {/* Right Section: Trailing Actions (Strictly isolated with shrink-0 and clear margin) */}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-auto">
+          {/* Sound Siren Toggle */}
           <button 
             onClick={toggleSound}
-            className={`w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-full transition-colors cursor-pointer shrink-0 ${
-              soundEnabled ? 'text-status-green hover:bg-surface-bright' : 'text-on-surface-variant hover:bg-surface-bright opacity-60'
+            className={`w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg border transition-all cursor-pointer shrink-0 ${
+              soundEnabled 
+                ? 'bg-green-500/15 border-green-500/40 text-status-green hover:bg-green-500/25 shadow-[0_0_10px_rgba(34,197,94,0.2)]' 
+                : 'bg-surface-container border-outline-variant text-on-surface-variant hover:bg-surface-bright opacity-60'
             }`}
-            title={soundEnabled ? 'Tactical Audio Siren: Enabled' : 'Tactical Audio: Muted'}
+            title={soundEnabled ? 'Tactical Siren Audio: ACTIVE' : 'Tactical Siren Audio: MUTED'}
           >
-            <span className="material-symbols-outlined text-[18px] sm:text-[20px]">
+            <span className="material-symbols-outlined text-[18px]">
               {soundEnabled ? 'volume_up' : 'volume_off'}
             </span>
           </button>
@@ -331,18 +343,18 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
           {/* Raise Alert Trigger (Top Bar Quick Action) */}
           <button 
             onClick={() => setAlertModalOpen(true)}
-            className="h-8 sm:h-9 bg-error-container text-on-error-container px-2 sm:px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-1 hover:bg-secondary-container transition-colors cursor-pointer shrink-0"
-            title="Broadcast State Alert"
+            className="h-8 sm:h-9 bg-error-container text-on-error-container hover:bg-secondary-container px-2.5 sm:px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0 border border-error/40 shadow-xs"
+            title="Broadcast State Emergency Alert"
           >
             <span className="material-symbols-outlined text-[16px]">warning</span>
             <span className="hidden sm:inline">RAISE ALERT</span>
           </button>
 
-          {/* User Profile Popover (Always accessible on Mobile & Desktop) */}
+          {/* User Profile Popover (Always accessible and cleanly padded) */}
           <div className="relative shrink-0">
             <button
               onClick={() => setUserMenuOpen(!userMenuOpen)}
-              className="h-8 sm:h-9 flex items-center gap-1 sm:gap-2 px-1.5 sm:px-2 rounded-lg bg-surface-container-highest/50 border border-outline-variant/60 hover:bg-surface-bright transition-colors cursor-pointer"
+              className="h-8 sm:h-9 flex items-center gap-1.5 sm:gap-2 px-2 rounded-lg bg-surface-container-highest/60 border border-outline-variant/70 hover:bg-surface-bright transition-colors cursor-pointer"
               title="User Account & Role Menu"
             >
               <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center overflow-hidden shrink-0">
