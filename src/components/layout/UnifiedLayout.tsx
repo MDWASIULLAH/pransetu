@@ -276,6 +276,70 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
           </div>
         </aside>
 
+        {/* Mobile Slide-Over Drawer Navigation */}
+        {mobileMenuOpen && (
+          <div className="fixed inset-0 z-[9995] md:hidden">
+            <div 
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={() => setMobileMenuOpen(false)}
+            />
+            <div className="relative w-72 max-w-[80vw] bg-background h-full p-4 flex flex-col justify-between shadow-2xl border-r border-outline-variant animate-in slide-in-from-left">
+              <div>
+                <div className="flex items-center justify-between pb-4 border-b border-outline-variant mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded bg-on-surface flex items-center justify-center text-surface">
+                      <span className="material-symbols-outlined text-[20px] icon-fill">shield</span>
+                    </div>
+                    <span className="font-bold text-sm text-on-surface">PRANSETU EOC</span>
+                  </div>
+                  <button onClick={() => setMobileMenuOpen(false)} className="text-on-surface-variant hover:text-on-surface">
+                    <span className="material-symbols-outlined text-[20px]">close</span>
+                  </button>
+                </div>
+
+                <div className="space-y-1">
+                  {navItems.map((item) => {
+                    const isActive = activeNav === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => {
+                          onNavigate(item.id);
+                          setMobileMenuOpen(false);
+                        }}
+                        className={`w-full flex items-center justify-between p-3 rounded-md text-body-sm transition-colors ${
+                          isActive
+                            ? 'bg-surface-container-high text-on-surface font-medium'
+                            : 'text-on-surface-variant hover:bg-surface hover:text-on-surface'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="material-symbols-outlined text-[20px] opacity-80">{item.icon}</span>
+                          <span>{item.label}</span>
+                        </div>
+                        {isActive && <span className="text-data-label text-primary">{item.badge}</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-outline-variant">
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    onLogout?.();
+                  }}
+                  className="w-full py-2.5 bg-surface border border-outline-variant hover:bg-surface-container-high text-on-surface rounded text-body-sm font-medium flex items-center justify-center gap-2 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[18px]">logout</span>
+                  Sign Out
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Central Content */}
         <main className="flex-1 flex flex-col min-w-0 bg-background overflow-x-hidden">
           {children}

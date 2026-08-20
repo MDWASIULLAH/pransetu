@@ -65,13 +65,21 @@
   --font-data-label: "JetBrains Mono", monospace;
 }
 
-/* Base Body Styles */
-body {
+html, body {
   background-color: var(--color-background);
   color: var(--color-on-background);
   font-family: var(--font-body-sm);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Explicit custom typography helpers */
