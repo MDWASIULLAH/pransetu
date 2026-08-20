@@ -16,6 +16,7 @@ export const MissionMap: React.FC = () => {
   const [inspectedRouteId, setInspectedRouteId] = useState<string | null>(null);
   const [teamSelection, setTeamSelection] = useState('NDRF-Alpha (Battalion 03)');
   const [assetType, setAssetType] = useState('Inflatable Rescue Boats (IRB)');
+  const [mapType, setMapType] = useState<'light' | 'dark' | 'satellite'>('dark');
 
   const selectedIncident = signals.find((s) => s.id === selectedIncidentId) || signals[0];
 
@@ -134,6 +135,8 @@ export const MissionMap: React.FC = () => {
           showShelters={evacShelters}
           showRoutes={evacRoutes}
           showRescueUnits={rescueUnits}
+          mapType={mapType}
+          onMapTypeToggle={setMapType}
           onInspectRoute={(routeId) => setInspectedRouteId(routeId)}
           height="100%"
         />
