@@ -148,28 +148,28 @@ export const DisasterDominoEffect: React.FC<DisasterDominoEffectProps> = ({ onCl
   const getSeverityBadge = (sev: DominoNode['severity']) => {
     if (sev === 'CRITICAL') return 'bg-error/10 text-error border-error/20';
     if (sev === 'WARNING') return 'bg-secondary/10 text-secondary border-secondary/20';
-    return 'bg-surface-container-high text-on-surface-variant border-outline-variant';
+    return 'bg-surface-container-lowest text-on-surface-variant border-outline-variant';
   };
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 animate-in fade-in">
-      <div className="bg-surface border border-outline-variant rounded-lg w-full max-w-5xl shadow-xl max-h-[92vh] overflow-hidden flex flex-col">
+      <div className="bg-surface border border-outline-variant/30 rounded-lg w-full max-w-5xl shadow-sm max-h-[92vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="p-4 sm:p-5 bg-surface border-b border-outline-variant flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded bg-surface-container-high border border-outline-variant flex items-center justify-center text-error">
+            <div className="w-10 h-10 rounded bg-surface-container-lowest border border-outline-variant/30 flex items-center justify-center text-error">
               <span className="material-symbols-outlined text-[24px]">account_tree</span>
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-headline-sm text-base sm:text-lg font-semibold text-on-surface">
+                <h3 className="font-sans text-base sm:text-lg font-semibold text-on-surface">
                   Disaster Domino Effect: Multi-Hazard Cascading Risk
                 </h3>
-                <span className="bg-error/10 text-error text-[10px] font-mono font-medium px-2 py-0.5 rounded border border-error/20">
+                <span className="bg-error/10 text-error text-[10px] font-sans font-medium px-2 py-0.5 rounded border border-error/20">
                   AI PREDICTION ACTIVE
                 </span>
               </div>
-              <p className="text-xs text-on-surface-variant font-mono mt-0.5">
+              <p className="text-xs text-on-surface-variant font-sans mt-0.5">
                 Predictive consequence propagation analysis &amp; proactive lifeline protection
               </p>
             </div>
@@ -177,7 +177,7 @@ export const DisasterDominoEffect: React.FC<DisasterDominoEffectProps> = ({ onCl
 
           <button
             onClick={onClose}
-            className="text-on-surface-variant hover:text-on-surface p-1 rounded hover:bg-surface-container-high cursor-pointer"
+            className="text-on-surface-variant hover:text-on-surface p-1 rounded hover:bg-surface-container-lowest cursor-pointer"
           >
             <span className="material-symbols-outlined text-[22px]">close</span>
           </button>
@@ -186,13 +186,13 @@ export const DisasterDominoEffect: React.FC<DisasterDominoEffectProps> = ({ onCl
         {/* Interactive Cascading Graph Tree */}
         <div className="p-4 sm:p-5 overflow-y-auto flex-1 space-y-5">
           {/* Main Initial Trigger Banner */}
-          <div className="p-4 bg-surface-container-low rounded border border-outline-variant">
+          <div className="p-4 bg-surface-container-low rounded border border-outline-variant/30">
             <div className="flex flex-wrap justify-between items-center gap-2 mb-2">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-error" />
-                <span className="text-xs font-mono font-semibold text-error uppercase">PRIMARY DISASTER TRIGGER</span>
+                <span className="text-xs font-sans font-semibold text-error uppercase">PRIMARY DISASTER TRIGGER</span>
               </div>
-              <span className="text-xs font-mono text-on-surface-variant">Consequence Radius: 65km</span>
+              <span className="text-xs font-sans text-on-surface-variant">Consequence Radius: 65km</span>
             </div>
             <h4 className="text-sm sm:text-base font-semibold text-on-surface mb-1">
               Super Cyclone Landfall &amp; Tidal Surge Ingress
@@ -207,8 +207,8 @@ export const DisasterDominoEffect: React.FC<DisasterDominoEffectProps> = ({ onCl
             {/* Level 1: Primary Infrastructure Consequences */}
             <div className="space-y-2">
               <div className="flex items-center gap-2 pb-2 border-b border-outline-variant">
-                <span className="w-5 h-5 rounded bg-surface-container-high text-on-surface-variant flex items-center justify-center font-mono text-xs font-semibold">1</span>
-                <span className="text-xs font-mono font-medium text-on-surface uppercase">Infrastructure Failures</span>
+                <span className="w-5 h-5 rounded bg-surface-container-lowest text-on-surface-variant flex items-center justify-center font-sans text-xs font-semibold">1</span>
+                <span className="text-xs font-sans font-medium text-on-surface uppercase">Infrastructure Failures</span>
               </div>
               {DOMINO_TREE.filter((n) => n.category === 'INFRASTRUCTURE').map((node) => (
                 <div
@@ -216,17 +216,17 @@ export const DisasterDominoEffect: React.FC<DisasterDominoEffectProps> = ({ onCl
                   onClick={() => setSelectedNodeId(node.id)}
                   className={`p-3 rounded border transition-all cursor-pointer ${
                     selectedNodeId === node.id
-                      ? 'bg-surface-container-highest border-outline shadow-sm'
-                      : 'bg-surface-container-low border-outline-variant hover:bg-surface-container-high'
+                      ? 'bg-surface-container-lowestest border-outline shadow-sm'
+                      : 'bg-surface-container-low border-outline-variant hover:bg-surface-container-lowest'
                   }`}
                 >
                   <div className="flex justify-between items-start mb-1 gap-2">
                     <span className="font-medium text-xs text-on-surface leading-snug">{node.title}</span>
-                    <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border font-medium uppercase shrink-0 ${getSeverityBadge(node.severity)}`}>
+                    <span className={`text-[9px] font-sans px-1.5 py-0.5 rounded border font-medium uppercase shrink-0 ${getSeverityBadge(node.severity)}`}>
                       {node.severity}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center mt-2 text-[11px] font-mono text-on-surface-variant">
+                  <div className="flex justify-between items-center mt-2 text-[11px] font-sans text-on-surface-variant">
                     <span>Impact: {node.impactPercentage}%</span>
                     <span className="text-on-surface font-medium">Inspect →</span>
                   </div>
@@ -237,8 +237,8 @@ export const DisasterDominoEffect: React.FC<DisasterDominoEffectProps> = ({ onCl
             {/* Level 2: Critical Lifeline Disruptions */}
             <div className="space-y-2">
               <div className="flex items-center gap-2 pb-2 border-b border-outline-variant">
-                <span className="w-5 h-5 rounded bg-surface-container-high text-on-surface-variant flex items-center justify-center font-mono text-xs font-semibold">2</span>
-                <span className="text-xs font-mono font-medium text-on-surface uppercase">Lifeline Disruptions</span>
+                <span className="w-5 h-5 rounded bg-surface-container-lowest text-on-surface-variant flex items-center justify-center font-sans text-xs font-semibold">2</span>
+                <span className="text-xs font-sans font-medium text-on-surface uppercase">Lifeline Disruptions</span>
               </div>
               {DOMINO_TREE.filter((n) => n.category === 'CRITICAL_LIFELINE' || n.category === 'RELIEF_BOTTLENECK').map((node) => (
                 <div
@@ -246,17 +246,17 @@ export const DisasterDominoEffect: React.FC<DisasterDominoEffectProps> = ({ onCl
                   onClick={() => setSelectedNodeId(node.id)}
                   className={`p-3 rounded border transition-all cursor-pointer ${
                     selectedNodeId === node.id
-                      ? 'bg-surface-container-highest border-outline shadow-sm'
-                      : 'bg-surface-container-low border-outline-variant hover:bg-surface-container-high'
+                      ? 'bg-surface-container-lowestest border-outline shadow-sm'
+                      : 'bg-surface-container-low border-outline-variant hover:bg-surface-container-lowest'
                   }`}
                 >
                   <div className="flex justify-between items-start mb-1 gap-2">
                     <span className="font-medium text-xs text-on-surface leading-snug">{node.title}</span>
-                    <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border font-medium uppercase shrink-0 ${getSeverityBadge(node.severity)}`}>
+                    <span className={`text-[9px] font-sans px-1.5 py-0.5 rounded border font-medium uppercase shrink-0 ${getSeverityBadge(node.severity)}`}>
                       {node.severity}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center mt-2 text-[11px] font-mono text-on-surface-variant">
+                  <div className="flex justify-between items-center mt-2 text-[11px] font-sans text-on-surface-variant">
                     <span>Impact: {node.impactPercentage}%</span>
                     <span className="text-on-surface font-medium">Inspect →</span>
                   </div>
@@ -267,8 +267,8 @@ export const DisasterDominoEffect: React.FC<DisasterDominoEffectProps> = ({ onCl
             {/* Level 3: Human Health & Public Safety Impacts */}
             <div className="space-y-2">
               <div className="flex items-center gap-2 pb-2 border-b border-outline-variant">
-                <span className="w-5 h-5 rounded bg-surface-container-high text-on-surface-variant flex items-center justify-center font-mono text-xs font-semibold">3</span>
-                <span className="text-xs font-mono font-medium text-on-surface uppercase">Health Vulnerabilities</span>
+                <span className="w-5 h-5 rounded bg-surface-container-lowest text-on-surface-variant flex items-center justify-center font-sans text-xs font-semibold">3</span>
+                <span className="text-xs font-sans font-medium text-on-surface uppercase">Health Vulnerabilities</span>
               </div>
               {DOMINO_TREE.filter((n) => n.category === 'HUMAN_HEALTH').map((node) => (
                 <div
@@ -276,17 +276,17 @@ export const DisasterDominoEffect: React.FC<DisasterDominoEffectProps> = ({ onCl
                   onClick={() => setSelectedNodeId(node.id)}
                   className={`p-3 rounded border transition-all cursor-pointer ${
                     selectedNodeId === node.id
-                      ? 'bg-surface-container-highest border-outline shadow-sm'
-                      : 'bg-surface-container-low border-outline-variant hover:bg-surface-container-high'
+                      ? 'bg-surface-container-lowestest border-outline shadow-sm'
+                      : 'bg-surface-container-low border-outline-variant hover:bg-surface-container-lowest'
                   }`}
                 >
                   <div className="flex justify-between items-start mb-1 gap-2">
                     <span className="font-medium text-xs text-on-surface leading-snug">{node.title}</span>
-                    <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border font-medium uppercase shrink-0 ${getSeverityBadge(node.severity)}`}>
+                    <span className={`text-[9px] font-sans px-1.5 py-0.5 rounded border font-medium uppercase shrink-0 ${getSeverityBadge(node.severity)}`}>
                       {node.severity}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center mt-2 text-[11px] font-mono text-on-surface-variant">
+                  <div className="flex justify-between items-center mt-2 text-[11px] font-sans text-on-surface-variant">
                     <span>Impact: {node.impactPercentage}%</span>
                     <span className="text-on-surface font-medium">Inspect →</span>
                   </div>
@@ -296,21 +296,21 @@ export const DisasterDominoEffect: React.FC<DisasterDominoEffectProps> = ({ onCl
           </div>
 
           {/* Selected Consequence Deep-Dive Card */}
-          <div className="p-4 sm:p-5 bg-surface-container-low rounded border border-outline-variant space-y-3">
+          <div className="p-4 sm:p-5 bg-surface-container-low rounded border border-outline-variant/30 space-y-3">
             <div className="flex flex-wrap justify-between items-start gap-2">
               <div>
-                <span className="text-[10px] font-mono uppercase tracking-wider text-on-surface-variant font-medium block">
+                <span className="text-[10px] font-sans uppercase tracking-wider text-on-surface-variant font-medium block">
                   SELECTED CASCADING NODE INSPECTION
                 </span>
                 <h4 className="text-sm sm:text-base font-semibold text-on-surface mt-0.5">
                   {selectedNode.title}
                 </h4>
-                <span className="text-xs text-on-surface-variant font-mono">
+                <span className="text-xs text-on-surface-variant font-sans">
                   Affected Sector: {selectedNode.affectedSector}
                 </span>
               </div>
 
-              <span className={`px-2.5 py-1 rounded text-[10px] font-mono font-medium uppercase border ${getSeverityBadge(selectedNode.severity)}`}>
+              <span className={`px-2.5 py-1 rounded text-[10px] font-sans font-medium uppercase border ${getSeverityBadge(selectedNode.severity)}`}>
                 Severity: {selectedNode.severity} ({selectedNode.impactPercentage}% Risk)
               </span>
             </div>
@@ -321,9 +321,9 @@ export const DisasterDominoEffect: React.FC<DisasterDominoEffectProps> = ({ onCl
 
             {/* Countermeasure Action */}
             <div className="p-3 bg-status-green/10 border border-status-green/20 rounded flex items-start gap-2.5">
-              <span className="material-symbols-outlined text-status-green text-[18px] shrink-0 mt-0.5">shield</span>
+              <span className="material-symbols-outlined text-emerald-600 text-[18px] shrink-0 mt-0.5">shield</span>
               <div>
-                <span className="text-xs font-mono font-medium text-status-green block uppercase">
+                <span className="text-xs font-sans font-medium text-emerald-600 block uppercase">
                   PRANSETU Proactive Countermeasure / Action Protocol
                 </span>
                 <p className="text-xs text-on-surface mt-0.5">
@@ -335,13 +335,13 @@ export const DisasterDominoEffect: React.FC<DisasterDominoEffectProps> = ({ onCl
         </div>
 
         {/* Footer */}
-        <div className="p-4 bg-surface border-t border-outline-variant flex justify-between items-center text-xs font-mono">
+        <div className="p-4 bg-surface border-t border-outline-variant flex justify-between items-center text-xs font-sans">
           <span className="text-on-surface-variant">
             ⚡ Algorithmic Dependency Graph: 11 Nodes Active
           </span>
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-surface-container-high text-on-surface font-medium rounded hover:bg-surface-container-highest cursor-pointer transition-colors border border-outline-variant"
+            className="px-4 py-2 bg-surface-container-lowest text-on-surface font-medium rounded hover:bg-surface-container-lowestest cursor-pointer transition-colors border border-outline-variant/30"
           >
             Close Inspector
           </button>

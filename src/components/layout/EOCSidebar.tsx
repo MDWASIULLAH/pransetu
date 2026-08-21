@@ -50,7 +50,7 @@ export const EOCSidebar = ({ activeModule, setActiveModule, isOpen }: EOCSidebar
 
   return (
     <aside className={clsx(
-      "fixed lg:static inset-y-0 left-0 z-40 w-64 bg-[#0a0e17] border-r border-[#1f2937] transition-transform duration-300 ease-in-out transform flex flex-col h-[calc(100vh-4rem)] top-16",
+      "fixed lg:static inset-y-0 left-0 z-40 w-64 bg-surface-container border-r border-outline-variant/30 transition-transform duration-300 ease-in-out transform flex flex-col h-[calc(100vh-4rem)] top-16",
       isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
     )}>
       <div className="flex-1 overflow-y-auto py-4 scrollbar-thin">
@@ -69,11 +69,11 @@ export const EOCSidebar = ({ activeModule, setActiveModule, isOpen }: EOCSidebar
                 className={clsx(
                   "w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors",
                   isActive 
-                    ? "bg-blue-900/40 text-blue-400 border border-blue-500/30" 
-                    : "text-gray-400 hover:bg-[#1f2937] hover:text-gray-200"
+                    ? "bg-blue-900/40 text-on-surface border border-outline-variant/30" 
+                    : "text-on-surface-variant hover:bg-[#1f2937] hover:text-gray-200"
                 )}
               >
-                <Icon size={18} className={isActive ? "text-blue-400" : "text-gray-500"} />
+                <Icon size={18} className={isActive ? "text-on-surface" : "text-gray-500"} />
                 {item.label}
               </button>
             );
@@ -81,13 +81,13 @@ export const EOCSidebar = ({ activeModule, setActiveModule, isOpen }: EOCSidebar
         </nav>
       </div>
       
-      <div className="p-4 border-t border-[#1f2937]">
-        <div className="bg-[#111827] rounded border border-[#1f2937] p-3">
+      <div className="p-4 border-t border-outline-variant/30">
+        <div className="bg-surface-container rounded border border-outline-variant/30 p-3">
           <div className="text-xs text-gray-500 mb-1">Session Target</div>
-          <div className="text-sm font-mono text-gray-300">Gov. API Adapter</div>
+          <div className="text-sm font-sans text-on-surface-variant">Gov. API Adapter</div>
           <div className="flex items-center gap-2 mt-2">
-            <span className="w-2 h-2 rounded-full bg-green-500"></span>
-            <span className="text-[10px] text-gray-400 uppercase">Authenticated</span>
+            
+            <span className="text-[10px] text-on-surface-variant uppercase">Authenticated</span>
           </div>
         </div>
       </div>

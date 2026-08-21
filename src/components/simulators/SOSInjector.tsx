@@ -54,14 +54,14 @@ export const SOSInjector = () => {
         </div>
         <div>
           <h3 className="text-xl font-bold text-white">Live SOS Event Injector</h3>
-          <p className="text-sm text-gray-400">Creates a new SOS and pushes it through the Realtime channel to test UI reactivity.</p>
+          <p className="text-sm text-on-surface-variant">Creates a new SOS and pushes it through the Realtime channel to test UI reactivity.</p>
         </div>
       </div>
 
       <div className="grid md:grid-cols-2 gap-8">
         <div className="space-y-4">
           <div>
-            <label className="block text-xs text-gray-400 uppercase mb-1">Target District Cluster</label>
+            <label className="block text-xs text-on-surface-variant uppercase mb-1">Target District Cluster</label>
             <select 
               value={district}
               onChange={(e) => setDistrict(e.target.value)}
@@ -74,7 +74,7 @@ export const SOSInjector = () => {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs text-gray-400 uppercase mb-1 flex items-center gap-1"><Users size={12}/> People Count</label>
+              <label className="block text-xs text-on-surface-variant uppercase mb-1 flex items-center gap-1"><Users size={12}/> People Count</label>
               <input 
                 type="number" 
                 value={peopleCount}
@@ -84,7 +84,7 @@ export const SOSInjector = () => {
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-400 uppercase mb-1">Severity</label>
+              <label className="block text-xs text-on-surface-variant uppercase mb-1">Severity</label>
               <select 
                 value={severity}
                 onChange={(e) => setSeverity(e.target.value as SOSSeverity)}
@@ -122,7 +122,7 @@ export const SOSInjector = () => {
             <div className="h-full flex flex-col items-center justify-center text-center p-6 border border-green-500/30 bg-green-900/20 rounded-lg animate-in zoom-in duration-300">
               <CheckCircle size={48} className="text-green-400 mb-4" />
               <h4 className="text-xl font-bold text-white mb-2">SOS Successfully Injected!</h4>
-              <p className="text-gray-400 text-sm">
+              <p className="text-on-surface-variant text-sm">
                 The event has been pushed to the real-time store. Metric counters have increased, the map has a new marker, and cluster priorities have recalculated.
               </p>
             </div>

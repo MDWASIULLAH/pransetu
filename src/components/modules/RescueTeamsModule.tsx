@@ -21,10 +21,10 @@ export const RescueTeamsModule = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'AVAILABLE': return 'text-green-400 bg-green-400/10 border-green-500/30';
-      case 'EN_ROUTE': return 'text-blue-400 bg-blue-400/10 border-blue-500/30 animate-pulse';
+      case 'EN_ROUTE': return 'text-on-surface bg-blue-400/10 border-outline-variant/30 animate-pulse';
       case 'ON_SITE': return 'text-yellow-400 bg-yellow-400/10 border-yellow-500/30';
-      case 'COMPLETED': return 'text-gray-400 bg-gray-400/10 border-gray-500/30';
-      default: return 'text-gray-400 bg-gray-800 border-gray-700';
+      case 'COMPLETED': return 'text-on-surface-variant bg-gray-400/10 border-gray-500/30';
+      default: return 'text-on-surface-variant bg-gray-800 border-gray-700';
     }
   };
 
@@ -33,7 +33,7 @@ export const RescueTeamsModule = () => {
       <div className="flex justify-between items-center mb-8 shrink-0">
         <div>
           <h2 className="text-2xl font-bold text-white tracking-wide">Rescue Resource Board</h2>
-          <p className="text-gray-400 text-sm mt-1">Field operations, resource assignment and live tracking.</p>
+          <p className="text-on-surface-variant text-sm mt-1">Field operations, resource assignment and live tracking.</p>
         </div>
         {canAssign && (
           <button 
@@ -48,10 +48,10 @@ export const RescueTeamsModule = () => {
       <div className="grid lg:grid-cols-3 gap-6 flex-1 overflow-hidden">
         
         {/* Teams Column */}
-        <div className="glass-panel border border-[#1f2937] rounded-xl flex flex-col overflow-hidden">
-          <div className="p-4 bg-[#111827] border-b border-[#1f2937] flex items-center justify-between">
-            <h3 className="font-bold text-white flex items-center gap-2"><Users size={18} className="text-blue-400"/> Rescue Teams</h3>
-            <span className="text-xs font-mono bg-blue-900/50 text-blue-400 px-2 py-0.5 rounded">{teams.filter(t=>t.status==='AVAILABLE').length}/{teams.length} Available</span>
+        <div className="glass-panel border border-outline-variant/30 rounded-xl flex flex-col overflow-hidden">
+          <div className="p-4 bg-surface-container border-b border-outline-variant/30 flex items-center justify-between">
+            <h3 className="font-bold text-white flex items-center gap-2"><Users size={18} className="text-on-surface"/> Rescue Teams</h3>
+            <span className="text-xs font-sans bg-surface-container-low text-on-surface px-2 py-0.5 rounded">{teams.filter(t=>t.status==='AVAILABLE').length}/{teams.length} Available</span>
           </div>
           <div className="p-4 flex-1 overflow-y-auto space-y-3 scrollbar-thin">
             {teams.map(team => (
@@ -61,10 +61,10 @@ export const RescueTeamsModule = () => {
         </div>
 
         {/* Ambulances Column */}
-        <div className="glass-panel border border-[#1f2937] rounded-xl flex flex-col overflow-hidden">
-          <div className="p-4 bg-[#111827] border-b border-[#1f2937] flex items-center justify-between">
+        <div className="glass-panel border border-outline-variant/30 rounded-xl flex flex-col overflow-hidden">
+          <div className="p-4 bg-surface-container border-b border-outline-variant/30 flex items-center justify-between">
             <h3 className="font-bold text-white flex items-center gap-2"><Truck size={18} className="text-red-400"/> Ambulances</h3>
-            <span className="text-xs font-mono bg-red-900/50 text-red-400 px-2 py-0.5 rounded">{ambulances.filter(t=>t.status==='AVAILABLE').length}/{ambulances.length} Available</span>
+            <span className="text-xs font-sans bg-red-900/50 text-red-400 px-2 py-0.5 rounded">{ambulances.filter(t=>t.status==='AVAILABLE').length}/{ambulances.length} Available</span>
           </div>
           <div className="p-4 flex-1 overflow-y-auto space-y-3 scrollbar-thin">
             {ambulances.map(amb => (
@@ -74,10 +74,10 @@ export const RescueTeamsModule = () => {
         </div>
 
         {/* Boats Column */}
-        <div className="glass-panel border border-[#1f2937] rounded-xl flex flex-col overflow-hidden">
-          <div className="p-4 bg-[#111827] border-b border-[#1f2937] flex items-center justify-between">
+        <div className="glass-panel border border-outline-variant/30 rounded-xl flex flex-col overflow-hidden">
+          <div className="p-4 bg-surface-container border-b border-outline-variant/30 flex items-center justify-between">
             <h3 className="font-bold text-white flex items-center gap-2"><Ship size={18} className="text-teal-400"/> Rescue Boats</h3>
-            <span className="text-xs font-mono bg-teal-900/50 text-teal-400 px-2 py-0.5 rounded">{boats.filter(t=>t.status==='AVAILABLE').length}/{boats.length} Available</span>
+            <span className="text-xs font-sans bg-teal-900/50 text-teal-400 px-2 py-0.5 rounded">{boats.filter(t=>t.status==='AVAILABLE').length}/{boats.length} Available</span>
           </div>
           <div className="p-4 flex-1 overflow-y-auto space-y-3 scrollbar-thin">
             {boats.map(boat => (
@@ -96,14 +96,14 @@ export const RescueTeamsModule = () => {
 };
 
 const ResourceCard = ({ resource, getStatusColor }: any) => (
-  <div className="bg-[#111827] border border-[#1f2937] p-3 rounded-lg hover:border-gray-600 transition-colors">
+  <div className="bg-surface-container border border-outline-variant/30 p-3 rounded-lg hover:border-gray-600 transition-colors">
     <div className="flex justify-between items-start mb-2">
       <h4 className="font-bold text-white">{resource.name}</h4>
       <span className={clsx("text-[10px] px-2 py-0.5 rounded border font-bold tracking-wider", getStatusColor(resource.status))}>
         {resource.status.replace('_', ' ')}
       </span>
     </div>
-    <div className="text-xs text-gray-400 space-y-1">
+    <div className="text-xs text-on-surface-variant space-y-1">
       {resource.members && <div>Members: {resource.members}</div>}
       {resource.capacity && <div>Capacity: {resource.capacity}</div>}
       {resource.medicalCapability && <div>Medical: {resource.medicalCapability}</div>}

@@ -16,19 +16,19 @@ export const RescuePriorityModule = () => {
     <div className="p-6 max-w-7xl mx-auto">
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-white tracking-wide">Rescue Priority Engine</h2>
-        <p className="text-gray-400 text-sm mt-1">Transparent 0-100 scoring based on explainable hazard factors.</p>
+        <p className="text-on-surface-variant text-sm mt-1">Transparent 0-100 scoring based on explainable hazard factors.</p>
       </div>
 
       <div className="space-y-6">
         {sortedIncidents.map((incident, idx) => (
-          <div key={incident.id} className="glass-panel p-6 rounded-xl border border-[#1f2937] flex flex-col lg:flex-row gap-6 relative overflow-hidden">
+          <div key={incident.id} className="glass-panel p-6 rounded-xl border border-outline-variant/30 flex flex-col lg:flex-row gap-6 relative overflow-hidden">
             
             {/* Rank badge */}
             <div className="absolute top-0 left-0 bg-blue-600 text-white font-bold px-3 py-1 rounded-br-lg text-sm">
               #{idx + 1}
             </div>
 
-            <div className="lg:w-1/3 mt-4 lg:mt-0 flex flex-col justify-between border-r border-[#1f2937] pr-6">
+            <div className="lg:w-1/3 mt-4 lg:mt-0 flex flex-col justify-between border-r border-outline-variant/30 pr-6">
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <h3 className="text-2xl font-bold text-white">{incident.id}</h3>
@@ -41,7 +41,7 @@ export const RescuePriorityModule = () => {
                     {incident.priorityScore > 85 ? "CRITICAL" : incident.priorityScore > 70 ? "HIGH" : "MEDIUM"}
                   </span>
                 </div>
-                <div className="text-gray-400 mb-4">{incident.district} District Cluster</div>
+                <div className="text-on-surface-variant mb-4">{incident.district} District Cluster</div>
                 
                 <div className="flex items-center gap-4 mb-2">
                   <div className="text-sm">
@@ -55,12 +55,12 @@ export const RescuePriorityModule = () => {
 
               <div className="mt-4">
                 <div className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">Composite Priority Score</div>
-                <div className="text-5xl font-mono font-bold text-blue-400">{incident.priorityScore}<span className="text-xl text-gray-600">/100</span></div>
+                <div className="text-5xl font-sans font-bold text-on-surface">{incident.priorityScore}<span className="text-xl text-gray-600">/100</span></div>
               </div>
             </div>
 
             <div className="lg:w-2/3">
-              <h4 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-4 border-b border-gray-800 pb-2 flex items-center gap-2">
+              <h4 className="text-sm font-semibold text-on-surface-variant uppercase tracking-wider mb-4 border-b border-gray-800 pb-2 flex items-center gap-2">
                 <Crosshair size={16} /> Explainable Factor Breakdown
               </h4>
               
@@ -69,8 +69,8 @@ export const RescuePriorityModule = () => {
                 <FactorCard icon={Users} label="People Affected" value={incident.priorityFactors.peopleAffected} color="text-orange-400" />
                 <FactorCard icon={AlertTriangle} label="Trapped Status" value={incident.priorityFactors.trapped} color="text-red-400" />
                 <FactorCard icon={AlertTriangle} label="Hazard Severity" value={incident.priorityFactors.hazardSeverity} color="text-yellow-400" />
-                <FactorCard icon={Clock} label="SOS Age" value={incident.priorityFactors.sosAge} color="text-blue-400" />
-                <FactorCard icon={Route} label="Accessibility" value={incident.priorityFactors.accessibility} color="text-gray-400" />
+                <FactorCard icon={Clock} label="SOS Age" value={incident.priorityFactors.sosAge} color="text-on-surface" />
+                <FactorCard icon={Route} label="Accessibility" value={incident.priorityFactors.accessibility} color="text-on-surface-variant" />
               </div>
               
               <div className="mt-6 flex justify-end gap-3">
@@ -92,13 +92,13 @@ export const RescuePriorityModule = () => {
 };
 
 const FactorCard = ({ icon: Icon, label, value, color }: { icon: any, label: string, value: number, color: string }) => (
-  <div className="bg-[#111827] border border-[#1f2937] p-3 rounded-lg flex items-center gap-3">
+  <div className="bg-surface-container border border-outline-variant/30 p-3 rounded-lg flex items-center gap-3">
     <div className={clsx("p-2 rounded bg-black/50", color)}>
       <Icon size={16} />
     </div>
     <div>
       <div className="text-xl font-bold text-white">+{value}</div>
-      <div className="text-[10px] text-gray-400 uppercase leading-tight">{label}</div>
+      <div className="text-[10px] text-on-surface-variant uppercase leading-tight">{label}</div>
     </div>
   </div>
 );

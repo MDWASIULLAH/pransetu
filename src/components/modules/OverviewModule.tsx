@@ -14,11 +14,11 @@ export const OverviewModule = () => {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className="text-2xl font-bold text-white tracking-wide">Command Dashboard</h2>
-          <p className="text-gray-400 text-sm mt-1">Real-time situational awareness & asset tracking</p>
+          <p className="text-on-surface-variant text-sm mt-1">Real-time situational awareness & asset tracking</p>
         </div>
         <div className="text-right">
-          <div className="text-sm font-mono text-gray-400">SYNC INTERVAL</div>
-          <div className="text-green-400 font-bold font-mono animate-pulse">LIVE</div>
+          <div className="text-sm font-sans text-on-surface-variant">SYNC INTERVAL</div>
+          <div className="text-green-400 font-bold font-sans ">LIVE</div>
         </div>
       </div>
 
@@ -51,7 +51,7 @@ export const OverviewModule = () => {
         />
       </div>
 
-      <h3 className="text-lg font-semibold text-gray-300 mb-4 border-b border-gray-800 pb-2">Emergency Classifications</h3>
+      <h3 className="text-lg font-semibold text-on-surface-variant mb-4 border-b border-gray-800 pb-2">Emergency Classifications</h3>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
         <MetricCard title="Assistance" value={stats.assistanceSOS} color="yellow" />
         <MetricCard title="Trapped" value={stats.trapped} color="orange" pulse={stats.trapped > 0} />
@@ -61,7 +61,7 @@ export const OverviewModule = () => {
         <MetricCard title="Pending Sync" value={stats.pendingSync} color="blue" />
       </div>
 
-      <h3 className="text-lg font-semibold text-gray-300 mb-4 border-b border-gray-800 pb-2">Resource Status</h3>
+      <h3 className="text-lg font-semibold text-on-surface-variant mb-4 border-b border-gray-800 pb-2">Resource Status</h3>
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
         <MetricCard 
           title="Shelters Active" 

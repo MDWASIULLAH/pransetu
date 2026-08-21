@@ -65,38 +65,38 @@ export const SOSLogs: React.FC = () => {
       {/* Signal Audit Modal: Canonical Packet & Multi-Hop Relay Inspector */}
       {selectedLog && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-3 sm:p-4 animate-in fade-in">
-          <div className="bg-surface-container border border-outline-variant rounded-2xl w-full max-w-2xl shadow-2xl max-h-[92vh] overflow-hidden flex flex-col">
+          <div className="bg-surface-container border border-outline-variant/30 rounded-xl w-full max-w-2xl shadow-lg max-h-[92vh] overflow-hidden flex flex-col">
             {/* Modal Header */}
-            <div className="p-4 sm:p-5 bg-surface-container-high border-b border-outline-variant flex items-center justify-between">
+            <div className="p-4 sm:p-5 bg-surface-container-lowest border-b border-outline-variant flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded bg-surface border border-outline-variant flex items-center justify-center text-on-surface-variant">
+                <div className="w-9 h-9 rounded bg-surface border border-outline-variant/30 flex items-center justify-center text-on-surface-variant">
                   <span className="material-symbols-outlined text-[20px]">route</span>
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="font-headline-sm text-sm sm:text-base font-semibold text-on-surface">
+                    <h3 className="font-sans text-sm sm:text-base font-semibold text-on-surface">
                       Canonical SOS Packet Inspector
                     </h3>
-                    <span className="font-mono text-[10px] bg-surface-container-highest text-on-surface-variant px-2 py-0.5 rounded border border-outline-variant font-medium">
+                    <span className="font-sans text-[10px] bg-surface-container-lowestest text-on-surface-variant px-2 py-0.5 rounded border border-outline-variant/30 font-medium">
                       {selectedLog.id}
                     </span>
                   </div>
-                  <p className="text-[11px] text-on-surface-variant font-mono mt-0.5">
+                  <p className="text-[11px] text-on-surface-variant font-sans mt-0.5">
                     Protocol: PRANSETU-MESH-CANONICAL v2.4 • Ingest: {selectedLog.source}
                   </p>
                 </div>
               </div>
               <button 
                 onClick={() => setSelectedLog(null)}
-                className="text-on-surface-variant hover:text-on-surface p-1.5 rounded-lg hover:bg-surface-bright cursor-pointer"
+                className="text-on-surface-variant hover:text-on-surface p-1.5 rounded-lg hover:bg-surface cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[20px]">close</span>
               </button>
             </div>
 
             {/* Lifecycle Progression Timeline */}
-            <div className="px-4 sm:px-6 py-4 bg-surface-container-highest/30 border-b border-outline-variant">
-              <span className="text-[10px] font-mono font-medium text-on-surface-variant uppercase tracking-wider block mb-3">
+            <div className="px-4 sm:px-6 py-4 bg-surface-container-lowestest/30 border-b border-outline-variant">
+              <span className="text-[10px] font-sans font-medium text-on-surface-variant uppercase tracking-wider block mb-3">
                 Canonical Protocol Lifecycle Progression
               </span>
               <div className="flex items-center justify-between overflow-x-auto pb-1 gap-1">
@@ -112,11 +112,11 @@ export const SOSLogs: React.FC = () => {
                           <div className={`flex-1 h-[1px] ${idx <= currentIdx ? 'bg-on-surface-variant' : 'bg-outline-variant'}`} />
                         )}
                         <div
-                          className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-mono font-medium shrink-0 transition-all ${
+                          className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-sans font-medium shrink-0 transition-all ${
                             isCurrent
                               ? 'bg-on-surface text-surface'
                               : isDone
-                              ? 'bg-surface-container-highest text-on-surface-variant border border-outline-variant'
+                              ? 'bg-surface-container-lowestest text-on-surface-variant border border-outline-variant'
                               : 'bg-surface text-outline-variant border border-outline-variant/50'
                           }`}
                         >
@@ -126,7 +126,7 @@ export const SOSLogs: React.FC = () => {
                           <div className={`flex-1 h-[1px] ${idx < currentIdx ? 'bg-on-surface-variant' : 'bg-outline-variant'}`} />
                         )}
                       </div>
-                      <span className={`text-[9px] font-mono mt-1.5 leading-tight ${isCurrent ? 'text-on-surface font-medium' : isDone ? 'text-on-surface-variant' : 'text-outline-variant'}`}>
+                      <span className={`text-[9px] font-sans mt-1.5 leading-tight ${isCurrent ? 'text-on-surface font-medium' : isDone ? 'text-on-surface-variant' : 'text-outline-variant'}`}>
                         {step.label}
                       </span>
                     </div>
@@ -136,7 +136,7 @@ export const SOSLogs: React.FC = () => {
             </div>
 
             {/* Tabs Header */}
-            <div className="flex border-b border-outline-variant bg-surface-container-high/40 px-4 sm:px-6">
+            <div className="flex border-b border-outline-variant bg-surface-container-lowest/40 px-4 sm:px-6">
               <button
                 onClick={() => setActiveTab('canonical')}
                 className={`py-2 px-3 text-xs font-bold border-b-2 transition-colors cursor-pointer flex items-center gap-1.5 ${
@@ -172,63 +172,63 @@ export const SOSLogs: React.FC = () => {
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                     <div className="p-2.5 bg-surface-container rounded-lg border border-outline-variant/60">
-                      <span className="text-[10px] font-mono text-on-surface-variant block">SOS_ID</span>
-                      <span className="text-xs font-mono font-bold text-primary">{selectedLog.id}</span>
+                      <span className="text-[10px] font-sans text-on-surface-variant block">SOS_ID</span>
+                      <span className="text-xs font-sans font-bold text-primary">{selectedLog.id}</span>
                     </div>
 
                     <div className="p-2.5 bg-surface-container rounded-lg border border-outline-variant/60">
-                      <span className="text-[10px] font-mono text-on-surface-variant block">PROTOCOL_VERSION</span>
-                      <span className="text-xs font-mono font-bold text-on-surface">v2.4-canonical-mesh</span>
+                      <span className="text-[10px] font-sans text-on-surface-variant block">PROTOCOL_VERSION</span>
+                      <span className="text-xs font-sans font-bold text-on-surface">v2.4-canonical-mesh</span>
                     </div>
 
                     <div className="p-2.5 bg-surface-container rounded-lg border border-outline-variant/60">
-                      <span className="text-[10px] font-mono text-on-surface-variant block">SOURCE_TYPE</span>
-                      <span className="text-xs font-mono font-medium text-on-surface flex items-center gap-1">
+                      <span className="text-[10px] font-sans text-on-surface-variant block">SOURCE_TYPE</span>
+                      <span className="text-xs font-sans font-medium text-on-surface flex items-center gap-1">
                         <span className="material-symbols-outlined text-[14px]">{selectedLog.sourceIcon}</span>
                         {selectedLog.source}
                       </span>
                     </div>
 
                     <div className="p-2.5 bg-surface-container rounded-lg border border-outline-variant/60">
-                      <span className="text-[10px] font-mono text-on-surface-variant block">GPS FIX (WGS84)</span>
-                      <span className="text-xs font-mono font-medium text-on-surface">
+                      <span className="text-[10px] font-sans text-on-surface-variant block">GPS FIX (WGS84)</span>
+                      <span className="text-xs font-sans font-medium text-on-surface">
                         {selectedLog.lat.toFixed(4)}° N, {selectedLog.lng.toFixed(4)}° E
                       </span>
                     </div>
 
                     <div className="p-2.5 bg-surface-container rounded-lg border border-outline-variant/60">
-                      <span className="text-[10px] font-mono text-on-surface-variant block">LOCATION_ACCURACY</span>
-                      <span className="text-xs font-mono font-bold text-on-surface">±4.2 meters (GNSS)</span>
+                      <span className="text-[10px] font-sans text-on-surface-variant block">LOCATION_ACCURACY</span>
+                      <span className="text-xs font-sans font-bold text-on-surface">±4.2 meters (GNSS)</span>
                     </div>
 
                     <div className="p-2.5 bg-surface-container rounded-lg border border-outline-variant/60">
-                      <span className="text-[10px] font-mono text-on-surface-variant block">SEVERITY / SCORE</span>
-                      <span className={`text-xs font-mono font-medium text-on-surface`}>
+                      <span className="text-[10px] font-sans text-on-surface-variant block">SEVERITY / SCORE</span>
+                      <span className={`text-xs font-sans font-medium text-on-surface`}>
                         {selectedLog.status.toUpperCase()} ({selectedLog.score} pts)
                       </span>
                     </div>
 
                     <div className="p-2.5 bg-surface-container rounded-lg border border-outline-variant/60">
-                      <span className="text-[10px] font-mono text-on-surface-variant block">PEOPLE_COUNT</span>
-                      <span className="text-xs font-mono font-bold text-on-surface">{selectedLog.people} Affected</span>
+                      <span className="text-[10px] font-sans text-on-surface-variant block">PEOPLE_COUNT</span>
+                      <span className="text-xs font-sans font-bold text-on-surface">{selectedLog.people} Affected</span>
                     </div>
 
                     <div className="p-2.5 bg-surface-container rounded-lg border border-outline-variant/60">
-                      <span className="text-[10px] font-mono text-on-surface-variant block">MEDICAL_REQUIRED</span>
-                      <span className="text-xs font-mono font-bold text-error">YES (Emergency Priority)</span>
+                      <span className="text-[10px] font-sans text-on-surface-variant block">MEDICAL_REQUIRED</span>
+                      <span className="text-xs font-sans font-bold text-error">YES (Emergency Priority)</span>
                     </div>
 
                     <div className="p-2.5 bg-surface-container rounded-lg border border-outline-variant/60">
-                      <span className="text-[10px] font-mono text-on-surface-variant block">HOP_COUNT / TTL</span>
-                      <span className="text-xs font-mono font-bold text-primary">Hop: {selectedLog.hop} / TTL: {8 - selectedLog.hop}</span>
+                      <span className="text-[10px] font-sans text-on-surface-variant block">HOP_COUNT / TTL</span>
+                      <span className="text-xs font-sans font-bold text-primary">Hop: {selectedLog.hop} / TTL: {8 - selectedLog.hop}</span>
                     </div>
                   </div>
 
                   <div className="p-3 bg-surface-container rounded-xl border border-outline-variant/60">
-                    <span className="text-[10px] font-mono text-on-surface-variant uppercase block mb-1">
+                    <span className="text-[10px] font-sans text-on-surface-variant uppercase block mb-1">
                       CITIZEN SITUATION DESCRIPTOR &amp; RELAY PAYLOAD
                     </span>
-                    <p className="text-xs text-on-surface font-body-sm leading-relaxed">
+                    <p className="text-xs text-on-surface text-sm leading-relaxed">
                       "{selectedLog.details}"
                     </p>
                   </div>
@@ -244,17 +244,17 @@ export const SOSLogs: React.FC = () => {
                     {selectedLog.relayPath.map((node, idx) => (
                       <div key={idx} className="p-3 bg-surface-container rounded-xl border border-outline-variant/60 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-7 h-7 rounded-lg bg-surface-container-highest flex items-center justify-center font-mono text-xs font-bold text-primary">
+                          <div className="w-7 h-7 rounded-lg bg-surface-container-lowestest flex items-center justify-center font-sans text-xs font-bold text-primary">
                             0{idx + 1}
                           </div>
                           <div>
-                            <span className="font-bold text-xs text-on-surface block font-mono">{node}</span>
-                            <span className="text-[11px] text-on-surface-variant font-mono">
+                            <span className="font-bold text-xs text-on-surface block font-sans">{node}</span>
+                            <span className="text-[11px] text-on-surface-variant font-sans">
                               {idx === 0 ? 'Originating Citizen Node (Offline BLE/WiFi-D)' : idx === selectedLog.relayPath.length - 1 ? 'EOC Ingestion Gateway' : 'Store-and-Forward Relay Peer'}
                             </span>
                           </div>
                         </div>
-                        <div className="text-right font-mono text-[11px]">
+                        <div className="text-right font-sans text-[11px]">
                           <span className="text-on-surface font-medium block">RSSI: -{64 + idx * 8} dBm</span>
                           <span className="text-on-surface-variant">Latency: {14 + idx * 12}ms</span>
                         </div>
@@ -265,7 +265,7 @@ export const SOSLogs: React.FC = () => {
               )}
 
               {activeTab === 'raw_json' && (
-                <pre className="p-3 bg-surface-container-lowest rounded-xl border border-outline-variant text-[11px] font-mono text-on-surface-variant overflow-x-auto">
+                <pre className="p-3 bg-surface-container-lowest rounded-xl border border-outline-variant/30 text-[11px] font-sans text-on-surface-variant overflow-x-auto">
 {JSON.stringify({
   sos_id: selectedLog.id,
   protocol_version: "2.4-canonical-mesh",
@@ -291,13 +291,13 @@ export const SOSLogs: React.FC = () => {
             </div>
 
             {/* Modal Actions */}
-            <div className="p-4 bg-surface-container-high border-t border-outline-variant flex flex-wrap justify-between items-center gap-2">
+            <div className="p-4 bg-surface-container-lowest border-t border-outline-variant flex flex-wrap justify-between items-center gap-2">
               <button
                 onClick={() => {
                   resolveSignal(selectedLog.id);
                   setSelectedLog(null);
                 }}
-                className="px-3 py-1.5 bg-surface-bright border border-outline-variant text-on-surface rounded-lg font-data-label text-xs hover:bg-surface-container-highest cursor-pointer font-medium transition-colors"
+                className="px-3 py-1.5 bg-surface border border-outline-variant/30 text-on-surface rounded-lg text-xs text-xs hover:bg-surface-container-lowestest cursor-pointer font-medium transition-colors"
               >
                 Mark Rescued / Closed
               </button>
@@ -305,7 +305,7 @@ export const SOSLogs: React.FC = () => {
               <div className="flex gap-2">
                 <button 
                   onClick={() => setSelectedLog(null)}
-                  className="px-3 py-1.5 bg-surface-bright border border-outline-variant text-on-surface rounded-lg font-data-label text-xs hover:bg-surface-container-highest cursor-pointer font-bold"
+                  className="px-3 py-1.5 bg-surface border border-outline-variant/30 text-on-surface rounded-lg text-xs text-xs hover:bg-surface-container-lowestest cursor-pointer font-bold"
                 >
                   Close
                 </button>
@@ -314,7 +314,7 @@ export const SOSLogs: React.FC = () => {
                     dispatchTeamToSignal(selectedLog.id);
                     setSelectedLog(null);
                   }}
-                  className="px-4 py-1.5 bg-secondary text-on-secondary font-bold rounded-lg hover:bg-secondary-fixed cursor-pointer flex items-center gap-1.5 text-xs shadow-xs"
+                  className="px-4 py-1.5 bg-secondary text-on-secondary font-bold rounded-lg hover:bg-secondary-fixed cursor-pointer flex items-center gap-1.5 text-xs shadow-sm"
                 >
                   <span className="material-symbols-outlined text-[16px]">send</span>
                   Dispatch Rescue Team
@@ -326,24 +326,24 @@ export const SOSLogs: React.FC = () => {
       )}
 
       {/* Page Header & Filters */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-stack-md mb-stack-lg">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
         <div>
-          <h2 className="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface flex items-center gap-2 font-bold">
-            <span className="material-symbols-outlined text-secondary icon-fill text-3xl">list_alt</span>
-            SOS Canonical Protocol &amp; Event Logs
+          <h2 className="font-sans text-2xl text-on-surface flex items-center gap-2 font-bold">
+            <span className="material-symbols-outlined text-primary text-2xl">assignment</span>
+            SOS Canonical Protocol & Event Logs
           </h2>
-          <p className="font-body-sm text-body-sm text-on-surface-variant mt-1 text-xs sm:text-sm">
+          <p className="text-sm text-on-surface-variant mt-1">
             Real-time multi-hop store-and-forward mesh audit and canonical packet verification.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full lg:w-auto bg-surface-container p-2 rounded-xl border border-outline-variant">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full lg:w-auto bg-surface p-2.5 rounded-xl border border-outline-variant/30 shadow-sm">
           <div className="relative flex-1 sm:flex-none sm:w-48">
             <span className="material-symbols-outlined absolute left-2.5 top-2 text-on-surface-variant text-sm">search</span>
             <input 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-surface-container-lowest border border-outline-variant text-on-surface rounded-lg focus:border-primary pl-8 py-1.5 font-body-sm text-xs sm:text-sm placeholder:text-on-surface-variant/50 focus:outline-none" 
+              className="w-full bg-surface border border-outline-variant/30 text-on-surface rounded-lg focus:border-primary/50 pl-8 py-1.5 text-sm placeholder:text-on-surface-variant/50 focus:outline-none" 
               placeholder="Search SOS ID, district..." 
               type="text"
             />
@@ -352,7 +352,7 @@ export const SOSLogs: React.FC = () => {
           <select 
             value={districtFilter}
             onChange={(e) => setDistrictFilter(e.target.value)}
-            className="bg-surface-container-lowest border border-outline-variant text-on-surface rounded-lg py-1.5 px-2 font-body-sm text-xs sm:text-sm focus:outline-none cursor-pointer"
+            className="bg-surface border border-outline-variant/30 text-on-surface rounded-lg py-1.5 px-2.5 text-sm focus:outline-none cursor-pointer shadow-sm"
           >
             <option value="">All Districts</option>
             <option value="khordha">Khordha</option>
@@ -364,7 +364,7 @@ export const SOSLogs: React.FC = () => {
           <select 
             value={severityFilter}
             onChange={(e) => setSeverityFilter(e.target.value)}
-            className="bg-surface-container-lowest border border-outline-variant text-on-surface rounded-lg py-1.5 px-2 font-body-sm text-xs sm:text-sm focus:outline-none cursor-pointer"
+            className="bg-surface border border-outline-variant/30 text-on-surface rounded-lg py-1.5 px-2.5 text-sm focus:outline-none cursor-pointer shadow-sm"
           >
             <option value="">All Severities</option>
             <option value="critical">Critical</option>
@@ -375,65 +375,65 @@ export const SOSLogs: React.FC = () => {
 
           <button 
             onClick={handleExportCSV}
-            className="bg-surface-bright border border-outline-variant text-on-surface px-3 py-1.5 rounded-lg font-data-label text-xs sm:text-sm flex items-center gap-1.5 hover:bg-surface-container-highest cursor-pointer font-bold"
+            className="bg-surface hover:bg-surface-container-low border border-outline-variant/30 text-on-surface px-3 py-1.5 rounded-lg text-sm flex items-center gap-1.5 cursor-pointer font-semibold shadow-sm transition-colors"
           >
-            <span className="material-symbols-outlined text-[18px]">download</span> Export CSV
+            <span className="material-symbols-outlined text-[16px]">download</span> Export CSV
           </button>
         </div>
       </div>
 
       {/* SOS Events Table */}
-      <div className="bg-surface-container border border-outline-variant rounded-2xl overflow-hidden shadow-xl">
+      <div className="bg-surface border border-outline-variant/30 rounded-xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs sm:text-sm">
+          <table className="w-full text-left border-collapse text-sm">
             <thead>
-              <tr className="border-b border-outline-variant bg-surface-container-high font-mono text-[11px] text-on-surface-variant uppercase tracking-wider">
-                <th className="p-3.5">SOS ID</th>
-                <th className="p-3.5">Timestamp</th>
-                <th className="p-3.5">Location &amp; GPS</th>
-                <th className="p-3.5">Ingest Medium</th>
-                <th className="p-3.5">Triage Severity</th>
-                <th className="p-3.5">Mesh Hops</th>
-                <th className="p-3.5 text-right">Audit Action</th>
+              <tr className="border-b border-outline-variant/30 bg-surface-container-lowest text-[11px] text-on-surface-variant uppercase tracking-wider font-sans">
+                <th className="p-3.5 font-medium">SOS ID</th>
+                <th className="p-3.5 font-medium">Timestamp</th>
+                <th className="p-3.5 font-medium">Location &amp; GPS</th>
+                <th className="p-3.5 font-medium">Ingest Medium</th>
+                <th className="p-3.5 font-medium">Triage Severity</th>
+                <th className="p-3.5 font-medium">Mesh Hops</th>
+                <th className="p-3.5 text-right font-medium">Audit Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-outline-variant/60 font-body-sm">
+            <tbody className="divide-y divide-outline-variant/60 text-sm">
               {filteredLogs.map((log) => {
-                let badgeClass = "bg-surface-container text-on-surface border border-outline-variant";
+                let badgeClass = "bg-surface-container text-on-surface border border-outline-variant/30";
                 if (log.status.toLowerCase() === 'critical') badgeClass = "bg-error/10 text-error border border-error/20";
                 if (log.status.toLowerCase() === 'urgent') badgeClass = "bg-primary/10 text-primary border border-primary/20";
-                if (log.status.toLowerCase() === 'pending') badgeClass = "bg-surface-container-highest text-on-surface-variant border border-outline-variant";
+                if (log.status.toLowerCase() === 'pending') badgeClass = "bg-surface-container-lowestest text-on-surface-variant border border-outline-variant/30";
 
                 return (
-                <tr key={log.id} className="hover:bg-surface-bright transition-colors group cursor-default">
-                  <td className="p-3.5 font-mono font-medium text-on-surface">
+                <tr key={log.id} className="hover:bg-surface transition-colors group cursor-default">
+                  <td className="p-3.5 font-sans font-medium text-on-surface">
                     {log.id}
                   </td>
-                  <td className="p-3.5 text-on-surface-variant font-mono text-[11px]">
+                  <td className="p-3.5 text-on-surface-variant font-sans text-[11px]">
                     {log.timestamp}
                   </td>
                   <td className="p-3.5">
                     <span className="font-medium text-on-surface block text-[13px]">{log.loc}</span>
-                    <span className="text-[10px] text-on-surface-variant font-mono">
+                    <span className="text-[10px] text-on-surface-variant font-sans">
                       GPS: {log.lat.toFixed(4)}° N, {log.lng.toFixed(4)}° E
                     </span>
                   </td>
-                  <td className="p-3.5 font-mono text-[11px] text-on-surface-variant flex items-center gap-1.5 pt-4">
+                  <td className="p-3.5 font-sans text-[11px] text-on-surface-variant flex items-center gap-1.5 pt-4">
                     <span className="material-symbols-outlined text-[14px]">{log.sourceIcon}</span>
                     {log.source}
                   </td>
                   <td className="p-3.5">
-                    <span className={`px-2 py-0.5 rounded font-mono font-medium text-[10px] uppercase ${badgeClass}`}>
+                    <span className={`px-2 py-0.5 rounded font-sans font-medium text-[10px] uppercase ${badgeClass}`}>
                       {log.status} ({log.score} pts)
                     </span>
                   </td>
-                  <td className="p-3.5 font-mono text-[11px] text-on-surface-variant">
+                  <td className="p-3.5 font-sans text-[11px] text-on-surface-variant">
                     <span className="font-medium text-on-surface">{log.hop} Hops</span> (TTL: {8 - log.hop})
                   </td>
                   <td className="p-3.5 text-right">
                     <button
                       onClick={() => setSelectedLog(log)}
-                      className="px-3 py-1 bg-surface border border-outline-variant text-on-surface hover:bg-surface-container-highest rounded text-[11px] font-medium transition-colors cursor-pointer inline-flex items-center gap-1.5 opacity-0 group-hover:opacity-100 focus:opacity-100"
+                      className="px-3 py-1 bg-surface border border-outline-variant/30 text-on-surface hover:bg-surface-container-lowestest rounded text-[11px] font-medium transition-colors cursor-pointer inline-flex items-center gap-1.5 opacity-0 group-hover:opacity-100 focus:opacity-100"
                     >
                       <span className="material-symbols-outlined text-[14px]">visibility</span>
                       Inspect

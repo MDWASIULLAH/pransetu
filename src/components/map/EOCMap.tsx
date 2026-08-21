@@ -9,7 +9,7 @@ import { DeliveryPill, SeverityBadge } from '../common/Badges';
 // Custom icons
 const createIcon = (color: string) => L.divIcon({
   className: 'custom-div-icon',
-  html: `<div style="background-color: ${color}; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 10px ${color};"></div>`,
+  html: `<div style="background-color: ${color}; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></div>`,
   iconSize: [14, 14],
   iconAnchor: [7, 7]
 });
@@ -81,14 +81,14 @@ export const EOCMap = () => {
               <div className="p-1 min-w-[200px]">
                 <h4 className="font-bold text-white mb-2">{inc.id}</h4>
                 <div className="grid grid-cols-2 gap-2 text-xs mb-3">
-                  <div className="text-gray-400">District</div><div className="text-right text-gray-200">{inc.district}</div>
-                  <div className="text-gray-400">Affected</div><div className="text-right text-orange-400 font-bold">{inc.affectedPeople}</div>
-                  <div className="text-gray-400">SOS Count</div><div className="text-right text-gray-200">{inc.sosCount}</div>
-                  <div className="text-gray-400">Critical</div><div className="text-right text-red-400 font-bold">{inc.criticalCount}</div>
+                  <div className="text-on-surface-variant">District</div><div className="text-right text-gray-200">{inc.district}</div>
+                  <div className="text-on-surface-variant">Affected</div><div className="text-right text-orange-400 font-bold">{inc.affectedPeople}</div>
+                  <div className="text-on-surface-variant">SOS Count</div><div className="text-right text-gray-200">{inc.sosCount}</div>
+                  <div className="text-on-surface-variant">Critical</div><div className="text-right text-red-400 font-bold">{inc.criticalCount}</div>
                 </div>
                 <div className="bg-gray-800 p-2 rounded text-center">
-                  <div className="text-[10px] text-gray-400 uppercase mb-1">Rescue Priority</div>
-                  <div className="text-2xl font-mono text-orange-400">{inc.priorityScore}/100</div>
+                  <div className="text-[10px] text-on-surface-variant uppercase mb-1">Rescue Priority</div>
+                  <div className="text-2xl font-sans text-orange-400">{inc.priorityScore}/100</div>
                 </div>
               </div>
             </Popup>
@@ -128,18 +128,18 @@ export const EOCMap = () => {
                   
                   <div className="space-y-1.5 text-xs mb-3">
                     <div className="flex justify-between">
-                      <span className="text-gray-400">People:</span>
+                      <span className="text-on-surface-variant">People:</span>
                       <span className="text-gray-200 font-bold">{sos.peopleCount}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-400">Medical:</span>
-                      <span className={sos.medicalRequired ? "text-red-400 font-bold" : "text-gray-400"}>
+                      <span className="text-on-surface-variant">Medical:</span>
+                      <span className={sos.medicalRequired ? "text-red-400 font-bold" : "text-on-surface-variant"}>
                         {sos.medicalRequired ? 'URGENT' : 'NO'}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-400">Relay Hops:</span>
-                      <span className="text-gray-200 font-mono">{sos.hopCount}</span>
+                      <span className="text-on-surface-variant">Relay Hops:</span>
+                      <span className="text-gray-200 font-sans">{sos.hopCount}</span>
                     </div>
                   </div>
                   
@@ -160,7 +160,7 @@ export const EOCMap = () => {
             <Popup>
               <div className="p-1">
                 <h4 className="font-bold text-white mb-1">{sh.name}</h4>
-                <div className="text-xs text-gray-400 mb-2">Capacity: {sh.occupied}/{sh.capacity} ({(sh.occupied/sh.capacity*100).toFixed(0)}%)</div>
+                <div className="text-xs text-on-surface-variant mb-2">Capacity: {sh.occupied}/{sh.capacity} ({(sh.occupied/sh.capacity*100).toFixed(0)}%)</div>
                 <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden">
                   <div className="bg-blue-500 h-full" style={{ width: `${(sh.occupied/sh.capacity)*100}%` }}></div>
                 </div>
@@ -178,7 +178,7 @@ export const EOCMap = () => {
               <Popup>
                 <div className="p-1">
                   <h4 className="font-bold text-white">{team.name}</h4>
-                  <div className="text-xs text-gray-400">{team.status.replace('_', ' ')}</div>
+                  <div className="text-xs text-on-surface-variant">{team.status.replace('_', ' ')}</div>
                 </div>
               </Popup>
             </Marker>

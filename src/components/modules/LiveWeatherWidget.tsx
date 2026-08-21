@@ -69,7 +69,7 @@ export const LiveWeatherWidget: React.FC<LiveWeatherWidgetProps> = ({
     : GLOBAL_PRESET_LOCATIONS.filter((l) => l.category === activeCategory);
 
   return (
-    <div className={`bg-surface-container border border-outline-variant rounded-xl p-4 shadow-lg overflow-hidden flex flex-col ${className}`}>
+    <div className={`bg-surface border border-outline-variant/30 shadow-sm rounded-xl p-4 shadow-lg overflow-hidden flex flex-col ${className}`}>
       {/* Header with Global Live Indicator */}
       <div className="flex flex-wrap justify-between items-center pb-3 border-b border-outline-variant gap-2">
         <div className="flex items-center gap-2">
@@ -77,10 +77,10 @@ export const LiveWeatherWidget: React.FC<LiveWeatherWidgetProps> = ({
             <span className="material-symbols-outlined text-[20px]">public</span>
           </div>
           <div>
-            <h3 className="font-headline-sm text-sm font-bold text-on-surface flex items-center gap-1.5">
+            <h3 className="font-sans text-base font-semibold text-on-surface flex items-center gap-1.5">
               Global Atmospheric &amp; Storm Telemetry
             </h3>
-            <span className="text-[10px] font-mono text-on-surface-variant block">
+            <span className="text-[10px] font-sans text-on-surface-variant block">
               Worldwide Doppler Feed • Live Sync: {currentWeather?.lastUpdated || 'Now'}
             </span>
           </div>
@@ -89,26 +89,26 @@ export const LiveWeatherWidget: React.FC<LiveWeatherWidgetProps> = ({
         <button
           onClick={() => loadWeather()}
           disabled={loading}
-          className="p-1.5 rounded-lg bg-surface-container-highest hover:bg-surface-bright text-on-surface-variant hover:text-primary transition-colors cursor-pointer border border-outline-variant flex items-center gap-1 text-xs"
+          className="p-1.5 rounded-lg bg-surface hover:bg-surface-container-low text-on-surface-variant hover:text-primary transition-colors cursor-pointer border border-outline-variant flex items-center gap-1 text-xs"
           title="Refresh Live Weather"
         >
           <span className={`material-symbols-outlined text-[16px] ${loading ? 'animate-spin' : ''}`}>
             sync
           </span>
-          <span className="hidden sm:inline text-[11px] font-mono">Sync</span>
+          <span className="hidden sm:inline text-[11px] font-sans">Sync</span>
         </button>
       </div>
 
       {/* Worldwide City Search Bar */}
       <form onSubmit={handleSearchSubmit} className="pt-2.5 pb-2">
-        <div className="flex items-center gap-1.5 bg-surface-container-highest rounded-lg border border-outline-variant px-2.5 py-1">
+        <div className="flex items-center gap-1.5 bg-surface border border-outline-variant/30 shadow-sm px-2.5 py-1">
           <span className="material-symbols-outlined text-on-surface-variant text-[18px]">search</span>
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search any city or country worldwide (e.g. Tokyo, Miami, London, Mumbai)..."
-            className="w-full bg-transparent text-on-surface text-xs focus:outline-none placeholder:text-on-surface-variant/60 font-mono"
+            className="w-full bg-transparent text-on-surface text-xs focus:outline-none placeholder:text-on-surface-variant/60 font-sans"
           />
           {searchQuery && (
             <button
@@ -128,19 +128,19 @@ export const LiveWeatherWidget: React.FC<LiveWeatherWidgetProps> = ({
           </button>
         </div>
         {searchError && (
-          <span className="text-[11px] text-error font-mono mt-1 block">{searchError}</span>
+          <span className="text-[11px] text-error font-sans mt-1 block">{searchError}</span>
         )}
       </form>
 
       {/* Region Category Filter Pills */}
-      <div className="flex gap-1 py-1.5 overflow-x-auto border-b border-outline-variant text-[11px] font-mono">
+      <div className="flex gap-1 py-1.5 overflow-x-auto border-b border-outline-variant text-[11px] font-sans">
         {(['All', 'India Disaster Grid', 'Global Hurricane/Typhoon', 'World Capitals'] as const).map((cat) => (
           <button
             key={cat}
             onClick={() => setActiveCategory(cat)}
             className={`px-2 py-0.5 rounded transition-colors cursor-pointer whitespace-nowrap ${
               activeCategory === cat
-                ? 'bg-primary-container text-primary font-bold border border-primary/30'
+                ? 'bg-primary/10 text-primary font-semibold border border-primary/20'
                 : 'text-on-surface-variant hover:text-on-surface'
             }`}
           >
@@ -162,11 +162,11 @@ export const LiveWeatherWidget: React.FC<LiveWeatherWidgetProps> = ({
               }}
               className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1 ${
                 isSelected
-                  ? 'bg-primary text-on-primary font-bold shadow-xs'
-                  : 'bg-surface-container-highest border border-outline-variant/60 text-on-surface-variant hover:text-on-surface'
+                  ? 'bg-primary/10 text-primary font-semibold shadow-sm border border-primary/20'
+                  : 'bg-surface border border-outline-variant/50 text-on-surface-variant hover:text-on-surface'
               }`}
             >
-              <span className="text-[10px] opacity-75 font-mono">[{loc.country}]</span>
+              <span className="text-[10px] opacity-75 font-sans">[{loc.country}]</span>
               <span>{loc.name.split(' ')[0]}</span>
             </button>
           );
@@ -176,16 +176,16 @@ export const LiveWeatherWidget: React.FC<LiveWeatherWidgetProps> = ({
       {/* Current Weather Display */}
       {currentWeather && (
         <div className="pt-3 space-y-3 flex-1 flex flex-col justify-between">
-          <div className="flex items-center justify-between bg-surface-container-high p-3 rounded-xl border border-outline-variant/70">
+          <div className="flex items-center justify-between bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/30 shadow-sm">
             <div className="flex items-center gap-3">
-              <span className="text-3xl font-bold font-mono text-on-surface">
+              <span className="text-3xl font-bold font-sans text-on-surface">
                 {currentWeather.temp}°C
               </span>
               <div>
                 <span className="font-bold text-xs text-primary block">
                   {currentWeather.district} {currentWeather.country ? `(${currentWeather.country})` : ''}
                 </span>
-                <span className="text-[10px] text-on-surface-variant font-mono">
+                <span className="text-[10px] text-on-surface-variant font-sans">
                   {currentWeather.condition} • Feels {currentWeather.feelsLike}°C
                 </span>
               </div>
@@ -194,19 +194,19 @@ export const LiveWeatherWidget: React.FC<LiveWeatherWidgetProps> = ({
             {/* Cyclone / Hazard Classification */}
             <div className="text-right">
               <span
-                className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider inline-block ${
+                className={`px-2 py-0.5 rounded-full text-[10px] font-sans font-bold uppercase tracking-wider inline-block ${
                   currentWeather.cycloneRiskLevel === 'EMERGENCY_RED'
-                    ? 'bg-red-950 text-red-300 border border-red-800'
+                    ? 'bg-error/10 text-error border border-error/20'
                     : currentWeather.cycloneRiskLevel === 'WARNING'
-                    ? 'bg-orange-950 text-orange-300 border border-orange-800'
+                    ? 'bg-amber-600/10 text-amber-600 border border-amber-600/20'
                     : currentWeather.cycloneRiskLevel === 'WATCH'
-                    ? 'bg-yellow-950 text-yellow-300 border border-yellow-800'
-                    : 'bg-green-950 text-status-green border border-green-800'
+                    ? 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
+                    : 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
                 }`}
               >
                 {currentWeather.cycloneRiskLevel.replace('_', ' ')}
               </span>
-              <span className="text-[10px] text-on-surface-variant font-mono block mt-0.5">
+              <span className="text-[10px] text-on-surface-variant font-sans block mt-0.5">
                 Surge Risk: +{currentWeather.surgePotentialM}m
               </span>
             </div>
@@ -214,44 +214,44 @@ export const LiveWeatherWidget: React.FC<LiveWeatherWidgetProps> = ({
 
           {/* 4 Telemetry Metrics */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <div className="p-2.5 bg-surface-container-highest rounded-lg border border-outline-variant/50">
-              <span className="text-[10px] text-on-surface-variant font-mono block">WIND SPEED &amp; GUSTS</span>
+            <div className="p-2.5 bg-surface border border-outline-variant/30 shadow-sm/50">
+              <span className="text-[10px] text-on-surface-variant font-sans block">WIND SPEED &amp; GUSTS</span>
               <div className="flex items-baseline gap-1 mt-0.5">
-                <span className="text-sm font-bold font-mono text-on-surface">{currentWeather.windSpeedKmh}</span>
-                <span className="text-[10px] text-on-surface-variant font-mono">km/h</span>
+                <span className="text-sm font-bold font-sans text-on-surface">{currentWeather.windSpeedKmh}</span>
+                <span className="text-[10px] text-on-surface-variant font-sans">km/h</span>
               </div>
-              <span className="text-[10px] text-orange-400 font-mono">Gusts: {currentWeather.windGustKmh} km/h</span>
+              <span className="text-[10px] text-amber-600 font-sans">Gusts: {currentWeather.windGustKmh} km/h</span>
             </div>
 
-            <div className="p-2.5 bg-surface-container-highest rounded-lg border border-outline-variant/50">
-              <span className="text-[10px] text-on-surface-variant font-mono block">BAROMETRIC PRESSURE</span>
+            <div className="p-2.5 bg-surface border border-outline-variant/30 shadow-sm/50">
+              <span className="text-[10px] text-on-surface-variant font-sans block">BAROMETRIC PRESSURE</span>
               <div className="flex items-baseline gap-1 mt-0.5">
-                <span className={`text-sm font-bold font-mono ${currentWeather.pressure < 995 ? 'text-error' : 'text-on-surface'}`}>
+                <span className={`text-sm font-bold font-sans ${currentWeather.pressure < 995 ? 'text-error' : 'text-on-surface'}`}>
                   {currentWeather.pressure}
                 </span>
-                <span className="text-[10px] text-on-surface-variant font-mono">hPa</span>
+                <span className="text-[10px] text-on-surface-variant font-sans">hPa</span>
               </div>
-              <span className="text-[10px] text-on-surface-variant font-mono">
+              <span className="text-[10px] text-on-surface-variant font-sans">
                 {currentWeather.pressure < 995 ? '⚠️ Low Depression' : 'Stable Atmospheric'}
               </span>
             </div>
 
-            <div className="p-2.5 bg-surface-container-highest rounded-lg border border-outline-variant/50">
-              <span className="text-[10px] text-on-surface-variant font-mono block">PRECIPITATION (1H)</span>
+            <div className="p-2.5 bg-surface border border-outline-variant/30 shadow-sm/50">
+              <span className="text-[10px] text-on-surface-variant font-sans block">PRECIPITATION (1H)</span>
               <div className="flex items-baseline gap-1 mt-0.5">
-                <span className="text-sm font-bold font-mono text-primary">{currentWeather.rain1hMm}</span>
-                <span className="text-[10px] text-on-surface-variant font-mono">mm/h</span>
+                <span className="text-sm font-bold font-sans text-primary">{currentWeather.rain1hMm}</span>
+                <span className="text-[10px] text-on-surface-variant font-sans">mm/h</span>
               </div>
-              <span className="text-[10px] text-status-green font-mono">Humidity: {currentWeather.humidity}%</span>
+              <span className="text-[10px] text-emerald-600 font-sans">Humidity: {currentWeather.humidity}%</span>
             </div>
 
-            <div className="p-2.5 bg-surface-container-highest rounded-lg border border-outline-variant/50">
-              <span className="text-[10px] text-on-surface-variant font-mono block">CLOUD &amp; VISIBILITY</span>
+            <div className="p-2.5 bg-surface border border-outline-variant/30 shadow-sm/50">
+              <span className="text-[10px] text-on-surface-variant font-sans block">CLOUD &amp; VISIBILITY</span>
               <div className="flex items-baseline gap-1 mt-0.5">
-                <span className="text-sm font-bold font-mono text-on-surface">{currentWeather.visibilityKm}</span>
-                <span className="text-[10px] text-on-surface-variant font-mono">km</span>
+                <span className="text-sm font-bold font-sans text-on-surface">{currentWeather.visibilityKm}</span>
+                <span className="text-[10px] text-on-surface-variant font-sans">km</span>
               </div>
-              <span className="text-[10px] text-on-surface-variant font-mono">Clouds: {currentWeather.clouds}%</span>
+              <span className="text-[10px] text-on-surface-variant font-sans">Clouds: {currentWeather.clouds}%</span>
             </div>
           </div>
         </div>

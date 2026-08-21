@@ -58,11 +58,11 @@ export const VoiceCampaigns: React.FC = () => {
       {/* New Campaign Modal */}
       {newCampaignModal && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-          <div className="bg-surface-container border border-outline-variant p-6 rounded-xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-surface-container border border-outline-variant/30 p-6 rounded-xl w-full max-w-lg shadow-lg max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-outline-variant">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-rescue-blue text-[24px]">campaign</span>
-                <h3 className="font-headline-sm text-headline-sm font-bold text-on-surface">
+                <h3 className="font-sans text-headline-sm font-bold text-on-surface">
                   Launch Automated Voice Campaign
                 </h3>
               </div>
@@ -76,7 +76,7 @@ export const VoiceCampaigns: React.FC = () => {
 
             <form onSubmit={handleCreateCampaign} className="mt-4 space-y-4">
               <div>
-                <label className="font-data-label text-data-label text-on-surface-variant uppercase block mb-1">
+                <label className="text-xs text-xs text-on-surface-variant uppercase block mb-1">
                   Campaign Title / Code
                 </label>
                 <input 
@@ -88,13 +88,13 @@ export const VoiceCampaigns: React.FC = () => {
               </div>
 
               <div>
-                <label className="font-data-label text-data-label text-on-surface-variant uppercase block mb-1">
+                <label className="text-xs text-xs text-on-surface-variant uppercase block mb-1">
                   Target Geographic Polygon
                 </label>
                 <select 
                   value={targetAudience}
                   onChange={(e) => setTargetAudience(e.target.value)}
-                  className="w-full bg-[#020617] border border-slate-500 rounded p-2 text-on-surface font-body-sm text-body-sm focus:outline-none focus:border-rescue-blue cursor-pointer"
+                  className="w-full bg-[#020617] border border-slate-500 rounded p-2 text-on-surface text-sm text-sm focus:outline-none focus:border-rescue-blue cursor-pointer"
                 >
                   <option value="Coastal Districts (Balasore, Bhadrak)">Coastal Districts (Balasore, Bhadrak)</option>
                   <option value="Puri & Ganjam Coastal Belt">Puri &amp; Ganjam Coastal Belt (High Inundation)</option>
@@ -104,13 +104,13 @@ export const VoiceCampaigns: React.FC = () => {
               </div>
 
               <div>
-                <label className="font-data-label text-data-label text-on-surface-variant uppercase block mb-1">
+                <label className="text-xs text-xs text-on-surface-variant uppercase block mb-1">
                   Pre-Recorded Audio / Script
                 </label>
                 <select 
                   value={ivrScript}
                   onChange={(e) => setIvrScript(e.target.value)}
-                  className="w-full bg-[#020617] border border-slate-500 rounded p-2 text-on-surface font-body-sm text-body-sm focus:outline-none focus:border-rescue-blue cursor-pointer"
+                  className="w-full bg-[#020617] border border-slate-500 rounded p-2 text-on-surface text-sm text-sm focus:outline-none focus:border-rescue-blue cursor-pointer"
                 >
                   <option value="Cyclone Evacuation Notice v2">Cyclone Evacuation Notice v2 (Odia / Hindi / English)</option>
                   <option value="Post-Disaster Check-in">Post-Disaster Check-in (Press 1 for Safe / 2 for Trapped)</option>
@@ -123,7 +123,7 @@ export const VoiceCampaigns: React.FC = () => {
                 <button 
                   type="button"
                   onClick={() => setNewCampaignModal(false)}
-                  className="px-4 py-2 bg-surface-bright border border-outline-variant text-on-surface rounded font-data-label text-data-label hover:bg-surface-container-highest cursor-pointer"
+                  className="px-4 py-2 bg-surface border border-outline-variant/30 text-on-surface rounded text-xs text-xs hover:bg-surface-container-lowestest cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -143,18 +143,18 @@ export const VoiceCampaigns: React.FC = () => {
       {/* Header Section */}
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <div>
-          <h2 className="font-headline-lg text-headline-lg font-semibold text-on-surface tracking-tight text-xl sm:text-2xl">
+          <h2 className="font-sans font-semibold text-on-surface tracking-tight text-xl sm:text-2xl">
             Voice Campaigns
           </h2>
-          <p className="font-body-sm text-body-sm text-on-surface-variant mt-1 text-xs sm:text-sm">
+          <p className="font-sans text-on-surface-variant mt-1 text-sm">
             Manage and monitor automated IVR broadcasts for early warning and citizen check-ins.
           </p>
         </div>
         <button 
           onClick={() => setNewCampaignModal(true)}
-          className="bg-rescue-blue hover:bg-blue-700 text-white px-4 sm:px-5 py-2 rounded font-medium flex items-center gap-2 transition-colors border border-blue-600 shadow-sm cursor-pointer text-xs sm:text-sm"
+          className="bg-primary hover:bg-primary/90 text-on-primary px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors cursor-pointer text-sm shadow-sm"
         >
-          <span className="material-symbols-outlined text-sm">add</span>
+          <span className="material-symbols-outlined text-[18px]">add</span>
           New Campaign
         </button>
       </header>
@@ -162,47 +162,46 @@ export const VoiceCampaigns: React.FC = () => {
       {/* Bento Grid Layout */}
       <div className="bento-grid">
         {/* Running Campaign Detail (Priority Module) */}
-        <section className="bento-item-twothird bg-surface-container-high border border-[#334155] rounded-xl relative overflow-hidden flex flex-col shadow-xl">
-          <div className={`status-indicator ${activeCampaign.status === 'Running' ? 'bg-rescue-blue' : 'bg-status-orange'}`}></div>
-          <div className="p-4 sm:p-5 border-b border-outline-variant flex flex-wrap justify-between items-center bg-surface-bright/50 gap-2">
+        <section className="bento-item-twothird bg-surface border border-outline-variant/30 rounded-xl relative overflow-hidden flex flex-col shadow-sm">
+          <div className="p-4 sm:p-5 border-b border-outline-variant/30 flex flex-wrap justify-between items-center bg-surface-container-low gap-2">
             <div className="flex items-center gap-3">
-              <span className="relative flex h-3 w-3">
+              <span className="relative flex h-2.5 w-2.5">
                 {activeCampaign.status === 'Running' && (
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                 )}
-                <span className={`relative inline-flex rounded-full h-3 w-3 ${
-                  activeCampaign.status === 'Running' ? 'bg-rescue-blue' : 'bg-status-orange'
+                <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
+                  activeCampaign.status === 'Running' ? 'bg-primary' : 'bg-amber-500'
                 }`}></span>
               </span>
-              <h3 className="font-headline-sm text-headline-sm font-semibold text-primary text-sm sm:text-base truncate">
-                {activeCampaign.id} ({activeCampaign.title})
+              <h3 className="font-sans font-semibold text-primary text-sm sm:text-base truncate">
+                {activeCampaign.id} <span className="text-on-surface-variant font-normal">({activeCampaign.title})</span>
               </h3>
             </div>
-            <span className={`px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide rounded border ${
+            <span className={`px-2.5 py-1 text-xs font-semibold rounded-md border ${
               activeCampaign.status === 'Running'
-                ? 'bg-rescue-blue/20 text-rescue-blue border-rescue-blue/30'
-                : 'bg-status-orange/20 text-status-orange border-status-orange/30'
+                ? 'bg-primary/10 text-primary border-primary/20'
+                : 'bg-amber-500/10 text-amber-600 border-amber-500/20'
             }`}>
               {activeCampaign.status}
             </span>
           </div>
 
-          <div className="p-4 sm:p-5 flex-1 grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="p-4 sm:p-5 flex-1 grid grid-cols-1 md:grid-cols-4 gap-6">
             {/* KPI Cluster */}
-            <div className="col-span-1 border-b md:border-b-0 md:border-r border-outline-variant pb-4 md:pb-0 md:pr-4 flex flex-row md:flex-col justify-around md:justify-center gap-4 sm:gap-6">
+            <div className="col-span-1 border-b md:border-b-0 md:border-r border-outline-variant/30 pb-4 md:pb-0 md:pr-4 flex flex-row md:flex-col justify-around md:justify-center gap-6">
               <div>
-                <p className="font-data-label text-data-label text-on-surface-variant mb-1 text-xs">TOTAL REACH</p>
-                <p className="font-display-lg text-2xl sm:text-display-lg text-on-surface leading-none font-bold">
+                <p className="font-sans text-on-surface-variant font-medium mb-1 text-xs">Total Reach</p>
+                <p className="font-sans text-2xl text-on-surface leading-none font-semibold">
                   {(activeCampaign.totalReach / 1000).toFixed(1)}k
                 </p>
               </div>
               <div>
-                <p className="font-data-label text-data-label text-on-surface-variant mb-1 text-xs">ANSWER RATE</p>
-                <div className="flex items-end gap-2">
-                  <p className="font-headline-lg text-xl sm:text-headline-lg text-primary leading-none font-bold">
+                <p className="font-sans text-on-surface-variant font-medium mb-1 text-xs">Answer Rate</p>
+                <div className="flex items-end gap-1.5">
+                  <p className="font-sans text-2xl text-primary leading-none font-semibold">
                     {answerPercent}%
                   </p>
-                  <span className="material-symbols-outlined text-status-green text-sm mb-1">trending_up</span>
+                  <span className="material-symbols-outlined text-emerald-500 text-sm mb-0.5">trending_up</span>
                 </div>
               </div>
             </div>
@@ -210,85 +209,85 @@ export const VoiceCampaigns: React.FC = () => {
             {/* Real-time DTMF Tallies */}
             <div className="col-span-3 pl-0 md:pl-2 flex flex-col justify-between">
               <div>
-                <div className="flex justify-between items-center mb-3">
-                  <h4 className="font-data-label text-data-label text-on-surface-variant uppercase text-xs">
-                    Real-Time DTMF Responses (Press 1/2/3)
+                <div className="flex justify-between items-center mb-4">
+                  <h4 className="font-sans text-on-surface-variant font-medium text-xs">
+                    Real-Time Responses
                   </h4>
-                  <span className="text-xs text-primary font-data-label">Live Ingest</span>
+                  <span className="text-[10px] bg-surface-container-low border border-outline-variant/30 text-on-surface-variant px-2 py-0.5 rounded-md font-semibold">Live Ingest</span>
                 </div>
 
                 <div className="space-y-4">
                   {/* SAFE */}
                   <div>
-                    <div className="flex justify-between items-end mb-1 text-xs">
-                      <span className="font-body-sm font-medium flex items-center gap-1.5 text-on-surface">
-                        <span className="material-symbols-outlined text-status-green text-sm">check_circle</span>
-                        Reported SAFE (Press 1)
+                    <div className="flex justify-between items-end mb-1.5 text-xs">
+                      <span className="font-sans font-medium flex items-center gap-1.5 text-on-surface">
+                        <span className="material-symbols-outlined text-on-surface text-[14px]">check_circle</span>
+                        Reported Safe (Press 1)
                       </span>
-                      <span className="font-data-value text-status-green font-bold">
-                        {activeCampaign.safeCount.toLocaleString()} ({safePercent}%)
+                      <span className="font-sans text-on-surface font-semibold">
+                        {activeCampaign.safeCount.toLocaleString()} <span className="text-on-surface-variant">({safePercent}%)</span>
                       </span>
                     </div>
-                    <div className="w-full bg-surface-container-lowest h-3 rounded-full overflow-hidden border border-outline-variant">
-                      <div className="bg-status-green h-full transition-all duration-500" style={{ width: `${safePercent}%` }}></div>
+                    <div className="w-full bg-surface-container-lowest h-2 rounded-full overflow-hidden">
+                      <div className="bg-primary/80 h-full transition-all duration-500" style={{ width: `${safePercent}%` }}></div>
                     </div>
                   </div>
 
                   {/* TRAPPED / NEED HELP */}
                   <div>
-                    <div className="flex justify-between items-end mb-1 text-xs">
-                      <span className="font-body-sm font-medium flex items-center gap-1.5 text-on-surface">
-                        <span className="material-symbols-outlined text-emergency-red text-sm">emergency</span>
-                        Reported TRAPPED / RESCUE NEEDED (Press 2)
+                    <div className="flex justify-between items-end mb-1.5 text-xs">
+                      <span className="font-sans font-medium flex items-center gap-1.5 text-on-surface">
+                        <span className="material-symbols-outlined text-on-surface-variant text-[14px]">emergency</span>
+                        Rescue Needed (Press 2)
                       </span>
-                      <span className="font-data-value text-emergency-red font-bold">
-                        {activeCampaign.trappedCount.toLocaleString()} ({trappedPercent}%)
+                      <span className="font-sans text-on-surface font-semibold">
+                        {activeCampaign.trappedCount.toLocaleString()} <span className="text-on-surface-variant">({trappedPercent}%)</span>
                       </span>
                     </div>
-                    <div className="w-full bg-surface-container-lowest h-3 rounded-full overflow-hidden border border-outline-variant">
-                      <div className="bg-emergency-red h-full transition-all duration-500" style={{ width: `${trappedPercent}%` }}></div>
+                    <div className="w-full bg-surface-container-lowest h-2 rounded-full overflow-hidden">
+                      <div className="bg-primary/40 h-full transition-all duration-500" style={{ width: `${trappedPercent}%` }}></div>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Interactive Citizen Test Buttons right on the card */}
-              <div className="mt-4 pt-3 border-t border-outline-variant/50 flex flex-wrap items-center justify-between gap-2">
-                <span className="text-xs font-data-label text-on-surface-variant">Citizen Response Test:</span>
+              <div className="mt-5 pt-3 flex flex-wrap items-center gap-3">
+                <span className="text-[11px] font-sans text-on-surface-variant font-medium">Test Inputs:</span>
                 <div className="flex gap-2">
                   <button
                     onClick={() => recordDTMF('1')}
-                    className="px-2.5 py-1 bg-status-green/20 hover:bg-status-green/30 border border-status-green text-status-green rounded text-xs font-bold cursor-pointer transition-colors"
+                    className="px-3 py-1.5 bg-surface-container-lowest hover:bg-surface-container-lowestest border border-outline-variant/50 text-on-surface rounded-lg text-xs transition-colors cursor-pointer"
                   >
-                    + Press 1 (Safe)
+                    Press 1 (Safe)
                   </button>
                   <button
                     onClick={() => recordDTMF('2')}
-                    className="px-2.5 py-1 bg-emergency-red/20 hover:bg-emergency-red/30 border border-emergency-red text-emergency-red rounded text-xs font-bold cursor-pointer transition-colors"
+                    className="px-3 py-1.5 bg-surface-container-lowest hover:bg-surface-container-lowestest border border-outline-variant/50 text-on-surface rounded-lg text-xs transition-colors cursor-pointer"
                   >
-                    + Press 2 (Trapped)
+                    Press 2 (Trapped)
                   </button>
                   <button
                     onClick={() => recordDTMF('3')}
-                    className="px-2.5 py-1 bg-error-container/40 hover:bg-error-container/60 border border-error-container text-error rounded text-xs font-bold cursor-pointer transition-colors"
+                    className="px-3 py-1.5 bg-surface-container-lowest hover:bg-surface-container-lowestest border border-outline-variant/50 text-on-surface rounded-lg text-xs transition-colors cursor-pointer"
                   >
-                    + Press 3 (Medical)
+                    Press 3 (Medical)
                   </button>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-[#020617] p-3 border-t border-outline-variant flex justify-end gap-3">
+          <div className="bg-surface-container-lowest p-3 border-t border-outline-variant/30 flex justify-end gap-3">
             <button 
               onClick={toggleCampaignPause}
-              className="px-4 py-1.5 border border-slate-500 text-on-surface text-xs sm:text-sm rounded hover:bg-surface-variant transition-colors cursor-pointer"
+              className="px-4 py-2 border border-outline-variant/50 text-on-surface text-sm rounded-lg hover:bg-surface-container-lowest transition-colors cursor-pointer font-medium"
             >
               {activeCampaign.status === 'Running' ? 'Pause Campaign' : 'Resume Campaign'}
             </button>
             <button 
               onClick={abortCampaign}
-              className="px-4 py-1.5 bg-emergency-red text-white text-xs sm:text-sm font-medium rounded hover:bg-red-700 transition-colors cursor-pointer"
+              className="px-4 py-2 bg-error/10 text-error border border-error/20 text-sm font-semibold rounded-lg hover:bg-error/20 transition-colors cursor-pointer"
             >
               Abort Campaign
             </button>
@@ -296,22 +295,21 @@ export const VoiceCampaigns: React.FC = () => {
         </section>
 
         {/* Quick Actions / Campaign Setup */}
-        <section className="bento-item-third bg-surface-container-high border border-[#334155] rounded-xl relative p-4 sm:p-5 flex flex-col shadow-xl">
-          <div className="status-indicator bg-slate-600"></div>
-          <h3 className="font-headline-sm text-headline-sm font-medium mb-3 sm:mb-4 flex items-center gap-2 text-sm sm:text-base">
-            <span className="material-symbols-outlined text-on-surface-variant">campaign</span>
+        <section className="bento-item-third bg-surface border border-outline-variant/30 rounded-xl relative p-5 flex flex-col shadow-sm">
+          <h3 className="font-sans font-semibold mb-4 flex items-center gap-2 text-base text-on-surface">
+            <span className="material-symbols-outlined text-primary text-[20px]">campaign</span>
             Quick Draft
           </h3>
 
-          <div className="space-y-3 sm:space-y-4 flex-1">
+          <div className="space-y-4 flex-1">
             <div>
-              <label className="block font-data-label text-data-label text-on-surface-variant mb-1 text-xs">
-                TARGET AUDIENCE
+              <label className="block font-sans text-on-surface-variant font-medium mb-1.5 text-xs">
+                Target Audience
               </label>
               <select 
                 value={targetAudience}
                 onChange={(e) => setTargetAudience(e.target.value)}
-                className="w-full bg-[#020617] border border-slate-500 text-on-surface text-xs sm:text-sm rounded py-2 px-3 focus:outline-none focus:border-rescue-blue cursor-pointer"
+                className="w-full bg-surface border border-outline-variant/50 text-on-surface text-sm rounded-lg py-2.5 px-3 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 cursor-pointer"
               >
                 <option value="Coastal Districts (Balasore, Bhadrak)">Coastal Districts (Balasore, Bhadrak)</option>
                 <option value="Puri & Ganjam Coastal Belt">Puri &amp; Ganjam Coastal Belt</option>
@@ -321,13 +319,13 @@ export const VoiceCampaigns: React.FC = () => {
             </div>
 
             <div>
-              <label className="block font-data-label text-data-label text-on-surface-variant mb-1 text-xs">
-                IVR SCRIPT
+              <label className="block font-sans text-on-surface-variant font-medium mb-1.5 text-xs">
+                IVR Script
               </label>
               <select 
                 value={ivrScript}
                 onChange={(e) => setIvrScript(e.target.value)}
-                className="w-full bg-[#020617] border border-slate-500 text-on-surface text-xs sm:text-sm rounded py-2 px-3 focus:outline-none focus:border-rescue-blue cursor-pointer"
+                className="w-full bg-surface border border-outline-variant/50 text-on-surface text-sm rounded-lg py-2.5 px-3 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 cursor-pointer"
               >
                 <option value="Cyclone Evacuation Notice v2">Cyclone Evacuation Notice v2</option>
                 <option value="Post-Disaster Check-in">Post-Disaster Check-in</option>
@@ -337,13 +335,13 @@ export const VoiceCampaigns: React.FC = () => {
             </div>
 
             <div>
-              <label className="block font-data-label text-data-label text-on-surface-variant mb-1 text-xs">
-                SCHEDULE
+              <label className="block font-sans text-on-surface-variant font-medium mb-1.5 text-xs">
+                Schedule
               </label>
               <input 
                 value={scheduleTime}
                 onChange={(e) => setScheduleTime(e.target.value)}
-                className="w-full bg-[#020617] border border-slate-500 text-on-surface text-xs sm:text-sm rounded py-2 px-3 focus:outline-none focus:border-rescue-blue" 
+                className="w-full bg-surface border border-outline-variant/50 text-on-surface text-sm rounded-lg py-2.5 px-3 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50" 
                 type="datetime-local"
               />
             </div>
@@ -351,67 +349,67 @@ export const VoiceCampaigns: React.FC = () => {
 
           <button 
             onClick={handleQuickDraftSave}
-            className="w-full mt-4 px-4 py-2 border border-slate-400 text-on-surface text-xs sm:text-sm rounded hover:bg-surface-variant transition-colors flex justify-center items-center gap-2 cursor-pointer"
+            className="w-full mt-6 px-4 py-2.5 border border-outline-variant/50 text-on-surface text-sm font-semibold rounded-lg hover:bg-surface-container-lowest transition-colors flex justify-center items-center gap-2 cursor-pointer"
           >
-            <span className="material-symbols-outlined text-sm">edit_document</span>
+            <span className="material-symbols-outlined text-[18px]">edit_document</span>
             Save &amp; Deploy Draft
           </button>
         </section>
 
         {/* Recent Campaigns Table */}
-        <section className="bento-item-full bg-surface-container-high border border-[#334155] rounded-xl relative overflow-hidden flex flex-col mt-4 shadow-xl">
-          <div className="p-4 border-b border-outline-variant bg-surface-bright/30 flex justify-between items-center">
-            <h3 className="font-headline-sm text-headline-sm font-medium text-sm sm:text-base">
-              Recent Campaigns ({pastCampaigns.length + 1})
+        <section className="bento-item-full bg-surface border border-outline-variant/30 rounded-xl relative overflow-hidden flex flex-col mt-4 shadow-sm">
+          <div className="p-4 border-b border-outline-variant/30 bg-surface-container-low flex justify-between items-center">
+            <h3 className="font-sans font-semibold text-base text-on-surface">
+              Recent Campaigns <span className="text-on-surface-variant font-normal text-sm ml-1">({pastCampaigns.length + 1})</span>
             </h3>
             <button 
               onClick={() => showToast('Displaying all past automated voice campaign batches.')}
-              className="text-primary hover:text-white text-xs sm:text-sm flex items-center gap-1 transition-colors cursor-pointer"
+              className="text-primary hover:text-primary/80 font-medium text-sm flex items-center gap-1 transition-colors cursor-pointer"
             >
-              View All <span className="material-symbols-outlined text-xs">arrow_forward</span>
+              View All <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
             </button>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-outline-variant bg-[#020617]/50 text-xs">
-                  <th className="p-3 font-data-label text-data-label text-on-surface-variant font-semibold">CAMPAIGN ID</th>
-                  <th className="p-3 font-data-label text-data-label text-on-surface-variant font-semibold">STATUS</th>
-                  <th className="p-3 font-data-label text-data-label text-on-surface-variant font-semibold">DATE/TIME</th>
-                  <th className="p-3 font-data-label text-data-label text-on-surface-variant font-semibold">REACH</th>
-                  <th className="p-3 font-data-label text-data-label text-on-surface-variant font-semibold">ANSWER RATE</th>
-                  <th className="p-3 font-data-label text-data-label text-on-surface-variant font-semibold">SAFE / TRAPPED</th>
+                <tr className="border-b border-outline-variant/30 bg-surface text-[11px]">
+                  <th className="p-4 font-sans text-on-surface-variant font-semibold uppercase tracking-wider">Campaign ID</th>
+                  <th className="p-4 font-sans text-on-surface-variant font-semibold uppercase tracking-wider">Status</th>
+                  <th className="p-4 font-sans text-on-surface-variant font-semibold uppercase tracking-wider">Date/Time</th>
+                  <th className="p-4 font-sans text-on-surface-variant font-semibold uppercase tracking-wider">Reach</th>
+                  <th className="p-4 font-sans text-on-surface-variant font-semibold uppercase tracking-wider">Answer Rate</th>
+                  <th className="p-4 font-sans text-on-surface-variant font-semibold uppercase tracking-wider">Safe / Trapped</th>
                 </tr>
               </thead>
-              <tbody className="font-body-sm text-body-sm text-xs divide-y divide-outline-variant/40">
+              <tbody className="font-sans text-sm divide-y divide-outline-variant/20">
                 {/* Active Campaign */}
-                <tr className="hover:bg-surface-variant/30 transition-colors bg-primary-container/20">
-                  <td className="p-3 font-data-value text-data-value text-primary font-bold">
-                    {activeCampaign.id} <span className="text-[10px] bg-primary/20 px-1 py-0.5 rounded text-primary">CURRENT</span>
+                <tr className="hover:bg-surface-container-low transition-colors bg-primary/5">
+                  <td className="p-4 font-semibold text-primary">
+                    {activeCampaign.id} <span className="text-[10px] font-bold bg-primary/20 px-1.5 py-0.5 rounded ml-2">CURRENT</span>
                   </td>
-                  <td className="p-3">
-                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium border ${
+                  <td className="p-4">
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold border ${
                       activeCampaign.status === 'Running' 
-                        ? 'bg-rescue-blue/20 text-rescue-blue border-rescue-blue/40' 
-                        : 'bg-status-orange/20 text-status-orange border-status-orange/40'
+                        ? 'bg-primary/10 text-primary border-primary/20' 
+                        : 'bg-amber-500/10 text-amber-600 border-amber-500/20'
                     }`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${activeCampaign.status === 'Running' ? 'bg-rescue-blue' : 'bg-status-orange'}`}></span> 
+                      <span className={`w-1.5 h-1.5 rounded-full ${activeCampaign.status === 'Running' ? 'bg-primary' : 'bg-amber-500'}`}></span> 
                       {activeCampaign.status}
                     </span>
                   </td>
-                  <td className="p-3 text-on-surface-variant font-data-value text-xs">
+                  <td className="p-4 text-on-surface-variant">
                     {new Date(activeCampaign.scheduledTime).toLocaleDateString()}
                   </td>
-                  <td className="p-3 font-data-value text-data-value">
+                  <td className="p-4 font-medium text-on-surface">
                     {(activeCampaign.totalReach / 1000).toFixed(1)}k
                   </td>
-                  <td className="p-3 font-data-value text-data-value">{answerPercent}%</td>
-                  <td className="p-3">
-                    <div className="flex items-center gap-2 font-data-value">
-                      <span className="text-status-green">{safePercent}%</span>
-                      <span className="text-slate-500">/</span>
-                      <span className="text-emergency-red">{trappedPercent}%</span>
+                  <td className="p-4 font-medium text-on-surface">{answerPercent}%</td>
+                  <td className="p-4">
+                    <div className="flex items-center gap-2 font-medium">
+                      <span className="text-emerald-500">{safePercent}%</span>
+                      <span className="text-outline-variant">/</span>
+                      <span className="text-error">{trappedPercent}%</span>
                     </div>
                   </td>
                 </tr>
@@ -423,21 +421,21 @@ export const VoiceCampaigns: React.FC = () => {
                   const cmpTrappedPct = cmp.answeredCount > 0 ? Math.round((cmp.trappedCount / cmp.answeredCount) * 100) : 0;
 
                   return (
-                    <tr key={cmp.id} className="hover:bg-surface-variant/30 transition-colors">
-                      <td className="p-3 font-data-value text-data-value text-primary font-medium">{cmp.id}</td>
-                      <td className="p-3">
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-surface-container-highest text-on-surface-variant border border-outline-variant">
+                    <tr key={cmp.id} className="hover:bg-surface-container-low transition-colors bg-surface">
+                      <td className="p-4 font-medium text-on-surface">{cmp.id}</td>
+                      <td className="p-4">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium bg-surface-container-lowest text-on-surface-variant border border-outline-variant/50">
                           <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span> {cmp.status}
                         </span>
                       </td>
-                      <td className="p-3 text-on-surface-variant font-data-value text-xs">{cmp.scheduledTime}</td>
-                      <td className="p-3 font-data-value text-data-value">{(cmp.totalReach / 1000).toFixed(1)}k</td>
-                      <td className="p-3 font-data-value text-data-value">{cmpAnswerPct}%</td>
-                      <td className="p-3">
-                        <div className="flex items-center gap-2 font-data-value">
-                          <span className="text-status-green">{cmpSafePct}%</span>
-                          <span className="text-slate-500">/</span>
-                          <span className="text-emergency-red">{cmpTrappedPct}%</span>
+                      <td className="p-4 text-on-surface-variant text-[13px]">{cmp.scheduledTime}</td>
+                      <td className="p-4 text-on-surface">{(cmp.totalReach / 1000).toFixed(1)}k</td>
+                      <td className="p-4 text-on-surface">{cmpAnswerPct}%</td>
+                      <td className="p-4">
+                        <div className="flex items-center gap-2">
+                          <span className="text-emerald-500">{cmpSafePct}%</span>
+                          <span className="text-outline-variant">/</span>
+                          <span className="text-error">{cmpTrappedPct}%</span>
                         </div>
                       </td>
                     </tr>

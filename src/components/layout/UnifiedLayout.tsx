@@ -80,7 +80,10 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
     { id: 'map', label: 'Mission Map', icon: 'map', badge: 'GIS' },
     { id: 'sos', label: 'SOS Canonical Logs', icon: 'list_alt', badge: `${signals.length}` },
     { id: 'voice', label: 'Voice Campaigns', icon: 'record_voice_over', badge: 'IVR' },
+    { id: 'safeverify', label: 'SafeVerify Audit', icon: 'verified_user', badge: 'New' },
     { id: 'resources', label: 'Shelters & Logistics', icon: 'inventory_2', badge: `${shelters.length}` },
+    { id: 'alerts', label: 'Disaster Alerts', icon: 'campaign', badge: 'Alerts' },
+    { id: 'audit', label: 'Security & Audit Logs', icon: 'security', badge: 'Audit' },
     { id: 'support', label: 'Field Incident Support', icon: 'support_agent', badge: 'Live' }
   ];
 
@@ -108,7 +111,7 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
             <div className="flex items-center justify-between pb-4 border-b border-outline-variant">
               <div className="flex items-center gap-2 text-error">
                 <span className="material-symbols-outlined text-[24px]">warning</span>
-                <h3 className="font-headline-sm font-semibold">Broadcast Emergency Alert</h3>
+                <h3 className="font-sans font-semibold">Broadcast Emergency Alert</h3>
               </div>
               <button 
                 onClick={() => setAlertModalOpen(false)}
@@ -323,7 +326,7 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
               className="fixed inset-0 bg-black/60 backdrop-blur-sm"
               onClick={() => setMobileMenuOpen(false)}
             />
-            <div className="relative w-72 max-w-[80vw] bg-background h-full p-4 flex flex-col justify-between shadow-2xl border-r border-outline-variant animate-in slide-in-from-left">
+            <div className="relative w-72 max-w-[80vw] bg-background h-full p-4 flex flex-col justify-between shadow-lg border-r border-outline-variant animate-in slide-in-from-left">
               <div>
                 <div className="flex items-center justify-between pb-4 border-b border-outline-variant mb-4">
                   <div className="flex items-center gap-2">

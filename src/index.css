@@ -205,8 +205,10 @@ html, body {
   background: var(--color-surface) !important;
   color: var(--color-on-background) !important;
   border: 1px solid var(--color-outline-variant) !important;
-  border-radius: 8px !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.4) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.5) !important;
+  max-height: 82vh !important;
+  overflow: hidden !important;
 }
 
 .leaflet-popup-tip {
@@ -215,8 +217,10 @@ html, body {
 }
 
 .leaflet-popup-content {
-  margin: 12px 14px !important;
-  line-height: 1.5 !important;
+  margin: 10px 12px !important;
+  line-height: 1.45 !important;
+  max-height: 76vh !important;
+  overflow-y: auto !important;
 }
 
 .leaflet-control-zoom a {

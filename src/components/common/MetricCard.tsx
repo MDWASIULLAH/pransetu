@@ -12,16 +12,16 @@ interface MetricCardProps {
 
 export const MetricCard = ({ title, value, icon: Icon, trend, color = 'blue', pulse = false }: MetricCardProps) => {
   const colorMap = {
-    blue: 'text-blue-400',
+    blue: 'text-on-surface',
     red: 'text-red-400',
     orange: 'text-orange-400',
     green: 'text-green-400',
     yellow: 'text-yellow-400',
-    gray: 'text-gray-400',
+    gray: 'text-on-surface-variant',
   };
 
   const borderMap = {
-    blue: 'border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.1)]',
+    blue: 'border-outline-variant/30 shadow-[0_0_15px_rgba(59,130,246,0.1)]',
     red: 'border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.1)]',
     orange: 'border-orange-500/30 shadow-[0_0_15px_rgba(249,115,22,0.1)]',
     green: 'border-green-500/30 shadow-[0_0_15px_rgba(34,197,94,0.1)]',
@@ -43,11 +43,11 @@ export const MetricCard = ({ title, value, icon: Icon, trend, color = 'blue', pu
         "absolute top-0 right-0 w-24 h-24 rounded-full blur-2xl opacity-20 -mr-10 -mt-10",
         color === 'red' ? "bg-red-500" : 
         color === 'blue' ? "bg-blue-500" : 
-        color === 'green' ? "bg-green-500" : "bg-gray-500"
+        color === 'green' ? "bg-emerald-600" : "bg-gray-500"
       )} />
 
       <div className="flex justify-between items-start z-10">
-        <h3 className="text-gray-400 text-sm font-medium uppercase tracking-wider">{title}</h3>
+        <h3 className="text-on-surface-variant text-sm font-medium uppercase tracking-wider">{title}</h3>
         {Icon && (
           <div className={clsx("p-2 rounded-lg bg-black/30 backdrop-blur-sm border border-white/5", textColor)}>
             <Icon size={18} />
@@ -57,7 +57,7 @@ export const MetricCard = ({ title, value, icon: Icon, trend, color = 'blue', pu
       
       <div className="mt-4 flex items-end justify-between z-10">
         <div className="flex items-baseline gap-2">
-          <span className={clsx("text-3xl font-bold font-mono tracking-tight", textColor)}>
+          <span className={clsx("text-3xl font-bold font-sans tracking-tight", textColor)}>
             {value}
           </span>
         </div>

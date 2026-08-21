@@ -59,14 +59,14 @@ export const IVRSimulator = () => {
   };
 
   return (
-    <div className="glass-panel p-6 rounded-xl border border-blue-500/30">
+    <div className="glass-panel p-6 rounded-xl border border-outline-variant/30">
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 bg-blue-900/50 text-blue-400 rounded-lg">
+        <div className="p-2 bg-surface-container-low text-on-surface rounded-lg">
           <PhoneCall size={24} />
         </div>
         <div>
           <h3 className="text-xl font-bold text-white">Voice / IVR Interaction Chain</h3>
-          <p className="text-sm text-gray-400">Proves the real outbound call → DTMF → Webhook → Live EOC capability.</p>
+          <p className="text-sm text-on-surface-variant">Proves the real outbound call → DTMF → Webhook → Live EOC capability.</p>
         </div>
       </div>
 
@@ -84,7 +84,7 @@ export const IVRSimulator = () => {
           {step === 2 && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="bg-gray-800 p-4 rounded-lg mb-4 border border-gray-700">
-                <p className="text-blue-300 text-sm font-mono mb-2 animate-pulse">🔊 "This is an emergency broadcast from PRANSETU S. Please state your status."</p>
+                <p className="text-blue-300 text-sm font-mono mb-2 ">🔊 "This is an emergency broadcast from PRANSETU S. Please state your status."</p>
                 <div className="grid grid-cols-2 gap-3 mt-4">
                   <button onClick={() => handleDtmf('1', 'SAFE', 'SAFE')} className="bg-gray-700 hover:bg-green-700 p-3 rounded font-bold">Press 1: SAFE</button>
                   <button onClick={() => handleDtmf('2', 'ASSISTANCE', 'ASSISTANCE')} className="bg-gray-700 hover:bg-yellow-600 p-3 rounded font-bold">Press 2: ASSISTANCE</button>
@@ -98,7 +98,7 @@ export const IVRSimulator = () => {
           {step >= 3 && (
             <div className="bg-gray-800 p-4 rounded-lg border border-gray-700 text-center">
               <div className="text-3xl font-bold mb-2">{selectedKey}</div>
-              <div className="text-gray-400 text-sm">Key Pressed</div>
+              <div className="text-on-surface-variant text-sm">Key Pressed</div>
             </div>
           )}
 
@@ -119,8 +119,8 @@ export const IVRSimulator = () => {
             <div key={i} className={clsx(
               "mb-1",
               log.includes('Webhook') ? 'text-purple-400' :
-              log.includes('FastAPI') ? 'text-blue-400' :
-              log.includes('EOC') ? 'text-green-400' : 'text-gray-300'
+              log.includes('FastAPI') ? 'text-on-surface' :
+              log.includes('EOC') ? 'text-green-400' : 'text-on-surface-variant'
             )}>
               {log}
             </div>

@@ -12,15 +12,15 @@ export const SOSDetailDrawer = ({ sos, onClose }: SOSDetailDrawerProps) => {
   const ageMin = Math.round((Date.now() - new Date(sos.locationTimestamp).getTime()) / 60000);
 
   return (
-    <div className="fixed inset-y-0 right-0 w-[500px] bg-[#0a0e17] border-l border-[#1f2937] shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col">
-      <div className="p-4 border-b border-[#1f2937] flex justify-between items-center bg-[#111827]">
+    <div className="fixed inset-y-0 right-0 w-[500px] bg-surface-container border-l border-outline-variant/30 shadow-lg z-50 transform transition-transform duration-300 ease-in-out flex flex-col">
+      <div className="p-4 border-b border-outline-variant/30 flex justify-between items-center bg-surface-container">
         <div>
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <Radio size={20} className="text-blue-400" />
+            <Radio size={20} className="text-on-surface" />
             SOS Inspector: {sos.id}
           </h2>
         </div>
-        <button onClick={onClose} className="p-1 hover:bg-[#1f2937] rounded-md text-gray-400 transition-colors">
+        <button onClick={onClose} className="p-1 hover:bg-[#1f2937] rounded-md text-on-surface-variant transition-colors">
           <X size={20} />
         </button>
       </div>
@@ -44,18 +44,18 @@ export const SOSDetailDrawer = ({ sos, onClose }: SOSDetailDrawerProps) => {
           </div>
         </div>
 
-        <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider mb-4 border-b border-gray-800 pb-2">Location Data</h3>
+        <h3 className="text-sm font-bold text-on-surface-variant uppercase tracking-wider mb-4 border-b border-gray-800 pb-2">Location Data</h3>
         <div className="space-y-4 mb-8">
           <div className="flex justify-between items-center">
-            <div className="text-gray-400 text-sm flex items-center gap-2"><MapPin size={16}/> Coordinates</div>
-            <div className="text-white font-mono text-sm">{sos.lat.toFixed(6)}, {sos.lng.toFixed(6)}</div>
+            <div className="text-on-surface-variant text-sm flex items-center gap-2"><MapPin size={16}/> Coordinates</div>
+            <div className="text-white font-sans text-sm">{sos.lat.toFixed(6)}, {sos.lng.toFixed(6)}</div>
           </div>
           <div className="flex justify-between items-center">
-            <div className="text-gray-400 text-sm flex items-center gap-2"><ShieldAlert size={16}/> Accuracy</div>
-            <div className="text-white font-mono text-sm">±{sos.accuracyM}m</div>
+            <div className="text-on-surface-variant text-sm flex items-center gap-2"><ShieldAlert size={16}/> Accuracy</div>
+            <div className="text-white font-sans text-sm">±{sos.accuracyM}m</div>
           </div>
-          <div className="flex justify-between items-center bg-[#111827] p-3 rounded-lg border border-[#1f2937]">
-            <div className="text-gray-400 text-sm flex items-center gap-2"><Clock size={16}/> Location Age</div>
+          <div className="flex justify-between items-center bg-surface-container p-3 rounded-lg border border-outline-variant/30">
+            <div className="text-on-surface-variant text-sm flex items-center gap-2"><Clock size={16}/> Location Age</div>
             {ageMin > 5 ? (
               <div className="text-yellow-400 font-bold bg-yellow-400/10 px-2 py-1 rounded">LAST KNOWN ({ageMin}m ago)</div>
             ) : (
@@ -64,8 +64,8 @@ export const SOSDetailDrawer = ({ sos, onClose }: SOSDetailDrawerProps) => {
           </div>
         </div>
 
-        <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider mb-4 border-b border-gray-800 pb-2">Network Protocol (Canonical Schema)</h3>
-        <div className="bg-black/50 p-4 rounded-lg border border-gray-800 font-mono text-xs text-blue-300 mb-8 overflow-x-auto">
+        <h3 className="text-sm font-bold text-on-surface-variant uppercase tracking-wider mb-4 border-b border-gray-800 pb-2">Network Protocol (Canonical Schema)</h3>
+        <div className="bg-black/50 p-4 rounded-lg border border-gray-800 font-sans text-xs text-blue-300 mb-8 overflow-x-auto">
           <pre>
 {JSON.stringify({
   sos_id: sos.id,
@@ -83,11 +83,11 @@ export const SOSDetailDrawer = ({ sos, onClose }: SOSDetailDrawerProps) => {
           </pre>
         </div>
 
-        <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider mb-4 border-b border-gray-800 pb-2">Offline Relay Trail</h3>
+        <h3 className="text-sm font-bold text-on-surface-variant uppercase tracking-wider mb-4 border-b border-gray-800 pb-2">Offline Relay Trail</h3>
         <div className="space-y-3">
           <div className="flex justify-between items-center">
-            <div className="text-gray-400 text-sm flex items-center gap-2"><Share2 size={16}/> Total Hops</div>
-            <div className="text-white font-mono font-bold text-lg">{sos.hopCount}</div>
+            <div className="text-on-surface-variant text-sm flex items-center gap-2"><Share2 size={16}/> Total Hops</div>
+            <div className="text-white font-sans font-bold text-lg">{sos.hopCount}</div>
           </div>
           {sos.relayTrail ? (
             <div className="mt-4 border-l-2 border-gray-700 pl-4 space-y-4">
@@ -105,7 +105,7 @@ export const SOSDetailDrawer = ({ sos, onClose }: SOSDetailDrawerProps) => {
         </div>
       </div>
       
-      <div className="p-4 border-t border-[#1f2937] bg-[#111827] flex gap-3">
+      <div className="p-4 border-t border-outline-variant/30 bg-surface-container flex gap-3">
         <button className="flex-1 bg-[#1f2937] hover:bg-[#374151] text-white py-2 rounded-lg font-bold transition-colors">
           Update Status
         </button>

@@ -28,12 +28,12 @@ export const DispatchModal = ({ onClose, initialIncident }: { onClose: () => voi
 
   return (
     <div className="fixed inset-0 bg-black/80 z-[9999] backdrop-blur-md flex items-center justify-center p-4">
-      <div className="bg-[#0a0e17] border border-[#1f2937] rounded-xl w-full max-w-lg shadow-2xl overflow-hidden">
-        <div className="p-4 border-b border-[#1f2937] flex justify-between items-center bg-[#111827]">
+      <div className="bg-surface-container border border-outline-variant/30 rounded-xl w-full max-w-lg shadow-lg overflow-hidden">
+        <div className="p-4 border-b border-outline-variant/30 flex justify-between items-center bg-surface-container">
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <Crosshair size={20} className="text-blue-400" /> Dispatch Workflow
+            <Crosshair size={20} className="text-on-surface" /> Dispatch Workflow
           </h2>
-          <button onClick={onClose} className="p-1 hover:bg-[#1f2937] rounded-md text-gray-400 transition-colors">
+          <button onClick={onClose} className="p-1 hover:bg-[#1f2937] rounded-md text-on-surface-variant transition-colors">
             <X size={20} />
           </button>
         </div>
@@ -42,16 +42,16 @@ export const DispatchModal = ({ onClose, initialIncident }: { onClose: () => voi
           <div className="p-8 text-center flex flex-col items-center">
             <CheckCircle size={48} className="text-green-500 mb-4" />
             <h3 className="text-xl font-bold text-white mb-2">Assets Dispatched!</h3>
-            <p className="text-gray-400 text-sm">Status updated to EN ROUTE and tracking initiated.</p>
+            <p className="text-on-surface-variant text-sm">Status updated to EN ROUTE and tracking initiated.</p>
           </div>
         ) : (
           <div className="p-6 space-y-6">
             <div>
-              <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Target Incident Cluster</label>
+              <label className="block text-xs font-bold text-on-surface-variant uppercase mb-2">Target Incident Cluster</label>
               <select 
                 value={incidentId}
                 onChange={(e) => setIncidentId(e.target.value)}
-                className="w-full bg-[#111827] border border-[#374151] text-white p-3 rounded-lg focus:border-blue-500 outline-none"
+                className="w-full bg-surface-container border border-outline-variant/30 text-white p-3 rounded-lg focus:border-blue-500 outline-none"
               >
                 {incidents.filter(i => i.status === 'ACTIVE').map(inc => (
                   <option key={inc.id} value={inc.id}>{inc.id} - Priority {inc.priorityScore}</option>
@@ -60,11 +60,11 @@ export const DispatchModal = ({ onClose, initialIncident }: { onClose: () => voi
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Assign Rescue Team</label>
+              <label className="block text-xs font-bold text-on-surface-variant uppercase mb-2">Assign Rescue Team</label>
               <select 
                 value={selectedTeam}
                 onChange={(e) => setSelectedTeam(e.target.value)}
-                className="w-full bg-[#111827] border border-[#374151] text-white p-3 rounded-lg focus:border-blue-500 outline-none"
+                className="w-full bg-surface-container border border-outline-variant/30 text-white p-3 rounded-lg focus:border-blue-500 outline-none"
               >
                 <option value="">-- Do not assign team --</option>
                 {availableTeams.map(team => (
@@ -74,11 +74,11 @@ export const DispatchModal = ({ onClose, initialIncident }: { onClose: () => voi
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Assign Medical Resource</label>
+              <label className="block text-xs font-bold text-on-surface-variant uppercase mb-2">Assign Medical Resource</label>
               <select 
                 value={selectedAmbulance}
                 onChange={(e) => setSelectedAmbulance(e.target.value)}
-                className="w-full bg-[#111827] border border-[#374151] text-white p-3 rounded-lg focus:border-blue-500 outline-none"
+                className="w-full bg-surface-container border border-outline-variant/30 text-white p-3 rounded-lg focus:border-blue-500 outline-none"
               >
                 <option value="">-- Do not assign ambulance --</option>
                 {availableAmbulances.map(amb => (

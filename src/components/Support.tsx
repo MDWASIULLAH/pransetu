@@ -92,7 +92,7 @@ export const Support: React.FC = () => {
       location: 'Rajiv Bhawan, Bhubaneswar',
       icon: 'shield',
       status: '24x7 Active',
-      statusColor: 'text-status-green'
+      statusColor: 'text-emerald-600'
     },
     {
       agency: 'National Disaster Response Force (NDRF)',
@@ -132,7 +132,7 @@ export const Support: React.FC = () => {
       location: 'Airport Road, Bhubaneswar',
       icon: 'cyclone',
       status: 'Monitoring 24x7',
-      statusColor: 'text-status-green'
+      statusColor: 'text-emerald-600'
     },
     {
       agency: 'Directorate of Public Health & EMS',
@@ -142,7 +142,7 @@ export const Support: React.FC = () => {
       location: 'Heads of Department Building',
       icon: 'medical_services',
       status: 'ALS Units Active',
-      statusColor: 'text-status-green'
+      statusColor: 'text-emerald-600'
     }
   ];
 
@@ -206,16 +206,16 @@ export const Support: React.FC = () => {
     <div className="p-6 max-w-[1600px] mx-auto w-full space-y-6">
       
       {/* Header Banner - Enterprise Minimalist */}
-      <div className="bg-surface border border-outline-variant p-6 rounded-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-surface border border-outline-variant/30 p-6 rounded-xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded border border-outline-variant bg-surface-container-high flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded border border-outline-variant/30 bg-surface-container-lowest flex items-center justify-center shrink-0">
             <span className="material-symbols-outlined text-on-surface text-[22px]">support_agent</span>
           </div>
           <div>
-            <h1 className="font-headline-sm text-lg font-bold text-on-surface">
+            <h1 className="font-sans text-xl font-semibold text-on-surface">
               EOC Operations Support &amp; Technical Helpdesk
             </h1>
-            <p className="text-body-sm text-on-surface-variant mt-1">
+            <p className="font-sans text-sm text-on-surface-variant mt-1">
               Inter-Agency Directory, Field Mesh Network Diagnostics, &amp; Incident Ticketing
             </p>
           </div>
@@ -223,7 +223,7 @@ export const Support: React.FC = () => {
 
         <button
           onClick={() => setNewTicketModal(true)}
-          className="bg-surface-container-high hover:bg-surface-container-highest border border-outline-variant text-on-surface text-body-sm font-medium px-4 py-2.5 rounded transition-colors flex items-center justify-center gap-2"
+          className="bg-primary hover:bg-primary/90 text-on-primary font-semibold text-sm px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm"
         >
           <span className="material-symbols-outlined text-[18px]">add</span>
           Create Ticket
@@ -242,10 +242,10 @@ export const Support: React.FC = () => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`px-4 py-2 rounded text-body-sm font-medium flex items-center gap-2 whitespace-nowrap transition-colors ${
+            className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 whitespace-nowrap transition-colors ${
               activeTab === tab.id
-                ? 'bg-surface-container-high text-on-surface border border-outline-variant shadow-sm'
-                : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low border border-transparent'
+                ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm rounded-lg'
+                : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low border border-transparent rounded-lg'
             }`}
           >
             <span className="material-symbols-outlined text-[18px]">{tab.icon}</span>
@@ -260,35 +260,35 @@ export const Support: React.FC = () => {
           {emergencyContacts.map((contact, idx) => (
             <div
               key={idx}
-              className="bg-surface border border-outline-variant rounded-lg p-5 flex flex-col justify-between hover:bg-surface-container-low transition-colors group"
+              className="bg-surface border border-outline-variant/30 rounded-lg p-5 flex flex-col justify-between hover:bg-surface-container-low transition-colors group"
             >
               <div className="flex items-start justify-between mb-6">
                 <div>
-                  <h3 className="font-headline-sm font-semibold text-on-surface mb-1 pr-2">
+                  <h3 className="font-sans font-semibold text-on-surface mb-1 pr-2">
                     {contact.agency}
                   </h3>
                   <p className="text-xs text-on-surface-variant">{contact.role}</p>
                 </div>
-                <div className="w-8 h-8 rounded bg-surface-container-high border border-outline-variant flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded bg-surface-container-lowest border border-outline-variant/30 flex items-center justify-center shrink-0">
                   <span className="material-symbols-outlined text-on-surface-variant text-[18px]">{contact.icon}</span>
                 </div>
               </div>
 
-              <div className="space-y-3 text-body-sm mb-6">
+              <div className="space-y-3 text-sm mb-6">
                 <div className="flex justify-between items-center pb-2 border-b border-outline-variant/50">
-                  <span className="text-data-label text-on-surface-variant">Primary Hotline</span>
+                  <span className="text-xs text-on-surface-variant">Primary Hotline</span>
                   <button onClick={() => handleCopy(contact.phone, 'Primary Phone')} className="font-data-value text-on-surface hover:text-primary transition-colors flex items-center gap-1">
                     {contact.phone}
                   </button>
                 </div>
                 <div className="flex justify-between items-center pb-2 border-b border-outline-variant/50">
-                  <span className="text-data-label text-on-surface-variant">Mobile / Direct</span>
+                  <span className="text-xs text-on-surface-variant">Mobile / Direct</span>
                   <button onClick={() => handleCopy(contact.altPhone, 'Alt Phone')} className="font-data-value text-on-surface hover:text-primary transition-colors flex items-center gap-1">
                     {contact.altPhone}
                   </button>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-data-label text-on-surface-variant">Base Location</span>
+                  <span className="text-xs text-on-surface-variant">Base Location</span>
                   <span className="text-on-surface truncate max-w-[150px]">{contact.location}</span>
                 </div>
               </div>
@@ -296,14 +296,14 @@ export const Support: React.FC = () => {
               <div className="flex gap-2">
                 <a
                   href={`tel:${contact.phone}`}
-                  className="flex-1 bg-surface-container-high hover:bg-surface-container-highest border border-outline-variant text-on-surface py-2 rounded text-body-sm font-medium flex items-center justify-center gap-2 transition-colors"
+                  className="flex-1 bg-surface-container-lowest hover:bg-surface-container-lowestest border border-outline-variant/30 text-on-surface py-2 rounded text-sm font-medium flex items-center justify-center gap-2 transition-colors"
                 >
                   <span className="material-symbols-outlined text-[16px]">call</span>
                   Direct Call
                 </a>
                 <button
                   onClick={() => handleCopy(`${contact.agency}\nHotline: ${contact.phone}\nMobile: ${contact.altPhone}`, contact.agency)}
-                  className="bg-surface-container-high hover:bg-surface-container-highest border border-outline-variant text-on-surface px-3 py-2 rounded transition-colors"
+                  className="bg-surface-container-lowest hover:bg-surface-container-lowestest border border-outline-variant/30 text-on-surface px-3 py-2 rounded transition-colors"
                   title="Copy Details"
                 >
                   <span className="material-symbols-outlined text-[16px]">content_copy</span>
@@ -320,23 +320,23 @@ export const Support: React.FC = () => {
           {tickets.map((tck) => (
             <div
               key={tck.id}
-              className="bg-surface border border-outline-variant rounded-lg p-5 flex flex-col md:flex-row md:items-start justify-between gap-6 hover:bg-surface-container-low transition-colors"
+              className="bg-surface border border-outline-variant/30 rounded-lg p-5 flex flex-col md:flex-row md:items-start justify-between gap-6 hover:bg-surface-container-low transition-colors"
             >
               <div className="space-y-2 flex-1">
                 <div className="flex items-center gap-3">
                   <span className="font-data-value text-on-surface font-semibold">{tck.id}</span>
-                  <span className={`text-[10px] uppercase font-data-label px-2 py-0.5 rounded border ${
+                  <span className={`text-[10px] uppercase text-xs px-2 py-0.5 rounded border ${
                     tck.priority === 'CRITICAL' ? 'bg-error/10 text-error border-error/20' : 
                     tck.priority === 'HIGH' ? 'bg-secondary/10 text-secondary border-secondary/20' : 
-                    'bg-surface-container-high text-on-surface-variant border-outline-variant'
+                    'bg-surface-container-lowest text-on-surface-variant border-outline-variant'
                   }`}>
                     {tck.priority}
                   </span>
-                  <span className="text-data-label text-on-surface-variant">{tck.category}</span>
+                  <span className="text-xs text-on-surface-variant">{tck.category}</span>
                 </div>
                 
-                <h4 className="font-headline-sm font-medium text-on-surface">{tck.subject}</h4>
-                <p className="text-body-sm text-on-surface-variant leading-relaxed max-w-4xl">{tck.details}</p>
+                <h4 className="font-sans font-medium text-on-surface">{tck.subject}</h4>
+                <p className="font-sans text-sm text-on-surface-variant leading-relaxed max-w-4xl">{tck.details}</p>
                 
                 <div className="text-xs text-on-surface-variant pt-2 flex items-center gap-2">
                   <span className="material-symbols-outlined text-[14px]">person</span>
@@ -345,8 +345,8 @@ export const Support: React.FC = () => {
               </div>
 
               <div className="flex md:flex-col items-center md:items-end justify-between gap-3 shrink-0">
-                <span className={`text-data-label px-3 py-1 rounded ${
-                  tck.status === 'RESOLVED' ? 'text-status-green' : 
+                <span className={`text-xs px-3 py-1 rounded ${
+                  tck.status === 'RESOLVED' ? 'text-emerald-600' : 
                   tck.status === 'IN_PROGRESS' ? 'text-primary' : 'text-on-surface-variant'
                 }`}>
                   {tck.status.replace('_', ' ')}
@@ -358,7 +358,7 @@ export const Support: React.FC = () => {
                       setTickets(tickets.map((t) => t.id === tck.id ? { ...t, status: 'RESOLVED' } : t));
                       showToast(`Ticket ${tck.id} marked as RESOLVED.`);
                     }}
-                    className="text-body-sm bg-surface-container-high hover:bg-surface-container-highest border border-outline-variant px-3 py-1.5 rounded text-on-surface transition-colors"
+                    className="text-sm bg-surface-container-lowest hover:bg-surface-container-lowestest border border-outline-variant/30 px-3 py-1.5 rounded text-on-surface transition-colors"
                   >
                     Mark Resolved
                   </button>
@@ -371,10 +371,10 @@ export const Support: React.FC = () => {
 
       {/* TAB 3: Radio & RF Mesh Frequencies */}
       {activeTab === 'frequencies' && (
-        <div className="bg-surface border border-outline-variant rounded-lg overflow-hidden">
+        <div className="bg-surface border border-outline-variant/30 rounded-lg overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-body-sm">
-              <thead className="bg-surface-container-low border-b border-outline-variant text-on-surface-variant text-data-label uppercase">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-surface-container-low border-b border-outline-variant text-on-surface-variant text-xs uppercase">
                 <tr>
                   <th className="p-4 font-medium">Protocol / Channel</th>
                   <th className="p-4 font-medium">Carrier Frequency</th>
@@ -401,28 +401,28 @@ export const Support: React.FC = () => {
       {activeTab === 'diagnostics' && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-surface border border-outline-variant p-5 rounded-lg">
-              <span className="text-data-label text-on-surface-variant block mb-2">Mesh Nodes Online</span>
-              <span className="text-display-lg text-on-surface">5 <span className="text-body-sm text-on-surface-variant">/ 5</span></span>
+            <div className="bg-surface border border-outline-variant/30 p-5 rounded-lg">
+              <span className="text-xs text-on-surface-variant block mb-2">Mesh Nodes Online</span>
+              <span className="text-display-lg text-on-surface">5 <span className="font-sans text-sm text-on-surface-variant">/ 5</span></span>
             </div>
-            <div className="bg-surface border border-outline-variant p-5 rounded-lg">
-              <span className="text-data-label text-on-surface-variant block mb-2">Average Ping</span>
-              <span className="text-display-lg text-on-surface">28.4 <span className="text-body-sm text-on-surface-variant">ms</span></span>
+            <div className="bg-surface border border-outline-variant/30 p-5 rounded-lg">
+              <span className="text-xs text-on-surface-variant block mb-2">Average Ping</span>
+              <span className="text-display-lg text-on-surface">28.4 <span className="font-sans text-sm text-on-surface-variant">ms</span></span>
             </div>
-            <div className="bg-surface border border-outline-variant p-5 rounded-lg">
-              <span className="text-data-label text-on-surface-variant block mb-2">Packet Loss Rate</span>
-              <span className="text-display-lg text-on-surface">0.08<span className="text-body-sm text-on-surface-variant">%</span></span>
+            <div className="bg-surface border border-outline-variant/30 p-5 rounded-lg">
+              <span className="text-xs text-on-surface-variant block mb-2">Packet Loss Rate</span>
+              <span className="text-display-lg text-on-surface">0.08<span className="font-sans text-sm text-on-surface-variant">%</span></span>
             </div>
-            <div className="bg-surface border border-outline-variant p-5 rounded-lg">
-              <span className="text-data-label text-on-surface-variant block mb-2">Relayed Packets</span>
-              <span className="text-display-lg text-on-surface">16.4<span className="text-body-sm text-on-surface-variant">k</span></span>
+            <div className="bg-surface border border-outline-variant/30 p-5 rounded-lg">
+              <span className="text-xs text-on-surface-variant block mb-2">Relayed Packets</span>
+              <span className="text-display-lg text-on-surface">16.4<span className="font-sans text-sm text-on-surface-variant">k</span></span>
             </div>
           </div>
 
-          <div className="bg-surface border border-outline-variant rounded-lg overflow-hidden">
+          <div className="bg-surface border border-outline-variant/30 rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-body-sm">
-                <thead className="bg-surface-container-low border-b border-outline-variant text-on-surface-variant text-data-label uppercase">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-surface-container-low border-b border-outline-variant text-on-surface-variant text-xs uppercase">
                   <tr>
                     <th className="p-4 font-medium">Node Name</th>
                     <th className="p-4 font-medium">IP Address</th>
@@ -443,8 +443,8 @@ export const Support: React.FC = () => {
                       <td className="p-4 font-data-value text-on-surface-variant">{node.latency}</td>
                       <td className="p-4 font-data-value text-on-surface-variant">{node.battery}</td>
                       <td className="p-4 font-data-value text-on-surface-variant">{node.packets}</td>
-                      <td className="p-4 text-data-label">
-                        <span className={node.status === 'Online' ? 'text-status-green' : 'text-error'}>{node.status}</span>
+                      <td className="p-4 text-xs">
+                        <span className={node.status === 'Online' ? 'text-emerald-600' : 'text-error'}>{node.status}</span>
                       </td>
                     </tr>
                   ))}
@@ -459,12 +459,12 @@ export const Support: React.FC = () => {
       {activeTab === 'sop' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {sops.map((sop, idx) => (
-            <div key={idx} className="bg-surface border border-outline-variant rounded-lg p-5 hover:bg-surface-container-low transition-colors">
+            <div key={idx} className="bg-surface border border-outline-variant/30 rounded-lg p-5 hover:bg-surface-container-low transition-colors">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-headline-sm font-medium text-on-surface">{sop.title}</h3>
-                <span className="text-data-label bg-surface-container-high border border-outline-variant px-2 py-0.5 rounded text-on-surface-variant">{sop.badge}</span>
+                <h3 className="font-sans font-medium text-on-surface">{sop.title}</h3>
+                <span className="text-xs bg-surface-container-lowest border border-outline-variant/30 px-2 py-0.5 rounded text-on-surface-variant">{sop.badge}</span>
               </div>
-              <p className="text-body-sm text-on-surface-variant leading-relaxed">
+              <p className="font-sans text-sm text-on-surface-variant leading-relaxed">
                 {sop.content}
               </p>
             </div>
@@ -475,9 +475,9 @@ export const Support: React.FC = () => {
       {/* Modal: New Ticket */}
       {newTicketModal && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-surface border border-outline-variant p-6 rounded-lg w-full max-w-lg shadow-xl">
+          <div className="bg-surface border border-outline-variant/30 p-6 rounded-xl shadow-sm w-full max-w-lg shadow-sm">
             <div className="flex items-center justify-between pb-4 border-b border-outline-variant">
-              <h3 className="font-headline-sm font-semibold text-on-surface">Create Incident Ticket</h3>
+              <h3 className="font-sans font-semibold text-on-surface">Create Incident Ticket</h3>
               <button onClick={() => setNewTicketModal(false)} className="text-on-surface-variant hover:text-on-surface transition-colors">
                 <span className="material-symbols-outlined">close</span>
               </button>
@@ -486,11 +486,11 @@ export const Support: React.FC = () => {
             <form onSubmit={handleCreateTicket} className="mt-5 space-y-5">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-data-label text-on-surface-variant block mb-1.5">Category</label>
+                  <label className="text-xs text-on-surface-variant block mb-1.5">Category</label>
                   <select
                     value={ticketCategory}
                     onChange={(e) => setTicketCategory(e.target.value)}
-                    className="w-full bg-surface-container-high border border-outline-variant rounded p-2.5 text-body-sm text-on-surface focus:outline-none focus:border-outline"
+                    className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded p-2.5 text-sm text-on-surface focus:outline-none focus:border-outline"
                   >
                     <option value="Mesh Gateway">Mesh Gateway</option>
                     <option value="IVR Telephony">IVR Telephony</option>
@@ -499,11 +499,11 @@ export const Support: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="text-data-label text-on-surface-variant block mb-1.5">Priority</label>
+                  <label className="text-xs text-on-surface-variant block mb-1.5">Priority</label>
                   <select
                     value={ticketPriority}
                     onChange={(e) => setTicketPriority(e.target.value as any)}
-                    className="w-full bg-surface-container-high border border-outline-variant rounded p-2.5 text-body-sm text-on-surface focus:outline-none focus:border-outline"
+                    className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded p-2.5 text-sm text-on-surface focus:outline-none focus:border-outline"
                   >
                     <option value="CRITICAL">Critical</option>
                     <option value="HIGH">High</option>
@@ -513,24 +513,24 @@ export const Support: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-data-label text-on-surface-variant block mb-1.5">Subject</label>
+                <label className="text-xs text-on-surface-variant block mb-1.5">Subject</label>
                 <input
                   type="text"
                   required
                   value={ticketSubject}
                   onChange={(e) => setTicketSubject(e.target.value)}
-                  className="w-full bg-surface-container-high border border-outline-variant rounded p-2.5 text-body-sm text-on-surface focus:outline-none focus:border-outline"
+                  className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded p-2.5 text-sm text-on-surface focus:outline-none focus:border-outline"
                   placeholder="Brief description of the issue"
                 />
               </div>
 
               <div>
-                <label className="text-data-label text-on-surface-variant block mb-1.5">Technical Details</label>
+                <label className="text-xs text-on-surface-variant block mb-1.5">Technical Details</label>
                 <textarea
                   rows={4}
                   value={ticketDetails}
                   onChange={(e) => setTicketDetails(e.target.value)}
-                  className="w-full bg-surface-container-high border border-outline-variant rounded p-2.5 text-body-sm text-on-surface focus:outline-none focus:border-outline resize-none"
+                  className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded p-2.5 text-sm text-on-surface focus:outline-none focus:border-outline resize-none"
                   placeholder="Provide logs, coordinates, or symptom details..."
                 />
               </div>
@@ -539,13 +539,13 @@ export const Support: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setNewTicketModal(false)}
-                  className="px-4 py-2 bg-surface-container-high border border-outline-variant text-on-surface rounded text-body-sm transition-colors hover:bg-surface-container-highest"
+                  className="px-4 py-2 bg-surface-container-lowest border border-outline-variant/30 text-on-surface rounded text-sm transition-colors hover:bg-surface-container-lowestest"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-primary/20 border border-primary/40 text-primary font-medium rounded text-body-sm transition-colors hover:bg-primary/30 flex items-center gap-2"
+                  className="px-4 py-2 bg-primary/20 border border-primary/40 text-primary font-medium rounded text-sm transition-colors hover:bg-primary/30 flex items-center gap-2"
                 >
                   <span className="material-symbols-outlined text-[18px]">send</span>
                   Submit Ticket

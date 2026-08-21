@@ -81,7 +81,7 @@ export const OfflineRelaySimulator = () => {
         </div>
         <div>
           <h3 className="text-xl font-bold text-white">Offline Store-Carry-Forward Mesh</h3>
-          <p className="text-sm text-gray-400">Proves Phone A (No Net) → Phone B → Gateway → Live EOC delivery chain.</p>
+          <p className="text-sm text-on-surface-variant">Proves Phone A (No Net) → Phone B → Gateway → Live EOC delivery chain.</p>
         </div>
       </div>
 
@@ -157,7 +157,7 @@ export const OfflineRelaySimulator = () => {
           {logs.map((log, i) => (
             <div key={i} className={clsx(
               "mb-1",
-              log.includes('Phone') ? 'text-gray-300' :
+              log.includes('Phone') ? 'text-on-surface-variant' :
               log.includes('Gateway') ? 'text-teal-400' :
               log.includes('FastAPI') ? 'text-purple-400' :
               log.includes('EOC') ? 'text-green-400' : 'text-gray-500'
