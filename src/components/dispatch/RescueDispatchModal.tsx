@@ -385,7 +385,7 @@ export const RescueDispatchModal: React.FC<RescueDispatchModalProps> = ({ incide
                 </div>
                 <div>
                   <span className="text-on-surface-variant block text-[10px] uppercase">Hazard Condition</span>
-                  <strong className="text-on-tertiary-container text-sm">{incidentInfo.hazard_severity}</strong>
+                  <strong className="text-on-tertiary-container text-sm truncate block" title={incidentInfo.hazard_severity}>{incidentInfo.hazard_severity}</strong>
                 </div>
                 <div>
                   <span className="text-on-surface-variant block text-[10px] uppercase">GPS Confidence</span>

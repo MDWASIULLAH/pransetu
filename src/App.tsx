@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { UnifiedLayout } from './components/layout/UnifiedLayout';
 import { CommandCenter } from './components/CommandCenter';
 import { MissionMap } from './components/MissionMap';
@@ -14,7 +14,26 @@ import { Register } from './components/auth/Register';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<'app' | 'login' | 'register'>('app');
-  const [activeNav, setActiveNav] = useState('command');
+  
+  const getHashNav = () => {
+    const hash = window.location.hash.replace('#', '');
+    return hash || 'command';
+  };
+  
+  const [activeNav, setActiveNav] = useState(getHashNav());
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      setActiveNav(getHashNav());
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  const handleNavigate = (nav: string) => {
+    window.location.hash = nav;
+    setActiveNav(nav);
+  };
 
   if (currentView === 'login') {
     return (
@@ -36,7 +55,7 @@ export default function App() {
   const renderActiveModule = () => {
     switch (activeNav) {
       case 'command':
-        return <CommandCenter onNavigate={setActiveNav} />;
+        return <CommandCenter onNavigate={handleNavigate} />;
       case 'map':
         return <MissionMap />;
       case 'sos':
@@ -54,14 +73,14 @@ export default function App() {
       case 'support':
         return <Support />;
       default:
-        return <CommandCenter onNavigate={setActiveNav} />;
+        return <CommandCenter onNavigate={handleNavigate} />;
     }
   };
 
   return (
     <UnifiedLayout
       activeNav={activeNav}
-      onNavigate={setActiveNav}
+      onNavigate={handleNavigate}
       onLogout={() => setCurrentView('login')}
       onNavigateToRegister={() => setCurrentView('register')}
     >
