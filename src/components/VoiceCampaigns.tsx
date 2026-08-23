@@ -54,7 +54,7 @@ export const VoiceCampaigns: React.FC = () => {
       : 0;
 
   return (
-    <div className="p-4 sm:p-margin-mobile md:p-margin-desktop min-h-screen bg-background text-on-background w-full">
+    <div className="p-4 sm:p-6 min-h-screen bg-background text-on-background w-full">
       {/* New Campaign Modal */}
       {newCampaignModal && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
@@ -76,25 +76,25 @@ export const VoiceCampaigns: React.FC = () => {
 
             <form onSubmit={handleCreateCampaign} className="mt-4 space-y-4">
               <div>
-                <label className="text-xs text-xs text-on-surface-variant uppercase block mb-1">
+                <label className="text-xs text-on-surface-variant uppercase block mb-1">
                   Campaign Title / Code
                 </label>
                 <input 
                   type="text" 
                   value={customCampaignName}
                   onChange={(e) => setCustomCampaignName(e.target.value)}
-                  className="w-full bg-[#020617] border border-slate-500 rounded p-2 text-on-surface font-data-value text-data-value focus:outline-none focus:border-rescue-blue"
+                  className="w-full bg-surface-container-lowest border border-outline-variant rounded p-2 text-on-surface tabular-nums text-sm focus:outline-none focus:border-rescue-blue"
                 />
               </div>
 
               <div>
-                <label className="text-xs text-xs text-on-surface-variant uppercase block mb-1">
+                <label className="text-xs text-on-surface-variant uppercase block mb-1">
                   Target Geographic Polygon
                 </label>
                 <select 
                   value={targetAudience}
                   onChange={(e) => setTargetAudience(e.target.value)}
-                  className="w-full bg-[#020617] border border-slate-500 rounded p-2 text-on-surface text-sm text-sm focus:outline-none focus:border-rescue-blue cursor-pointer"
+                  className="w-full bg-surface-container-lowest border border-outline-variant rounded p-2 text-on-surface text-sm focus:outline-none focus:border-rescue-blue cursor-pointer"
                 >
                   <option value="Coastal Districts (Balasore, Bhadrak)">Coastal Districts (Balasore, Bhadrak)</option>
                   <option value="Puri & Ganjam Coastal Belt">Puri &amp; Ganjam Coastal Belt (High Inundation)</option>
@@ -104,16 +104,16 @@ export const VoiceCampaigns: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-xs text-xs text-on-surface-variant uppercase block mb-1">
+                <label className="text-xs text-on-surface-variant uppercase block mb-1">
                   Pre-Recorded Audio / Script
                 </label>
                 <select 
                   value={ivrScript}
                   onChange={(e) => setIvrScript(e.target.value)}
-                  className="w-full bg-[#020617] border border-slate-500 rounded p-2 text-on-surface text-sm text-sm focus:outline-none focus:border-rescue-blue cursor-pointer"
+                  className="w-full bg-surface-container-lowest border border-outline-variant rounded p-2 text-on-surface text-sm focus:outline-none focus:border-rescue-blue cursor-pointer"
                 >
                   <option value="Cyclone Evacuation Notice v2">Cyclone Evacuation Notice v2 (Odia / Hindi / English)</option>
-                  <option value="Post-Disaster Check-in">Post-Disaster Check-in (Press 1 for Safe / 2 for Trapped)</option>
+                  <option value="Post-Disaster Check-in">Post-disaster check-in (press 1 safe, 2 supplies, 3 trapped, 4 medical)</option>
                   <option value="Medical Triage Audio Survey">Medical Triage Audio Survey</option>
                   <option value="Upload Custom Audio...">Upload Custom Audio (.WAV 16kHz)...</option>
                 </select>
@@ -123,13 +123,13 @@ export const VoiceCampaigns: React.FC = () => {
                 <button 
                   type="button"
                   onClick={() => setNewCampaignModal(false)}
-                  className="px-4 py-2 bg-surface border border-outline-variant/30 text-on-surface rounded text-xs text-xs hover:bg-surface-container-lowestest cursor-pointer"
+                  className="px-4 py-2 bg-surface border border-outline-variant/30 text-on-surface rounded text-xs hover:bg-surface-container-high cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button 
                   type="submit"
-                  className="px-5 py-2 bg-rescue-blue hover:bg-blue-700 text-white font-medium rounded flex items-center gap-2 cursor-pointer shadow-md"
+                  className="px-5 py-2 bg-primary hover:bg-primary/90 text-on-primary font-medium rounded flex items-center gap-2 cursor-pointer shadow-md"
                 >
                   <span className="material-symbols-outlined text-[18px]">record_voice_over</span>
                   Start Broadcast
@@ -159,10 +159,12 @@ export const VoiceCampaigns: React.FC = () => {
         </button>
       </header>
 
-      {/* Bento Grid Layout */}
-      <div className="bento-grid">
+      {/* Campaign detail takes two thirds, draft panel one, table spans the row.
+          These used to be bento-item-* classes that were never written, so the
+          whole thing rendered as one stacked column. */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Running Campaign Detail (Priority Module) */}
-        <section className="bento-item-twothird bg-surface border border-outline-variant/30 rounded-xl relative overflow-hidden flex flex-col shadow-sm">
+        <section className="lg:col-span-2 bg-surface border border-outline-variant/30 rounded-xl relative overflow-hidden flex flex-col shadow-sm">
           <div className="p-4 sm:p-5 border-b border-outline-variant/30 flex flex-wrap justify-between items-center bg-surface-container-low gap-2">
             <div className="flex items-center gap-3">
               <span className="relative flex h-2.5 w-2.5">
@@ -170,7 +172,7 @@ export const VoiceCampaigns: React.FC = () => {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                 )}
                 <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
-                  activeCampaign.status === 'Running' ? 'bg-primary' : 'bg-amber-500'
+                  activeCampaign.status === 'Running' ? 'bg-primary' : 'bg-tertiary'
                 }`}></span>
               </span>
               <h3 className="font-sans font-semibold text-primary text-sm sm:text-base truncate">
@@ -179,8 +181,8 @@ export const VoiceCampaigns: React.FC = () => {
             </div>
             <span className={`px-2.5 py-1 text-xs font-semibold rounded-md border ${
               activeCampaign.status === 'Running'
-                ? 'bg-primary/10 text-primary border-primary/20'
-                : 'bg-amber-500/10 text-amber-600 border-amber-500/20'
+                ? 'bg-primary/10 text-on-primary-container border-primary/20'
+                : 'bg-tertiary/10 text-on-tertiary-container border-tertiary/20'
             }`}>
               {activeCampaign.status}
             </span>
@@ -201,7 +203,7 @@ export const VoiceCampaigns: React.FC = () => {
                   <p className="font-sans text-2xl text-primary leading-none font-semibold">
                     {answerPercent}%
                   </p>
-                  <span className="material-symbols-outlined text-emerald-500 text-sm mb-0.5">trending_up</span>
+                  <span className="material-symbols-outlined text-secondary text-sm mb-0.5">trending_up</span>
                 </div>
               </div>
             </div>
@@ -222,7 +224,7 @@ export const VoiceCampaigns: React.FC = () => {
                     <div className="flex justify-between items-end mb-1.5 text-xs">
                       <span className="font-sans font-medium flex items-center gap-1.5 text-on-surface">
                         <span className="material-symbols-outlined text-on-surface text-[14px]">check_circle</span>
-                        Reported Safe (Press 1)
+                        Reported safe (press 1)
                       </span>
                       <span className="font-sans text-on-surface font-semibold">
                         {activeCampaign.safeCount.toLocaleString()} <span className="text-on-surface-variant">({safePercent}%)</span>
@@ -238,7 +240,7 @@ export const VoiceCampaigns: React.FC = () => {
                     <div className="flex justify-between items-end mb-1.5 text-xs">
                       <span className="font-sans font-medium flex items-center gap-1.5 text-on-surface">
                         <span className="material-symbols-outlined text-on-surface-variant text-[14px]">emergency</span>
-                        Rescue Needed (Press 2)
+                        Trapped (press 3)
                       </span>
                       <span className="font-sans text-on-surface font-semibold">
                         {activeCampaign.trappedCount.toLocaleString()} <span className="text-on-surface-variant">({trappedPercent}%)</span>
@@ -253,26 +255,22 @@ export const VoiceCampaigns: React.FC = () => {
 
               {/* Interactive Citizen Test Buttons right on the card */}
               <div className="mt-5 pt-3 flex flex-wrap items-center gap-3">
-                <span className="text-[11px] font-sans text-on-surface-variant font-medium">Test Inputs:</span>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => recordDTMF('1')}
-                    className="px-3 py-1.5 bg-surface-container-lowest hover:bg-surface-container-lowestest border border-outline-variant/50 text-on-surface rounded-lg text-xs transition-colors cursor-pointer"
-                  >
-                    Press 1 (Safe)
-                  </button>
-                  <button
-                    onClick={() => recordDTMF('2')}
-                    className="px-3 py-1.5 bg-surface-container-lowest hover:bg-surface-container-lowestest border border-outline-variant/50 text-on-surface rounded-lg text-xs transition-colors cursor-pointer"
-                  >
-                    Press 2 (Trapped)
-                  </button>
-                  <button
-                    onClick={() => recordDTMF('3')}
-                    className="px-3 py-1.5 bg-surface-container-lowest hover:bg-surface-container-lowestest border border-outline-variant/50 text-on-surface rounded-lg text-xs transition-colors cursor-pointer"
-                  >
-                    Press 3 (Medical)
-                  </button>
+                <span className="text-[11px] text-on-surface-variant font-medium">Simulate a keypress:</span>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { key: '1' as const, label: 'Safe' },
+                    { key: '2' as const, label: 'Supplies' },
+                    { key: '3' as const, label: 'Trapped' },
+                    { key: '4' as const, label: 'Medical' }
+                  ].map((k) => (
+                    <button
+                      key={k.key}
+                      onClick={() => recordDTMF(k.key)}
+                      className="px-3 py-1.5 bg-surface-container-lowest hover:bg-surface-container-high border border-outline-variant/50 text-on-surface rounded-lg text-xs transition-colors cursor-pointer"
+                    >
+                      {k.key} &middot; {k.label}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
@@ -287,7 +285,7 @@ export const VoiceCampaigns: React.FC = () => {
             </button>
             <button 
               onClick={abortCampaign}
-              className="px-4 py-2 bg-error/10 text-error border border-error/20 text-sm font-semibold rounded-lg hover:bg-error/20 transition-colors cursor-pointer"
+              className="px-4 py-2 bg-error/10 text-on-error-container border border-error/20 text-sm font-semibold rounded-lg hover:bg-error/20 transition-colors cursor-pointer"
             >
               Abort Campaign
             </button>
@@ -295,7 +293,7 @@ export const VoiceCampaigns: React.FC = () => {
         </section>
 
         {/* Quick Actions / Campaign Setup */}
-        <section className="bento-item-third bg-surface border border-outline-variant/30 rounded-xl relative p-5 flex flex-col shadow-sm">
+        <section className="bg-surface border border-outline-variant/30 rounded-xl relative p-5 flex flex-col shadow-sm">
           <h3 className="font-sans font-semibold mb-4 flex items-center gap-2 text-base text-on-surface">
             <span className="material-symbols-outlined text-primary text-[20px]">campaign</span>
             Quick Draft
@@ -357,7 +355,7 @@ export const VoiceCampaigns: React.FC = () => {
         </section>
 
         {/* Recent Campaigns Table */}
-        <section className="bento-item-full bg-surface border border-outline-variant/30 rounded-xl relative overflow-hidden flex flex-col mt-4 shadow-sm">
+        <section className="lg:col-span-3 bg-surface border border-outline-variant/30 rounded-xl relative overflow-hidden flex flex-col shadow-sm">
           <div className="p-4 border-b border-outline-variant/30 bg-surface-container-low flex justify-between items-center">
             <h3 className="font-sans font-semibold text-base text-on-surface">
               Recent Campaigns <span className="text-on-surface-variant font-normal text-sm ml-1">({pastCampaigns.length + 1})</span>
@@ -385,16 +383,16 @@ export const VoiceCampaigns: React.FC = () => {
               <tbody className="font-sans text-sm divide-y divide-outline-variant/20">
                 {/* Active Campaign */}
                 <tr className="hover:bg-surface-container-low transition-colors bg-primary/5">
-                  <td className="p-4 font-semibold text-primary">
+                  <td className="p-4 font-semibold text-on-primary-container">
                     {activeCampaign.id} <span className="text-[10px] font-bold bg-primary/20 px-1.5 py-0.5 rounded ml-2">CURRENT</span>
                   </td>
                   <td className="p-4">
                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold border ${
                       activeCampaign.status === 'Running' 
-                        ? 'bg-primary/10 text-primary border-primary/20' 
-                        : 'bg-amber-500/10 text-amber-600 border-amber-500/20'
+                        ? 'bg-primary/10 text-on-primary-container border-primary/20' 
+                        : 'bg-tertiary/10 text-on-tertiary-container border-tertiary/20'
                     }`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${activeCampaign.status === 'Running' ? 'bg-primary' : 'bg-amber-500'}`}></span> 
+                      <span className={`w-1.5 h-1.5 rounded-full ${activeCampaign.status === 'Running' ? 'bg-primary' : 'bg-tertiary'}`}></span> 
                       {activeCampaign.status}
                     </span>
                   </td>
@@ -406,10 +404,13 @@ export const VoiceCampaigns: React.FC = () => {
                   </td>
                   <td className="p-4 font-medium text-on-surface">{answerPercent}%</td>
                   <td className="p-4">
-                    <div className="flex items-center gap-2 font-medium">
-                      <span className="text-emerald-500">{safePercent}%</span>
-                      <span className="text-outline-variant">/</span>
-                      <span className="text-error">{trappedPercent}%</span>
+                    <div className="flex items-center gap-2 font-medium tabular-nums">
+                      {/* The current-campaign row carries a bg-primary/5 wash, which pushes
+                          plain text-error to 4.44:1 in dark. Both halves move to their
+                          on-container inks so the pair stays a matched set either way. */}
+                      <span className="text-on-secondary-container">{safePercent}%</span>
+                      <span className="text-on-surface-variant">/</span>
+                      <span className="text-on-error-container">{trappedPercent}%</span>
                     </div>
                   </td>
                 </tr>
@@ -425,17 +426,17 @@ export const VoiceCampaigns: React.FC = () => {
                       <td className="p-4 font-medium text-on-surface">{cmp.id}</td>
                       <td className="p-4">
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium bg-surface-container-lowest text-on-surface-variant border border-outline-variant/50">
-                          <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span> {cmp.status}
+                          <span className="w-1.5 h-1.5 rounded-full bg-outline"></span> {cmp.status}
                         </span>
                       </td>
                       <td className="p-4 text-on-surface-variant text-[13px]">{cmp.scheduledTime}</td>
                       <td className="p-4 text-on-surface">{(cmp.totalReach / 1000).toFixed(1)}k</td>
                       <td className="p-4 text-on-surface">{cmpAnswerPct}%</td>
                       <td className="p-4">
-                        <div className="flex items-center gap-2">
-                          <span className="text-emerald-500">{cmpSafePct}%</span>
-                          <span className="text-outline-variant">/</span>
-                          <span className="text-error">{cmpTrappedPct}%</span>
+                        <div className="flex items-center gap-2 tabular-nums">
+                          <span className="text-on-secondary-container">{cmpSafePct}%</span>
+                          <span className="text-on-surface-variant">/</span>
+                          <span className="text-on-error-container">{cmpTrappedPct}%</span>
                         </div>
                       </td>
                     </tr>

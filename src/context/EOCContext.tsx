@@ -109,7 +109,7 @@ export interface EOCContextType {
   toggleCampaignPause: () => void;
   abortCampaign: () => void;
   createCampaign: (data: { title: string; audience: string; script: string; scheduledTime: string }) => void;
-  recordDTMF: (key: '1' | '2' | '3') => void;
+  recordDTMF: (key: '1' | '2' | '3' | '4') => void;
 
   // Shelters & Resources
   fleet: FleetStock;
@@ -333,10 +333,10 @@ const initialShelters: ShelterFacility[] = [
     lat: 20.1824,
     lng: 85.6200,
     tier: 'Tier 1 - Basic',
-    tierColor: 'bg-slate-700 text-white',
+    tierColor: 'bg-surface-container-high text-on-surface',
     tierText: 'Tier 1 - Basic',
-    borderColor: 'bg-slate-500',
-    occupancyColor: 'bg-slate-400',
+    borderColor: 'bg-on-surface-variant',
+    occupancyColor: 'bg-outline',
     capacity: 600,
     occupied: 72,
     drinkingWaterLiters: 3500,
@@ -565,7 +565,7 @@ export const EOCProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setSignals((prev) => [newSignal, ...prev]);
     setSelectedSignalId(newSignal.id);
     playAlert();
-    showToast(`INBOUND SOS DETECTED: ${newSignal.id} in ${newSignal.loc} (${newSignal.people})!`);
+    showToast(`Inbound SOS ${newSignal.id} — ${newSignal.loc}, ${newSignal.people}.`);
   };
 
   const injectSOS = (sos: any) => {
@@ -591,19 +591,17 @@ export const EOCProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast(`Safe verification verified for citizen code ${record.citizenCode || 'CIT-1042'}`);
   };
 
+  // Toasts stay outside the updater — StrictMode double-invokes updaters, which
+  // fired these twice.
   const toggleCampaignPause = () => {
-    setActiveCampaign((prev) => {
-      const nextStatus = prev.status === 'Running' ? 'Paused' : 'Running';
-      showToast(`Campaign ${prev.id} is now ${nextStatus}.`);
-      return { ...prev, status: nextStatus };
-    });
+    const nextStatus = activeCampaign.status === 'Running' ? 'Paused' : 'Running';
+    setActiveCampaign((prev) => ({ ...prev, status: nextStatus }));
+    showToast(`Campaign ${activeCampaign.id} is now ${nextStatus}.`);
   };
 
   const abortCampaign = () => {
-    setActiveCampaign((prev) => {
-      showToast(`EMERGENCY: Campaign ${prev.id} has been aborted.`);
-      return { ...prev, status: 'Aborted' };
-    });
+    setActiveCampaign((prev) => ({ ...prev, status: 'Aborted' }));
+    showToast(`Campaign ${activeCampaign.id} aborted.`);
   };
 
   const createCampaign = ({
@@ -635,41 +633,44 @@ export const EOCProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setPastCampaigns((prev) => [activeCampaign, ...prev]);
     setActiveCampaign(newCamp);
     playSuccess();
-    showToast(`New Voice Campaign "${title}" launched across ${audience}!`);
+    showToast(`Campaign "${title}" live across ${audience}.`);
   };
 
-  const recordDTMF = (key: '1' | '2' | '3') => {
+  // Keypad mapping is fixed by the IVR script the backend reads out
+  // (backend/app/api/webhook.py): 1 safe, 2 assistance, 3 trapped, 4 medical.
+  // One key, one counter — key 2 used to increment trappedCount as well, which
+  // inflated the rescue-needed figure by every supply request.
+  const recordDTMF = (key: '1' | '2' | '3' | '4') => {
     setActiveCampaign((prev) => {
       const updated = { ...prev };
       updated.answeredCount += 1;
       if (key === '1') updated.safeCount += 1;
-      if (key === '2') {
-        updated.trappedCount += 1;
-        updated.foodWaterCount += 1;
-      }
-      if (key === '3') {
-        updated.trappedCount += 1;
-        updated.medicalCount += 1;
-      }
+      if (key === '2') updated.foodWaterCount += 1;
+      if (key === '3') updated.trappedCount += 1;
+      if (key === '4') updated.medicalCount += 1;
       return updated;
     });
 
-    if (key === '3') {
-      // Flag urgent SOS signal directly into incoming stream
+    // Keys 3 and 4 are the two the script treats as critical, so both raise a
+    // signal in the incoming stream rather than just a toast.
+    if (key === '3' || key === '4') {
       injectNewSignal({
         status: 'Critical',
-        score: 96,
+        score: key === '4' ? 96 : 88,
         source: 'IVR System',
         sourceIcon: 'dialpad',
-        people: '4 Persons (IVR Press 3 Urgent Medical)',
-        details: 'Citizen flagged life-threatening medical emergency during automated IVR broadcast check-in.'
+        people: key === '4' ? '1 person — medical emergency' : '1 person — trapped',
+        details:
+          key === '4'
+            ? 'Citizen reported a life-threatening medical emergency during the IVR check-in.'
+            : 'Citizen reported being trapped and unable to evacuate during the IVR check-in.'
       });
     } else {
       playSuccess();
       showToast(
         key === '1'
-          ? 'DTMF Recorded: Citizen Confirmed SAFE (Press 1)'
-          : 'DTMF Recorded: Citizen Needs FOOD / WATER (Press 2)'
+          ? 'Response recorded — citizen confirmed safe'
+          : 'Response recorded — citizen needs food or water'
       );
     }
   };
@@ -704,7 +705,7 @@ export const EOCProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
 
     playSuccess();
-    showToast(`Dispatched ${quantity} units of ${resourceType} to facility!`);
+    showToast(`Dispatched ${quantity} × ${resourceType} to ${shelterId}.`);
   };
 
   const updateShelterOccupancy = (shelterId: string, delta: number) => {

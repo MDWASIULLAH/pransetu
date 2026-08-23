@@ -49,7 +49,7 @@ export const LiveWeatherWidget: React.FC<LiveWeatherWidgetProps> = ({
         country: data.country || 'GLOBAL'
       });
       onWeatherUpdate?.(data);
-    } catch (err) {
+    } catch {
       setSearchError('City not found. Please verify spelling.');
     } finally {
       setLoading(false);
@@ -73,7 +73,7 @@ export const LiveWeatherWidget: React.FC<LiveWeatherWidgetProps> = ({
       {/* Header with Global Live Indicator */}
       <div className="flex flex-wrap justify-between items-center pb-3 border-b border-outline-variant gap-2">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-primary/15 border border-primary/40 flex items-center justify-center text-primary">
+          <div className="w-8 h-8 rounded-lg bg-primary/15 border border-primary/40 flex items-center justify-center text-on-primary-container">
             <span className="material-symbols-outlined text-[20px]">public</span>
           </div>
           <div>
@@ -122,7 +122,7 @@ export const LiveWeatherWidget: React.FC<LiveWeatherWidgetProps> = ({
           <button
             type="submit"
             disabled={loading || !searchQuery.trim()}
-            className="px-2.5 py-0.5 bg-primary text-on-primary rounded text-[11px] font-bold hover:bg-primary-fixed cursor-pointer transition-colors shrink-0 disabled:opacity-50"
+            className="px-2.5 py-0.5 bg-primary text-on-primary rounded text-[11px] font-bold hover:bg-primary/90 cursor-pointer transition-colors shrink-0 disabled:opacity-50"
           >
             Locate
           </button>
@@ -140,7 +140,7 @@ export const LiveWeatherWidget: React.FC<LiveWeatherWidgetProps> = ({
             onClick={() => setActiveCategory(cat)}
             className={`px-2 py-0.5 rounded transition-colors cursor-pointer whitespace-nowrap ${
               activeCategory === cat
-                ? 'bg-primary/10 text-primary font-semibold border border-primary/20'
+                ? 'bg-primary/10 text-on-primary-container font-semibold border border-primary/20'
                 : 'text-on-surface-variant hover:text-on-surface'
             }`}
           >
@@ -162,7 +162,7 @@ export const LiveWeatherWidget: React.FC<LiveWeatherWidgetProps> = ({
               }}
               className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1 ${
                 isSelected
-                  ? 'bg-primary/10 text-primary font-semibold shadow-sm border border-primary/20'
+                  ? 'bg-primary/10 text-on-primary-container font-semibold shadow-sm border border-primary/20'
                   : 'bg-surface border border-outline-variant/50 text-on-surface-variant hover:text-on-surface'
               }`}
             >
@@ -196,12 +196,12 @@ export const LiveWeatherWidget: React.FC<LiveWeatherWidgetProps> = ({
               <span
                 className={`px-2 py-0.5 rounded-full text-[10px] font-sans font-bold uppercase tracking-wider inline-block ${
                   currentWeather.cycloneRiskLevel === 'EMERGENCY_RED'
-                    ? 'bg-error/10 text-error border border-error/20'
+                    ? 'bg-error/10 text-on-error-container border border-error/20'
                     : currentWeather.cycloneRiskLevel === 'WARNING'
-                    ? 'bg-amber-600/10 text-amber-600 border border-amber-600/20'
+                    ? 'bg-tertiary/10 text-on-tertiary-container border border-tertiary/20'
                     : currentWeather.cycloneRiskLevel === 'WATCH'
-                    ? 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
-                    : 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
+                    ? 'bg-tertiary/10 text-on-tertiary-container border border-tertiary/20'
+                    : 'bg-secondary/10 text-on-secondary-container border border-secondary/20'
                 }`}
               >
                 {currentWeather.cycloneRiskLevel.replace('_', ' ')}
@@ -220,7 +220,7 @@ export const LiveWeatherWidget: React.FC<LiveWeatherWidgetProps> = ({
                 <span className="text-sm font-bold font-sans text-on-surface">{currentWeather.windSpeedKmh}</span>
                 <span className="text-[10px] text-on-surface-variant font-sans">km/h</span>
               </div>
-              <span className="text-[10px] text-amber-600 font-sans">Gusts: {currentWeather.windGustKmh} km/h</span>
+              <span className="text-[10px] text-tertiary font-sans">Gusts: {currentWeather.windGustKmh} km/h</span>
             </div>
 
             <div className="p-2.5 bg-surface border border-outline-variant/30 shadow-sm/50">
@@ -232,7 +232,7 @@ export const LiveWeatherWidget: React.FC<LiveWeatherWidgetProps> = ({
                 <span className="text-[10px] text-on-surface-variant font-sans">hPa</span>
               </div>
               <span className="text-[10px] text-on-surface-variant font-sans">
-                {currentWeather.pressure < 995 ? '⚠️ Low Depression' : 'Stable Atmospheric'}
+                {currentWeather.pressure < 995 ? 'Low pressure — depression' : 'Stable'}
               </span>
             </div>
 
@@ -242,7 +242,7 @@ export const LiveWeatherWidget: React.FC<LiveWeatherWidgetProps> = ({
                 <span className="text-sm font-bold font-sans text-primary">{currentWeather.rain1hMm}</span>
                 <span className="text-[10px] text-on-surface-variant font-sans">mm/h</span>
               </div>
-              <span className="text-[10px] text-emerald-600 font-sans">Humidity: {currentWeather.humidity}%</span>
+              <span className="text-[10px] text-secondary font-sans">Humidity: {currentWeather.humidity}%</span>
             </div>
 
             <div className="p-2.5 bg-surface border border-outline-variant/30 shadow-sm/50">

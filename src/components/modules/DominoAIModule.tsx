@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrainCircuit, ArrowDown, AlertTriangle, ShieldCheck, Waves, Wind, CloudRain, Navigation, Home, Truck } from 'lucide-react';
+import { API_BASE } from '../../services/api';
 
 export interface DominoStep {
   step_index: number;
@@ -41,7 +42,7 @@ export const DominoAIModule: React.FC = () => {
     try {
       const token = localStorage.getItem('access_token') || 'dummy-token';
       const res = await fetch(
-        `http://localhost:8000/api/v1/domino-ai/cascade?scenario=${scenario}&rainfall_mm=${rainfallMm}&wind_kmh=${windKmh}`,
+        `${API_BASE}/api/v1/domino-ai/cascade?scenario=${scenario}&rainfall_mm=${rainfallMm}&wind_kmh=${windKmh}`,
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
       if (res.ok) {

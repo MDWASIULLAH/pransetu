@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../services/api';
 
 interface SafeVerifyStats {
   total_contacted: number;
@@ -34,43 +35,7 @@ export const SafeVerifyDashboard: React.FC = () => {
   const [campaignFilter, setCampaignFilter] = useState('');
   const [districtFilter, setDistrictFilter] = useState('');
 
-  // Fetch logic
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 800);
-        const token = localStorage.getItem('access_token') || 'dummy-token';
-        const headers: Record<string, string> = { 'Authorization': `Bearer ${token}` };
-        
-        let urlParams = '';
-        if (campaignFilter) urlParams += `campaign_id=${campaignFilter}&`;
-        if (districtFilter) urlParams += `district=${districtFilter}&`;
-        
-        const statsRes = await fetch(`http://localhost:8000/api/v1/safeverify/stats?${urlParams}`, { headers, signal: controller.signal });
-        if (statsRes.ok) {
-            setStats(await statsRes.json());
-        }
-
-        const recordsRes = await fetch(`http://localhost:8000/api/v1/safeverify/records?${urlParams}`, { headers, signal: controller.signal });
-        if (recordsRes.ok) {
-            const data = await recordsRes.json();
-            setRecords(data.data || []);
-        } else {
-            loadFallbackData();
-        }
-        clearTimeout(timeoutId);
-      } catch (e) {
-        loadFallbackData();
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchData();
-  }, [campaignFilter, districtFilter]);
-
+  // Seed figures so the dashboard is readable when the backend is unreachable.
   const loadFallbackData = () => {
     setStats({
       total_contacted: 1250, answered: 850, no_answer: 400,
@@ -82,6 +47,46 @@ export const SafeVerifyDashboard: React.FC = () => {
       { id: '2', citizen_phone: '+919123****', campaign_id: 'CMP-001', state: 'MEDICAL', timestamp: new Date().toISOString(), call_status: 'ANSWERED', retry_count: 1, source: 'IVR', district: 'Cuttack' }
     ]);
   };
+
+  // Fetch logic
+  useEffect(() => {
+    const controller = new AbortController();
+    let timeoutId: number | undefined;
+
+    const fetchData = async () => {
+      setLoading(true);
+      timeoutId = window.setTimeout(() => controller.abort(), 800);
+      try {
+        let urlParams = '';
+        if (campaignFilter) urlParams += `campaign_id=${campaignFilter}&`;
+        if (districtFilter) urlParams += `district=${districtFilter}&`;
+
+        const statsRes = await apiFetch(`/api/v1/safeverify/stats?${urlParams}`, { signal: controller.signal });
+        if (statsRes.ok) {
+            setStats(await statsRes.json());
+        }
+
+        const recordsRes = await apiFetch(`/api/v1/safeverify/records?${urlParams}`, { signal: controller.signal });
+        if (recordsRes.ok) {
+            const data = await recordsRes.json();
+            setRecords(data.data || []);
+        } else {
+            loadFallbackData();
+        }
+      } catch {
+        loadFallbackData();
+      } finally {
+        clearTimeout(timeoutId);
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+    return () => {
+      clearTimeout(timeoutId);
+      controller.abort();
+    };
+  }, [campaignFilter, districtFilter]);
 
 
   const statCard = (title: string, value: number, colorClass: string) => (
@@ -136,8 +141,8 @@ export const SafeVerifyDashboard: React.FC = () => {
             {statCard("Contacted", stats?.total_contacted || 0, "text-on-surface")}
             {statCard("Answered", stats?.answered || 0, "text-secondary")}
             {statCard("No Answer", stats?.no_answer || 0, "text-error")}
-            {statCard("Safe", stats?.safe_count || 0, "text-green-500")}
-            {statCard("Assistance", stats?.assistance_count || 0, "text-yellow-500")}
+            {statCard("Safe", stats?.safe_count || 0, "text-secondary")}
+            {statCard("Assistance", stats?.assistance_count || 0, "text-tertiary")}
             {statCard("Trapped", stats?.trapped_count || 0, "text-error")}
             {statCard("Medical", stats?.medical_count || 0, "text-error")}
             {statCard("Unaccounted", stats?.unaccounted_count || 0, "text-on-surface-variant")}
@@ -170,10 +175,10 @@ export const SafeVerifyDashboard: React.FC = () => {
                       <td className="px-4 py-3 text-on-surface font-sans">{record.citizen_phone}</td>
                       <td className="px-4 py-3">
                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
-                          ${record.state === 'SAFE' ? 'bg-emerald-600/10 text-green-500' : ''}
-                          ${record.state === 'ASSISTANCE' ? 'bg-yellow-500/10 text-yellow-500' : ''}
-                          ${record.state === 'MEDICAL' || record.state === 'TRAPPED' ? 'bg-red-500/10 text-red-500' : ''}
-                          ${record.state === 'UNACCOUNTED' ? 'bg-gray-500/10 text-on-surface-variant' : ''}
+                          ${record.state === 'SAFE' ? 'bg-secondary/10 text-on-secondary-container' : ''}
+                          ${record.state === 'ASSISTANCE' ? 'bg-tertiary/10 text-on-tertiary-container' : ''}
+                          ${record.state === 'MEDICAL' || record.state === 'TRAPPED' ? 'bg-error/10 text-on-error-container' : ''}
+                          ${record.state === 'UNACCOUNTED' ? 'bg-on-surface-variant/10 text-on-surface-variant' : ''}
                         `}>
                           {record.state}
                         </span>

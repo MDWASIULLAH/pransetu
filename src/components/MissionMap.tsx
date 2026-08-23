@@ -27,6 +27,15 @@ export const MissionMap: React.FC = () => {
   const [inspectedRouteId, setInspectedRouteId] = useState<string | null>(null);
   const [mapType, setMapType] = useState<'light' | 'dark' | 'satellite'>('dark');
 
+  // The chip next to "Map Layers" used to be hardcoded to "12 Active" and stayed
+  // there however many boxes you unchecked. Count the live toggles instead.
+  const layerToggles = [
+    showSOS, showIncidents, showAmbulances, showRescueTeams, showBoats,
+    showMedicalTeams, showRescueVehicles, showShelters, showEmergencyResources,
+    showDisasterZones, showFloodZones, showRoutes
+  ];
+  const activeLayerCount = layerToggles.filter(Boolean).length;
+
   return (
     <div className="flex-1 flex flex-col lg:flex-row h-full w-full overflow-y-auto lg:overflow-hidden bg-background text-on-background relative">
       {/* AI Machine Learning Route Inspector Modal */}
@@ -90,42 +99,67 @@ export const MissionMap: React.FC = () => {
             </h3>
           </div>
           
-          <div className="space-y-2.5 text-[11px] font-sans">
-            <div className="flex items-center gap-2.5">
-              <span className="w-2 h-2 rounded-full bg-error shadow-sm"></span>
-              <span className="text-on-surface-variant font-medium">Live GPS Radar</span>
+          <div className="space-y-3 text-[11px] font-sans">
+            {/* Distress signals — the dot colour is severity, the halo means the
+                fix is live. Stale draws hollow so it can't be mistaken for live. */}
+            <div className="space-y-2">
+              <p className="text-[10px] font-semibold text-on-surface-variant">Distress signals</p>
+              <div className="flex items-center gap-2.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-error ring-2 ring-error/25 shrink-0"></span>
+                <span className="text-on-surface-variant">Critical SOS (live fix)</span>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-tertiary ring-2 ring-tertiary/25 shrink-0"></span>
+                <span className="text-on-surface-variant">High SOS (live fix)</span>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <span className="w-2.5 h-2.5 rounded-full border-2 border-tertiary shrink-0"></span>
+                <span className="text-on-surface-variant">Last known fix (&gt;5 min old)</span>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <span className="flex items-center gap-1 px-1 py-0.5 rounded-full bg-surface-container-lowest border border-outline-variant shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-error"></span>
+                  <span className="w-3 h-1 rounded-sm bg-outline-variant"></span>
+                </span>
+                <span className="text-on-surface-variant">Incident cluster</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2.5">
-              
-              <span className="text-on-surface-variant font-medium">Stale GPS Location</span>
+
+            {/* Fleet units all render as an ID pill; only the dot varies. */}
+            <div className="space-y-2 pt-1 border-t border-outline-variant/30">
+              <p className="text-[10px] font-semibold text-on-surface-variant pt-1.5">Fleet units</p>
+              <div className="flex items-center gap-2.5">
+                <span className="w-2 h-2 rounded-full bg-secondary shrink-0"></span>
+                <span className="text-on-surface-variant">Available to task</span>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <span className="w-2 h-2 rounded-full bg-primary shrink-0"></span>
+                <span className="text-on-surface-variant">Assigned / en route</span>
+              </div>
+              <p className="text-[10px] text-on-surface-variant/80 leading-snug">
+                Each pill carries the unit ID — AMB, TEAM, BOAT, MED.
+              </p>
             </div>
-            <div className="flex items-center gap-2.5">
-              <span className="w-2 h-2 border-[1.5px] border-primary rounded-full"></span>
-              <span className="text-on-surface-variant font-medium">Incident Cluster</span>
-            </div>
-            <div className="flex items-center gap-2.5">
-              
-              <span className="text-on-surface-variant font-medium">Ambulances</span>
-            </div>
-            <div className="flex items-center gap-2.5">
-              
-              <span className="text-on-surface-variant font-medium">Rescue Teams</span>
-            </div>
-            <div className="flex items-center gap-2.5">
-              
-              <span className="text-on-surface-variant font-medium">Rescue Boats</span>
-            </div>
-            <div className="flex items-center gap-2.5">
-              
-              <span className="text-on-surface-variant font-medium">Medical Teams</span>
-            </div>
-            <div className="flex items-center gap-2.5">
-              <span className="w-2 h-2 rounded-sm bg-emerald-600 shadow-sm"></span>
-              <span className="text-on-surface-variant font-medium">Shelter Network</span>
-            </div>
-            <div className="flex items-center gap-2.5">
-              <span className="w-2.5 h-2.5 bg-blue-500/20 border border-blue-400/50 rounded-sm"></span>
-              <span className="text-on-surface-variant font-medium">Flood / Surge Zone</span>
+
+            {/* Sites and zones: square dots for fixed sites, washes for areas. */}
+            <div className="space-y-2 pt-1 border-t border-outline-variant/30">
+              <p className="text-[10px] font-semibold text-on-surface-variant pt-1.5">Sites &amp; zones</p>
+              <div className="flex items-center gap-2.5">
+                <span className="flex gap-0.5 shrink-0">
+                  <span className="w-2 h-2 rounded-sm bg-secondary"></span>
+                  <span className="w-2 h-2 rounded-sm bg-tertiary"></span>
+                  <span className="w-2 h-2 rounded-sm bg-error"></span>
+                </span>
+                <span className="text-on-surface-variant">Shelter: open / filling / full</span>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <span className="w-3 h-2.5 rounded-sm bg-primary/25 border border-primary shrink-0"></span>
+                <span className="text-on-surface-variant">Flood / surge zone</span>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <span className="w-3 h-2.5 rounded-sm bg-error/10 border border-dashed border-error shrink-0"></span>
+                <span className="text-on-surface-variant">Declared risk zone</span>
+              </div>
             </div>
           </div>
         </div>
@@ -148,7 +182,7 @@ export const MissionMap: React.FC = () => {
             <div className="flex items-center gap-2">
               <button 
                 onClick={() => setDeployModalOpen(true)}
-                className="bg-primary/10 text-primary border border-primary/20 font-semibold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 cursor-pointer hover:bg-primary/20 transition-colors"
+                className="bg-primary/10 text-on-primary-container border border-primary/20 font-semibold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 cursor-pointer hover:bg-primary/20 transition-colors"
               >
                 Deploy
               </button>
@@ -167,7 +201,9 @@ export const MissionMap: React.FC = () => {
               <h3 className="font-semibold text-on-surface text-xs font-sans">
                 Map Layers
               </h3>
-              <span className="text-[10px] text-primary font-medium bg-primary/10 px-1.5 py-0.5 rounded">12 Active</span>
+              <span className="text-[10px] text-on-primary-container font-medium bg-primary/10 px-1.5 py-0.5 rounded tabular-nums">
+                {activeLayerCount} of {layerToggles.length} on
+              </span>
             </div>
 
             <div className="grid grid-cols-2 gap-1.5 text-[11px] font-sans">
@@ -229,8 +265,8 @@ export const MissionMap: React.FC = () => {
                 <span className="material-symbols-outlined text-[18px] text-error">sensors</span>
                 Active Distress Signals
               </h3>
-              <span className="bg-error/10 text-error px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wider uppercase">
-                {signals.filter((s) => s.status === 'Critical' || s.severity === 'CRITICAL').length} Critical
+              <span className="bg-error/10 text-on-error-container px-2.5 py-1 rounded-md text-[10px] font-semibold tabular-nums">
+                {signals.filter((s) => s.status === 'Critical' || s.severity === 'CRITICAL').length} critical
               </span>
             </div>
 
@@ -252,27 +288,27 @@ export const MissionMap: React.FC = () => {
                         : 'border-outline-variant/40 hover:border-outline-variant'
                     }`}
                   >
-                    <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${isCrit ? 'bg-error' : 'bg-amber-500'}`}></div>
+                    <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${isCrit ? 'bg-error' : 'bg-tertiary'}`}></div>
                     <div className="pl-2">
                       <div className="flex justify-between items-start mb-2">
                         <span className="font-bold text-on-surface text-sm">
                           {sig.id} <span className="text-on-surface-variant font-medium text-xs ml-1.5">• {sig.loc}</span>
                         </span>
-                        <span className={`font-bold text-[9px] px-2 py-0.5 rounded-sm tracking-wider ${isCrit ? 'bg-error/10 text-error border border-error/20' : 'bg-amber-500/10 text-amber-600 border border-amber-500/20'}`}>
+                        <span className={`font-bold text-[9px] px-2 py-0.5 rounded-sm tracking-wider ${isCrit ? 'bg-error/10 text-on-error-container border border-error/20' : 'bg-tertiary/10 text-on-tertiary-container border border-tertiary/20'}`}>
                           {sevText}
                         </span>
                       </div>
                       
                       <div className="flex items-center gap-2 text-xs text-on-surface-variant mb-2.5 font-medium">
                         <span>{sig.lat.toFixed(4)}°, {sig.lng.toFixed(4)}°</span>
-                        <span className="text-[10px] text-outline-variant">•</span>
-                        <span className="text-primary bg-primary/5 px-1.5 py-0.5 rounded font-semibold">{sig.relay} (Hop {sig.hopCount || sig.hop || 1})</span>
+                        <span className="text-[10px]">•</span>
+                        <span className="text-on-primary-container bg-primary/5 px-1.5 py-0.5 rounded font-semibold">{sig.relay} (Hop {sig.hopCount || sig.hop || 1})</span>
                       </div>
 
                       <div className="flex justify-between items-center text-xs text-on-surface-variant pt-2.5 border-t border-outline-variant/30">
                         <span>Pax: <strong className="text-on-surface font-semibold">{sig.peopleCount || sig.people}</strong></span>
                         <span>Med: <strong className={sig.medicalRequired ? 'text-error font-semibold' : 'text-on-surface font-semibold'}>{sig.medicalRequired ? 'Yes' : 'No'}</strong></span>
-                        <span className="text-primary font-bold">★ {sig.score || 94} Pts</span>
+                        <span className="text-primary font-semibold tabular-nums">{sig.score || 94} pts</span>
                       </div>
                     </div>
                   </div>

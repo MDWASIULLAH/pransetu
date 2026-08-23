@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useEOC } from '../../context/EOCContext';
+import { API_BASE } from '../../services/api';
 
 export interface DisasterAlert {
   alert_id: string;
@@ -66,8 +67,8 @@ export const DisasterAlertsManager: React.FC = () => {
       const token = localStorage.getItem('access_token') || 'dummy-token';
       const headers = { 'Authorization': `Bearer ${token}` };
       const [alertsRes, auditRes] = await Promise.all([
-        fetch(`http://localhost:8000/api/v1/alerts/?status=ALL`, { headers, signal: controller.signal }),
-        fetch(`http://localhost:8000/api/v1/alerts/audit-trail`, { headers, signal: controller.signal })
+        fetch(`${API_BASE}/api/v1/alerts/?status=ALL`, { headers, signal: controller.signal }),
+        fetch(`${API_BASE}/api/v1/alerts/audit-trail`, { headers, signal: controller.signal })
       ]);
 
       if (alertsRes.ok) {
@@ -150,41 +151,46 @@ export const DisasterAlertsManager: React.FC = () => {
       return;
     }
 
+    // Publishes into the local list when the broadcast API can't confirm. Reached
+    // from catch too: offline the old catch said "broadcast submitted" and closed
+    // the modal without ever adding the alert, so nothing was broadcast anywhere.
+    const publishLocally = () => {
+      setAlerts(prev => [{
+        // Suffixed with the queue position so two local drafts can't collide on key.
+        alert_id: `ALT-${newAlert.alert_type.slice(0, 3)}-LOCAL${prev.length + 1}`,
+        alert_type: newAlert.alert_type,
+        severity: newAlert.severity,
+        title: newAlert.title,
+        message: newAlert.message,
+        affected_area: newAlert.affected_area,
+        created_at: new Date().toISOString(),
+        expires_at: new Date(Date.now() + newAlert.expires_in_hours * 3600000).toISOString(),
+        status: 'ACTIVE',
+        source: newAlert.source,
+        is_official_govt_source: newAlert.is_official_govt_source,
+        source_verification_ref: newAlert.source_verification_ref
+      } as DisasterAlert, ...prev]);
+      showToast(`${newAlert.title} held locally — not yet broadcast.`);
+      setPublishModalOpen(false);
+    };
+
     try {
       const token = localStorage.getItem('access_token') || 'dummy-token';
-      const res = await fetch(`http://localhost:8000/api/v1/alerts/publish`, {
+      const res = await fetch(`${API_BASE}/api/v1/alerts/publish`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify(newAlert)
       });
 
       if (res.ok) {
-        showToast("Disaster Alert published and broadcasted successfully!");
+        showToast(`${newAlert.title} published to ${newAlert.affected_area}.`);
         setPublishModalOpen(false);
         fetchAlertsAndAudit();
       } else {
-        // Fallback local update
-        const created: DisasterAlert = {
-          alert_id: `ALT-${newAlert.alert_type.slice(0, 3)}-${Date.now().toString().slice(-6)}`,
-          alert_type: newAlert.alert_type,
-          severity: newAlert.severity,
-          title: newAlert.title,
-          message: newAlert.message,
-          affected_area: newAlert.affected_area,
-          created_at: new Date().toISOString(),
-          expires_at: new Date(Date.now() + newAlert.expires_in_hours * 3600000).toISOString(),
-          status: 'ACTIVE',
-          source: newAlert.source,
-          is_official_govt_source: newAlert.is_official_govt_source,
-          source_verification_ref: newAlert.source_verification_ref
-        };
-        setAlerts(prev => [created, ...prev]);
-        showToast("Disaster Alert published and broadcasted successfully!");
-        setPublishModalOpen(false);
+        publishLocally();
       }
     } catch {
-      showToast("Disaster Alert broadcast submitted.");
-      setPublishModalOpen(false);
+      publishLocally();
     }
   };
 
@@ -195,7 +201,7 @@ export const DisasterAlertsManager: React.FC = () => {
 
     try {
       const token = localStorage.getItem('access_token') || 'dummy-token';
-      const res = await fetch(`http://localhost:8000/api/v1/alerts/${cancelModalAlert.alert_id}/cancel`, {
+      const res = await fetch(`${API_BASE}/api/v1/alerts/${cancelModalAlert.alert_id}/cancel`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ reason: cancelReason })
@@ -227,26 +233,28 @@ export const DisasterAlertsManager: React.FC = () => {
   const getSeverityBadge = (sev: DisasterAlert['severity']) => {
     switch (sev) {
       case 'RED_CRITICAL':
-        return <span className="bg-error/10 text-error border border-error/20 px-2.5 py-0.5 rounded-full text-[10px] font-semibold flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-error "></span>Critical</span>;
+        return <span className="bg-error/10 text-on-error-container border border-error/20 px-2.5 py-0.5 rounded-full text-[10px] font-semibold flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-error "></span>Critical</span>;
       case 'ORANGE_WARNING':
-        return <span className="bg-amber-500/10 text-amber-600 border border-amber-500/20 px-2.5 py-0.5 rounded-full text-[10px] font-semibold flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Warning</span>;
+        return <span className="bg-tertiary/10 text-on-tertiary-container border border-tertiary/20 px-2.5 py-0.5 rounded-full text-[10px] font-semibold flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-tertiary"></span>Warning</span>;
       case 'YELLOW_WATCH':
-        return <span className="bg-yellow-500/10 text-yellow-600 border border-yellow-500/20 px-2.5 py-0.5 rounded-full text-[10px] font-semibold flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-yellow-500"></span>Watch</span>;
+        return <span className="bg-tertiary/10 text-on-tertiary-container border border-tertiary/20 px-2.5 py-0.5 rounded-full text-[10px] font-semibold flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-tertiary"></span>Watch</span>;
     }
   };
 
   const getSourceBadge = (isGovt: boolean, source: string, ref?: string) => {
     if (isGovt) {
       return (
-        <span className="bg-primary/10 text-primary border border-primary/20 px-2.5 py-0.5 rounded-full text-[10px] font-semibold flex items-center gap-1">
-          <span>🏛️ OFFICIAL GOVT ({source})</span>
-          {ref && <span className="text-[9px] text-primary/70 font-normal ml-1">Ref: {ref}</span>}
+        <span className="bg-primary/10 text-on-primary-container border border-primary/20 px-2.5 py-0.5 rounded-full text-[10px] font-semibold flex items-center gap-1">
+          <span className="material-symbols-outlined text-[13px]">account_balance</span>
+          <span>Official — {source}</span>
+          {ref && <span className="text-[9px] text-on-primary-container/80 font-normal ml-1">Ref: {ref}</span>}
         </span>
       );
     }
     return (
-      <span className="bg-purple-500/10 text-purple-600 border border-purple-500/20 px-2.5 py-0.5 rounded-full text-[10px] font-semibold flex items-center gap-1">
-        <span>🛡️ PRANSETU AUTHORIZED ({source})</span>
+      <span className="bg-surface-container-high text-on-surface-variant border border-outline-variant px-2.5 py-0.5 rounded-full text-[10px] font-semibold flex items-center gap-1">
+        <span className="material-symbols-outlined text-[13px]">verified_user</span>
+        <span>PRANSETU authorised — {source}</span>
       </span>
     );
   };
@@ -257,7 +265,7 @@ export const DisasterAlertsManager: React.FC = () => {
       {/* Header */}
       <div className="bg-surface border border-outline-variant/30 p-5 rounded-xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-error/15 border border-error/30 flex items-center justify-center text-error">
+          <div className="w-10 h-10 rounded-xl bg-error/15 border border-error/30 flex items-center justify-center text-on-error-container">
             <span className="material-symbols-outlined text-[24px]">campaign</span>
           </div>
           <div>
@@ -265,7 +273,7 @@ export const DisasterAlertsManager: React.FC = () => {
               <h1 className="font-sans font-bold text-lg sm:text-xl text-on-surface">
                 Authorized Disaster Alert Management
               </h1>
-              <span className="bg-error/10 text-error border border-error/20 px-2.5 py-0.5 rounded-full text-[10px] font-semibold">
+              <span className="bg-error/10 text-on-error-container border border-error/20 px-2.5 py-0.5 rounded-full text-[10px] font-semibold">
                 EOC Emergency Broadcast
               </span>
             </div>
@@ -297,7 +305,7 @@ export const DisasterAlertsManager: React.FC = () => {
 
           <button
             onClick={() => setPublishModalOpen(true)}
-            className="bg-primary hover:bg-primary/90 text-white font-bold px-4 py-2 rounded-lg flex items-center gap-1.5 text-xs shadow-lg transition-colors cursor-pointer"
+            className="bg-primary hover:bg-primary/90 text-on-primary font-bold px-4 py-2 rounded-lg flex items-center gap-1.5 text-xs shadow-lg transition-colors cursor-pointer"
           >
             <span className="material-symbols-outlined text-[18px]">add_alert</span>
             Publish Disaster Alert
@@ -310,35 +318,35 @@ export const DisasterAlertsManager: React.FC = () => {
         <div className="flex flex-wrap items-center justify-between gap-3 bg-surface p-4 rounded-xl border border-outline-variant/30">
           <div className="flex flex-wrap items-center gap-3 text-xs">
             <div>
-              <span className="text-on-surface-variant font-sans text-xs font-semibold text-on-surface-variant tracking-wider uppercase block mb-0.5">Alert Type</span>
+              <span className="text-on-surface-variant font-sans text-xs font-semibold tracking-wider uppercase block mb-0.5">Alert Type</span>
               <select
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value)}
                 className="bg-surface border border-outline-variant/30 rounded p-1.5 text-xs text-on-surface font-semibold focus:outline-none focus:border-primary"
               >
-                <option value="ALL">All Alert Types</option>
-                <option value="WEATHER">WEATHER</option>
-                <option value="FLOOD">FLOOD</option>
-                <option value="CYCLONE">CYCLONE</option>
-                <option value="EVACUATION">EVACUATION</option>
-                <option value="ROAD_BLOCKAGE">ROAD_BLOCKAGE</option>
-                <option value="SHELTER">SHELTER</option>
-                <option value="MEDICAL">MEDICAL</option>
-                <option value="OTHER_AUTHORIZED_ALERT">OTHER</option>
+                <option value="ALL">All alert types</option>
+                <option value="WEATHER">Weather</option>
+                <option value="FLOOD">Flood</option>
+                <option value="CYCLONE">Cyclone</option>
+                <option value="EVACUATION">Evacuation</option>
+                <option value="ROAD_BLOCKAGE">Road blockage</option>
+                <option value="SHELTER">Shelter</option>
+                <option value="MEDICAL">Medical</option>
+                <option value="OTHER_AUTHORIZED_ALERT">Other</option>
               </select>
             </div>
 
             <div>
-              <span className="text-on-surface-variant font-sans text-xs font-semibold text-on-surface-variant tracking-wider uppercase block mb-0.5">Severity</span>
+              <span className="text-on-surface-variant font-sans text-xs font-semibold tracking-wider uppercase block mb-0.5">Severity</span>
               <select
                 value={filterSeverity}
                 onChange={(e) => setFilterSeverity(e.target.value)}
                 className="bg-surface border border-outline-variant/30 rounded p-1.5 text-xs text-on-surface font-semibold focus:outline-none focus:border-primary"
               >
                 <option value="ALL">All Severities</option>
-                <option value="RED_CRITICAL">🔴 RED CRITICAL</option>
-                <option value="ORANGE_WARNING">🟠 ORANGE WARNING</option>
-                <option value="YELLOW_WATCH">🟡 YELLOW WATCH</option>
+                <option value="RED_CRITICAL">Red — critical</option>
+                <option value="ORANGE_WARNING">Orange — warning</option>
+                <option value="YELLOW_WATCH">Yellow — watch</option>
               </select>
             </div>
 
@@ -349,13 +357,13 @@ export const DisasterAlertsManager: React.FC = () => {
                 onChange={(e) => setOfficialOnly(e.target.checked)}
                 className="rounded text-primary focus:ring-0"
               />
-              <span>🏛️ Official Government Only</span>
+              <span>Official government sources only</span>
             </label>
           </div>
 
           <div className="flex items-center gap-3 font-sans text-xs text-on-surface-variant">
             {isLoading && (
-              <span className="text-primary font-bold ">Syncing Alerts...</span>
+              <span className="text-primary font-medium">Syncing alerts…</span>
             )}
             <span>Showing {filteredAlerts.length} Disaster Alerts</span>
           </div>
@@ -367,7 +375,7 @@ export const DisasterAlertsManager: React.FC = () => {
         <div className="space-y-4">
           {filteredAlerts.length === 0 ? (
             <div className="bg-surface-container p-12 rounded-xl text-center text-on-surface-variant space-y-2 border border-outline-variant/30">
-              <span className="material-symbols-outlined text-4xl text-gray-500">check_circle</span>
+              <span className="material-symbols-outlined text-4xl text-on-surface-variant">check_circle</span>
               <h3 className="font-bold text-on-surface text-base">No Active Alerts In Filter</h3>
               <p className="text-xs">No alerts currently match the selected type and severity filters.</p>
             </div>
@@ -377,12 +385,12 @@ export const DisasterAlertsManager: React.FC = () => {
                 key={alert.alert_id}
                 className={`bg-surface-container border rounded-xl p-5 space-y-3 shadow-lg transition-all ${
                   alert.status === 'CANCELLED'
-                    ? 'border-gray-800 opacity-60'
+                    ? 'border-outline-variant opacity-60'
                     : alert.severity === 'RED_CRITICAL'
-                    ? 'border-red-600/60 bg-red-950/10'
+                    ? 'border-error/60 bg-red-950/10'
                     : alert.severity === 'ORANGE_WARNING'
-                    ? 'border-amber-600/50 bg-amber-950/10'
-                    : 'border-yellow-600/40 bg-yellow-950/10'
+                    ? 'border-tertiary/50 bg-amber-950/10'
+                    : 'border-tertiary/40 bg-yellow-950/10'
                 }`}
               >
                 {/* Alert Top Info */}
@@ -395,7 +403,7 @@ export const DisasterAlertsManager: React.FC = () => {
                       </span>
                       {getSourceBadge(alert.is_official_govt_source, alert.source, alert.source_verification_ref)}
                       {alert.status === 'CANCELLED' && (
-                        <span className="bg-gray-800 text-on-surface-variant px-2 py-0.5 rounded text-[10px] font-sans font-semibold">
+                        <span className="bg-surface-container-high text-on-surface-variant px-2 py-0.5 rounded text-[10px] font-sans font-semibold">
                           CANCELLED / DE-ESCALATED
                         </span>
                       )}
@@ -404,7 +412,9 @@ export const DisasterAlertsManager: React.FC = () => {
                   </div>
 
                   <div className="text-right font-sans text-xs">
-                    <span className="text-primary font-bold">{alert.alert_id}</span>
+                    {/* Reference code, not a link — blue reads as clickable here and
+                        it never was. Neutral + tabular keeps the IDs aligned down the list. */}
+                    <span className="font-semibold text-on-surface tabular-nums">{alert.alert_id}</span>
                     <span className="text-[10px] text-on-surface-variant block">
                       Expires: {new Date(alert.expires_at).toLocaleString()}
                     </span>
@@ -412,7 +422,7 @@ export const DisasterAlertsManager: React.FC = () => {
                 </div>
 
                 {/* Alert Message */}
-                <p className="text-xs sm:text-sm text-gray-200 leading-relaxed bg-surface-container-lowest/70 p-3.5 rounded-xl border border-outline-variant/60">
+                <p className="text-xs sm:text-sm text-on-surface leading-relaxed bg-surface-container-lowest/70 p-3.5 rounded-xl border border-outline-variant/60">
                   {alert.message}
                 </p>
 
@@ -420,7 +430,10 @@ export const DisasterAlertsManager: React.FC = () => {
                 <div className="flex flex-wrap items-center justify-between gap-3 text-xs pt-1 border-t border-outline-variant/60 font-sans">
                   <div className="flex items-center gap-2">
                     <span className="text-on-surface-variant uppercase text-[10px]">Impact Zone:</span>
-                    <strong className="text-amber-300">📍 {alert.affected_area}</strong>
+                    <span className="flex items-center gap-1 text-on-surface font-semibold">
+                      <span className="material-symbols-outlined text-[14px] text-on-surface-variant">location_on</span>
+                      {alert.affected_area}
+                    </span>
                   </div>
 
                   <div className="flex items-center gap-3">
@@ -431,9 +444,10 @@ export const DisasterAlertsManager: React.FC = () => {
                     {alert.status === 'ACTIVE' && (
                       <button
                         onClick={() => setCancelModalAlert(alert)}
-                        className="px-3 py-1 bg-surface hover:bg-surface-container-lowestest text-red-400 border border-red-700/50 rounded text-[11px] font-bold transition-colors cursor-pointer"
+                        className="px-3 py-1 bg-surface hover:bg-surface-container-high text-error border border-error/40 rounded text-[11px] font-semibold transition-colors cursor-pointer flex items-center gap-1"
                       >
-                        Cancel Alert ✕
+                        <span className="material-symbols-outlined text-[14px]">close</span>
+                        Cancel alert
                       </button>
                     )}
                   </div>
@@ -449,9 +463,9 @@ export const DisasterAlertsManager: React.FC = () => {
         <div className="space-y-3">
           <div className="flex items-center justify-between pb-2 border-b border-outline-variant">
             <h3 className="font-bold text-xs uppercase text-on-surface-variant font-sans">
-              Immutable Alert Broadcast Audit Trail
+              Broadcast history
             </h3>
-            <span className="text-[10px] text-on-surface-variant font-sans">PostgreSQL Trigger Logs</span>
+            <span className="text-[10px] text-on-surface-variant font-sans">From database triggers</span>
           </div>
 
           {auditLogs.length === 0 ? (
@@ -465,12 +479,12 @@ export const DisasterAlertsManager: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <strong className="text-primary">{log.alert_id}</strong>
                     <span className="bg-surface-container-lowest px-1.5 py-0.2 rounded border border-outline-variant/30 text-on-surface-variant text-[10px]">
-                      ACTION: {log.action}
+                      {log.action}
                     </span>
-                    {log.old_status && <span className="text-on-surface-variant text-[10px]">({log.old_status} ➔ {log.new_status})</span>}
+                    {log.old_status && <span className="text-on-surface-variant text-[10px]">{log.old_status} → {log.new_status}</span>}
                   </div>
                   <p className="text-[11px] text-on-surface-variant">{log.notes}</p>
-                  <span className="text-[10px] text-gray-500">Officer Sub: {log.changed_by || 'DMO_AUTHORIZED_SESSION'}</span>
+                  <span className="text-[10px] text-on-surface-variant">Officer Sub: {log.changed_by || 'DMO_AUTHORIZED_SESSION'}</span>
                 </div>
                 <span className="text-[10px] text-primary">{new Date(log.timestamp).toLocaleTimeString()}</span>
               </div>
@@ -499,41 +513,41 @@ export const DisasterAlertsManager: React.FC = () => {
             <form onSubmit={handlePublishSubmit} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-on-surface-variant uppercase block mb-1 text-xs font-sans font-medium">Alert Type</label>
+                  <label className="text-xs text-on-surface-variant uppercase block mb-1 font-sans font-medium">Alert Type</label>
                   <select
                     value={newAlert.alert_type}
                     onChange={(e) => setNewAlert({ ...newAlert, alert_type: e.target.value as any })}
                     className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded p-2 text-xs text-on-surface font-semibold focus:outline-none focus:border-primary"
                     required
                   >
-                    <option value="WEATHER">WEATHER (Extreme Storm/Rain)</option>
-                    <option value="FLOOD">FLOOD (Riverine/Backwater)</option>
-                    <option value="CYCLONE">CYCLONE (Landfall/Tidal Surge)</option>
-                    <option value="EVACUATION">EVACUATION (Mandatory Relocation)</option>
-                    <option value="ROAD_BLOCKAGE">ROAD_BLOCKAGE (Highway Cutoff)</option>
-                    <option value="SHELTER">SHELTER (Occupancy/Relief Hub)</option>
-                    <option value="MEDICAL">MEDICAL (Triage/Epidemic Alert)</option>
-                    <option value="OTHER_AUTHORIZED_ALERT">OTHER_AUTHORIZED_ALERT</option>
+                    <option value="WEATHER">Weather — extreme storm or rain</option>
+                    <option value="FLOOD">Flood — riverine or backwater</option>
+                    <option value="CYCLONE">Cyclone — landfall or tidal surge</option>
+                    <option value="EVACUATION">Evacuation — mandatory relocation</option>
+                    <option value="ROAD_BLOCKAGE">Road blockage — highway cutoff</option>
+                    <option value="SHELTER">Shelter — occupancy or relief hub</option>
+                    <option value="MEDICAL">Medical — triage or epidemic</option>
+                    <option value="OTHER_AUTHORIZED_ALERT">Other</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="text-xs text-on-surface-variant uppercase block mb-1 text-xs font-sans font-medium">Severity Level</label>
+                  <label className="text-xs text-on-surface-variant uppercase block mb-1 font-sans font-medium">Severity Level</label>
                   <select
                     value={newAlert.severity}
                     onChange={(e) => setNewAlert({ ...newAlert, severity: e.target.value as any })}
                     className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded p-2 text-xs text-on-surface font-semibold focus:outline-none focus:border-primary"
                     required
                   >
-                    <option value="RED_CRITICAL">🔴 RED CRITICAL (Immediate Life Hazard)</option>
-                    <option value="ORANGE_WARNING">🟠 ORANGE WARNING (Severe Threat)</option>
-                    <option value="YELLOW_WATCH">🟡 YELLOW WATCH (Be Prepared / Monitored)</option>
+                    <option value="RED_CRITICAL">Red — critical (immediate life hazard)</option>
+                    <option value="ORANGE_WARNING">Orange — warning (severe threat)</option>
+                    <option value="YELLOW_WATCH">Yellow — watch (be prepared)</option>
                   </select>
                 </div>
               </div>
 
               <div>
-                <label className="text-xs text-on-surface-variant uppercase block mb-1 text-xs font-sans font-medium">Alert Headline / Title</label>
+                <label className="text-xs text-on-surface-variant uppercase block mb-1 font-sans font-medium">Alert Headline / Title</label>
                 <input
                   type="text"
                   required
@@ -545,7 +559,7 @@ export const DisasterAlertsManager: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-xs text-on-surface-variant uppercase block mb-1 text-xs font-sans font-medium">Alert Broadcast Message &amp; Directives</label>
+                <label className="text-xs text-on-surface-variant uppercase block mb-1 font-sans font-medium">Alert Broadcast Message &amp; Directives</label>
                 <textarea
                   rows={3}
                   required
@@ -558,7 +572,7 @@ export const DisasterAlertsManager: React.FC = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-on-surface-variant uppercase block mb-1 text-xs font-sans font-medium">Affected Geographic Sector / Area</label>
+                  <label className="text-xs text-on-surface-variant uppercase block mb-1 font-sans font-medium">Affected Geographic Sector / Area</label>
                   <input
                     type="text"
                     required
@@ -570,7 +584,7 @@ export const DisasterAlertsManager: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="text-xs text-on-surface-variant uppercase block mb-1 text-xs font-sans font-medium">Active Duration (Hours)</label>
+                  <label className="text-xs text-on-surface-variant uppercase block mb-1 font-sans font-medium">Active Duration (Hours)</label>
                   <input
                     type="number"
                     min={1}
@@ -625,7 +639,7 @@ export const DisasterAlertsManager: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-primary hover:bg-primary/90 text-white font-bold rounded-lg flex items-center gap-2 text-xs shadow-lg transition-colors cursor-pointer"
+                  className="px-6 py-2 bg-primary hover:bg-primary/90 text-on-primary font-bold rounded-lg flex items-center gap-2 text-xs shadow-lg transition-colors cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-[16px]">campaign</span>
                   Publish &amp; Broadcast Alert
@@ -656,7 +670,7 @@ export const DisasterAlertsManager: React.FC = () => {
 
             <form onSubmit={handleCancelSubmit} className="space-y-3">
               <div>
-                <label className="text-xs text-on-surface-variant block mb-1 text-xs font-sans uppercase">
+                <label className="text-xs text-on-surface-variant block mb-1 font-sans uppercase">
                   De-escalation Reason (Audited)
                 </label>
                 <textarea
@@ -672,7 +686,7 @@ export const DisasterAlertsManager: React.FC = () => {
                 <button type="button" onClick={() => setCancelModalAlert(null)} className="px-3 py-1.5 bg-surface border border-outline-variant/30 rounded text-xs">
                   Back
                 </button>
-                <button type="submit" className="px-4 py-1.5 bg-error text-white font-bold rounded text-xs">
+                <button type="submit" className="px-4 py-1.5 bg-error text-on-error font-bold rounded text-xs">
                   Confirm Cancellation
                 </button>
               </div>

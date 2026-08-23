@@ -75,7 +75,7 @@ export const Support: React.FC = () => {
     setNewTicketModal(false);
     setTicketSubject('');
     setTicketDetails('');
-    showToast(`Support Ticket ${newTck.id} registered and queued for Technical Response Team!`);
+    showToast(`Ticket ${newTck.id} raised — queued for the technical response team.`);
   };
 
   const handleCopy = (text: string, label: string) => {
@@ -92,7 +92,7 @@ export const Support: React.FC = () => {
       location: 'Rajiv Bhawan, Bhubaneswar',
       icon: 'shield',
       status: '24x7 Active',
-      statusColor: 'text-emerald-600'
+      statusColor: 'text-secondary'
     },
     {
       agency: 'National Disaster Response Force (NDRF)',
@@ -132,7 +132,7 @@ export const Support: React.FC = () => {
       location: 'Airport Road, Bhubaneswar',
       icon: 'cyclone',
       status: 'Monitoring 24x7',
-      statusColor: 'text-emerald-600'
+      statusColor: 'text-secondary'
     },
     {
       agency: 'Directorate of Public Health & EMS',
@@ -142,13 +142,13 @@ export const Support: React.FC = () => {
       location: 'Heads of Department Building',
       icon: 'medical_services',
       status: 'ALS Units Active',
-      statusColor: 'text-emerald-600'
+      statusColor: 'text-secondary'
     }
   ];
 
   const frequencies = [
     {
-      band: 'PRANSETU S LoRa Mesh Protocol',
+      band: 'PRANSETU LoRa Mesh Protocol',
       freq: '865.200 - 867.000 MHz',
       modulation: 'LoRa CSS (SF9, BW 125kHz, CR 4/5)',
       purpose: 'Citizen Offline Distress Relays & Multi-Hop Sensor Packets',
@@ -191,7 +191,7 @@ export const Support: React.FC = () => {
     {
       title: 'SOP-03: Mass Voice IVR Check-in & Citizen Tally Protocol',
       badge: 'TELEPHONY',
-      content: 'Launch targeted voice broadcast to registered coastal phone numbers. System will dial citizens automatically and capture DTMF keypad responses: 1=Safe, 2=Needs Aid, 3=Medical Distress. Pressing 3 immediately injects a Red Alert SOS beacon into EOC.'
+      content: 'Dials registered coastal phone numbers and records the keypad response: 1 safe, 2 needs supplies, 3 trapped, 4 medical emergency. Keys 3 and 4 raise an SOS in the EOC immediately.'
     }
   ];
 
@@ -244,7 +244,7 @@ export const Support: React.FC = () => {
             onClick={() => setActiveTab(tab.id as any)}
             className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 whitespace-nowrap transition-colors ${
               activeTab === tab.id
-                ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm rounded-lg'
+                ? 'bg-primary/10 text-on-primary-container border border-primary/20 shadow-sm rounded-lg'
                 : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low border border-transparent rounded-lg'
             }`}
           >
@@ -277,13 +277,13 @@ export const Support: React.FC = () => {
               <div className="space-y-3 text-sm mb-6">
                 <div className="flex justify-between items-center pb-2 border-b border-outline-variant/50">
                   <span className="text-xs text-on-surface-variant">Primary Hotline</span>
-                  <button onClick={() => handleCopy(contact.phone, 'Primary Phone')} className="font-data-value text-on-surface hover:text-primary transition-colors flex items-center gap-1">
+                  <button onClick={() => handleCopy(contact.phone, 'Primary Phone')} className="tabular-nums text-on-surface hover:text-primary transition-colors flex items-center gap-1">
                     {contact.phone}
                   </button>
                 </div>
                 <div className="flex justify-between items-center pb-2 border-b border-outline-variant/50">
                   <span className="text-xs text-on-surface-variant">Mobile / Direct</span>
-                  <button onClick={() => handleCopy(contact.altPhone, 'Alt Phone')} className="font-data-value text-on-surface hover:text-primary transition-colors flex items-center gap-1">
+                  <button onClick={() => handleCopy(contact.altPhone, 'Alt Phone')} className="tabular-nums text-on-surface hover:text-primary transition-colors flex items-center gap-1">
                     {contact.altPhone}
                   </button>
                 </div>
@@ -296,14 +296,14 @@ export const Support: React.FC = () => {
               <div className="flex gap-2">
                 <a
                   href={`tel:${contact.phone}`}
-                  className="flex-1 bg-surface-container-lowest hover:bg-surface-container-lowestest border border-outline-variant/30 text-on-surface py-2 rounded text-sm font-medium flex items-center justify-center gap-2 transition-colors"
+                  className="flex-1 bg-surface-container-lowest hover:bg-surface-container-high border border-outline-variant/30 text-on-surface py-2 rounded text-sm font-medium flex items-center justify-center gap-2 transition-colors"
                 >
                   <span className="material-symbols-outlined text-[16px]">call</span>
                   Direct Call
                 </a>
                 <button
                   onClick={() => handleCopy(`${contact.agency}\nHotline: ${contact.phone}\nMobile: ${contact.altPhone}`, contact.agency)}
-                  className="bg-surface-container-lowest hover:bg-surface-container-lowestest border border-outline-variant/30 text-on-surface px-3 py-2 rounded transition-colors"
+                  className="bg-surface-container-lowest hover:bg-surface-container-high border border-outline-variant/30 text-on-surface px-3 py-2 rounded transition-colors"
                   title="Copy Details"
                 >
                   <span className="material-symbols-outlined text-[16px]">content_copy</span>
@@ -324,10 +324,10 @@ export const Support: React.FC = () => {
             >
               <div className="space-y-2 flex-1">
                 <div className="flex items-center gap-3">
-                  <span className="font-data-value text-on-surface font-semibold">{tck.id}</span>
+                  <span className="tabular-nums text-on-surface font-semibold">{tck.id}</span>
                   <span className={`text-[10px] uppercase text-xs px-2 py-0.5 rounded border ${
-                    tck.priority === 'CRITICAL' ? 'bg-error/10 text-error border-error/20' : 
-                    tck.priority === 'HIGH' ? 'bg-secondary/10 text-secondary border-secondary/20' : 
+                    tck.priority === 'CRITICAL' ? 'bg-error/10 text-on-error-container border-error/20' : 
+                    tck.priority === 'HIGH' ? 'bg-secondary/10 text-on-secondary-container border-secondary/20' : 
                     'bg-surface-container-lowest text-on-surface-variant border-outline-variant'
                   }`}>
                     {tck.priority}
@@ -346,7 +346,7 @@ export const Support: React.FC = () => {
 
               <div className="flex md:flex-col items-center md:items-end justify-between gap-3 shrink-0">
                 <span className={`text-xs px-3 py-1 rounded ${
-                  tck.status === 'RESOLVED' ? 'text-emerald-600' : 
+                  tck.status === 'RESOLVED' ? 'text-secondary' : 
                   tck.status === 'IN_PROGRESS' ? 'text-primary' : 'text-on-surface-variant'
                 }`}>
                   {tck.status.replace('_', ' ')}
@@ -358,7 +358,7 @@ export const Support: React.FC = () => {
                       setTickets(tickets.map((t) => t.id === tck.id ? { ...t, status: 'RESOLVED' } : t));
                       showToast(`Ticket ${tck.id} marked as RESOLVED.`);
                     }}
-                    className="text-sm bg-surface-container-lowest hover:bg-surface-container-lowestest border border-outline-variant/30 px-3 py-1.5 rounded text-on-surface transition-colors"
+                    className="text-sm bg-surface-container-lowest hover:bg-surface-container-high border border-outline-variant/30 px-3 py-1.5 rounded text-on-surface transition-colors"
                   >
                     Mark Resolved
                   </button>
@@ -386,7 +386,7 @@ export const Support: React.FC = () => {
                 {frequencies.map((f, idx) => (
                   <tr key={idx} className="hover:bg-surface-container-low transition-colors">
                     <td className="p-4 text-on-surface font-medium">{f.band}</td>
-                    <td className="p-4 font-data-value text-on-surface-variant">{f.freq}</td>
+                    <td className="p-4 tabular-nums text-on-surface-variant">{f.freq}</td>
                     <td className="p-4 text-on-surface-variant">{f.modulation}</td>
                     <td className="p-4 text-on-surface-variant">{f.purpose}</td>
                   </tr>
@@ -439,12 +439,12 @@ export const Support: React.FC = () => {
                         <span className={`w-1.5 h-1.5 rounded-full ${node.status === 'Online' ? 'bg-status-green' : 'bg-error'}`}></span>
                         {node.name}
                       </td>
-                      <td className="p-4 font-data-value text-on-surface-variant">{node.ip}</td>
-                      <td className="p-4 font-data-value text-on-surface-variant">{node.latency}</td>
-                      <td className="p-4 font-data-value text-on-surface-variant">{node.battery}</td>
-                      <td className="p-4 font-data-value text-on-surface-variant">{node.packets}</td>
+                      <td className="p-4 tabular-nums text-on-surface-variant">{node.ip}</td>
+                      <td className="p-4 tabular-nums text-on-surface-variant">{node.latency}</td>
+                      <td className="p-4 tabular-nums text-on-surface-variant">{node.battery}</td>
+                      <td className="p-4 tabular-nums text-on-surface-variant">{node.packets}</td>
                       <td className="p-4 text-xs">
-                        <span className={node.status === 'Online' ? 'text-emerald-600' : 'text-error'}>{node.status}</span>
+                        <span className={node.status === 'Online' ? 'text-secondary' : 'text-error'}>{node.status}</span>
                       </td>
                     </tr>
                   ))}
@@ -475,7 +475,7 @@ export const Support: React.FC = () => {
       {/* Modal: New Ticket */}
       {newTicketModal && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-surface border border-outline-variant/30 p-6 rounded-xl shadow-sm w-full max-w-lg shadow-sm">
+          <div className="bg-surface border border-outline-variant/30 p-6 rounded-xl shadow-sm w-full max-w-lg">
             <div className="flex items-center justify-between pb-4 border-b border-outline-variant">
               <h3 className="font-sans font-semibold text-on-surface">Create Incident Ticket</h3>
               <button onClick={() => setNewTicketModal(false)} className="text-on-surface-variant hover:text-on-surface transition-colors">
@@ -539,13 +539,13 @@ export const Support: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setNewTicketModal(false)}
-                  className="px-4 py-2 bg-surface-container-lowest border border-outline-variant/30 text-on-surface rounded text-sm transition-colors hover:bg-surface-container-lowestest"
+                  className="px-4 py-2 bg-surface-container-lowest border border-outline-variant/30 text-on-surface rounded text-sm transition-colors hover:bg-surface-container-high"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-primary/20 border border-primary/40 text-primary font-medium rounded text-sm transition-colors hover:bg-primary/30 flex items-center gap-2"
+                  className="px-4 py-2 bg-primary/20 border border-primary/40 text-on-primary-container font-medium rounded text-sm transition-colors hover:bg-primary/30 flex items-center gap-2"
                 >
                   <span className="material-symbols-outlined text-[18px]">send</span>
                   Submit Ticket

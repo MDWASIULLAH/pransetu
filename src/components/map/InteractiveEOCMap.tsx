@@ -129,9 +129,17 @@ const createShelterIcon = (status: string = 'OPEN', occupancyPct: number = 0) =>
 };
 
 // 4. Polymorphic Fleet Icons (Ambulances, Rescue Teams, Boats, Medical Teams, Vehicles)
+// Every fleet marker is a white pill carrying the unit ID, so the dot is the only
+// thing encoding state — it has to mean the same thing on all of them. These two
+// are the whole vocabulary: green is free to task, blue is already committed.
+// (Boats used to read cyan-for-available and ambulances amber-for-assigned, which
+// put "available" and "high-priority SOS" in the same colour on one map.)
+const FLEET_AVAILABLE = '#10b981';
+const FLEET_ASSIGNED = '#0ea5e9';
+
 const createAmbulanceIcon = (name: string, status: string) => {
   const isAvailable = status === 'AVAILABLE';
-  const color = isAvailable ? '#10b981' : '#f59e0b';
+  const color = isAvailable ? FLEET_AVAILABLE : FLEET_ASSIGNED;
   return L.divIcon({
     className: 'custom-leaflet-amb-icon',
     html: `
@@ -146,7 +154,7 @@ const createAmbulanceIcon = (name: string, status: string) => {
 };
 
 const createRescueTeamIcon = (name: string, status: string) => {
-  const color = status === 'AVAILABLE' ? '#10b981' : '#0ea5e9';
+  const color = status === 'AVAILABLE' ? FLEET_AVAILABLE : FLEET_ASSIGNED;
   return L.divIcon({
     className: 'custom-leaflet-team-icon',
     html: `
@@ -161,7 +169,7 @@ const createRescueTeamIcon = (name: string, status: string) => {
 };
 
 const createBoatIcon = (name: string, status: string) => {
-  const color = status === 'AVAILABLE' ? '#06b6d4' : '#0284c7';
+  const color = status === 'AVAILABLE' ? FLEET_AVAILABLE : FLEET_ASSIGNED;
   return L.divIcon({
     className: 'custom-leaflet-boat-icon',
     html: `
@@ -176,7 +184,7 @@ const createBoatIcon = (name: string, status: string) => {
 };
 
 const createMedicalTeamIcon = (name: string, status: string) => {
-  const color = status === 'AVAILABLE' ? '#34d399' : '#059669';
+  const color = status === 'AVAILABLE' ? FLEET_AVAILABLE : FLEET_ASSIGNED;
   return L.divIcon({
     className: 'custom-leaflet-med-icon',
     html: `
@@ -335,7 +343,7 @@ const SOSPopupContent: React.FC<{
 
           <span
             className={`px-2 py-0.5 rounded-full text-[10px] font-semibold tracking-wide ${
-              isCritical ? 'bg-error/10 text-error' : 'bg-amber-500/10 text-amber-600'
+              isCritical ? 'bg-error/10 text-on-error-container' : 'bg-tertiary/10 text-on-tertiary-container'
             }`}
           >
             {sig.severity || (isCritical ? 'Critical' : 'High')} • {sig.score || 94}
@@ -351,11 +359,11 @@ const SOSPopupContent: React.FC<{
       >
         {/* GPS Location & Stale Banner */}
         <div className={`p-2.5 rounded-lg flex flex-col gap-1.5 ${
-          isStale ? 'bg-amber-500/10 border border-amber-500/20 text-amber-700' : 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-700'
+          isStale ? 'bg-tertiary/10 border border-tertiary/20 text-on-tertiary-container' : 'bg-secondary/10 border border-secondary/20 text-on-secondary-container'
         }`}>
           <div className="flex justify-between items-center text-[11px] font-semibold">
             <div className="flex items-center gap-1.5">
-              <span className={`w-2 h-2 rounded-full ${isStale ? 'bg-amber-500' : 'bg-emerald-500 animate-pulse'}`}></span>
+              <span className={`w-2 h-2 rounded-full ${isStale ? 'bg-tertiary' : 'bg-secondary animate-pulse'}`}></span>
               <span>{isStale ? 'Last Known Location' : 'Live Telemetry'}</span>
             </div>
             <span>±{sig.accuracy_m || 15}m</span>
@@ -394,7 +402,7 @@ const SOSPopupContent: React.FC<{
           <div className="col-span-2 pt-2 border-t border-outline-variant/30">
             <span className="text-on-surface-variant font-medium block text-[10px] mb-0.5">Relay Path</span>
             <span className="text-on-surface text-[11px]">
-              {sig.relayPath?.join(' ➔ ') || sig.relay || 'Direct Cellular Gateway'}
+              {sig.relayPath?.join(' → ') || sig.relay || 'Direct Cellular Gateway'}
             </span>
           </div>
           <div className="col-span-2">
@@ -435,7 +443,7 @@ const SOSPopupContent: React.FC<{
         {sig.status !== 'Resolved' && sig.status !== 'Dispatched' && (
           <button
             onClick={() => dispatchTeamToSignal(sig.id)}
-            className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-2.5 px-4 rounded-lg text-xs transition-colors shadow-sm mt-3 flex justify-center items-center gap-2"
+            className="w-full bg-primary hover:bg-primary/90 text-on-primary font-semibold py-2.5 px-4 rounded-lg text-xs transition-colors shadow-sm mt-3 flex justify-center items-center gap-2"
           >
             Dispatch Rescue Unit
           </button>
@@ -611,7 +619,7 @@ export const InteractiveEOCMap: React.FC<InteractiveEOCMapProps> = ({
           >
             <Popup>
               <div className="text-xs font-sans p-1">
-                <strong className="text-red-400 block font-bold">⚠️ CRITICAL DISASTER ZONE (SECTOR 4-B)</strong>
+                <strong className="text-error block font-semibold">Critical disaster zone — Sector 4-B</strong>
                 <span className="text-on-surface-variant text-[11px]">Cyclone Inundation Risk &amp; Power Grid Failure Alert</span>
               </div>
             </Popup>
@@ -631,7 +639,7 @@ export const InteractiveEOCMap: React.FC<InteractiveEOCMapProps> = ({
           >
             <Popup>
               <div className="text-xs font-sans p-1">
-                <strong className="text-on-surface block font-bold">🌊 COASTAL SURGE INUNDATION (+3.2m)</strong>
+                <strong className="text-on-surface block font-semibold">Coastal surge inundation (+3.2 m)</strong>
                 <span className="text-on-surface-variant text-[11px]">Active storm surge threat across Puri low-lying settlements</span>
               </div>
             </Popup>
@@ -658,15 +666,15 @@ export const InteractiveEOCMap: React.FC<InteractiveEOCMapProps> = ({
               >
                 <Popup>
                   <div className="min-w-[240px] text-xs font-sans p-1">
-                    <div className="flex justify-between items-center border-b border-gray-700 pb-1 mb-1.5">
-                      <strong className="text-red-400">{inc.id}</strong>
-                      <span className="bg-red-950 text-red-300 px-1 rounded text-[10px]">PRIORITY {inc.priorityScore}</span>
+                    <div className="flex justify-between items-center border-b border-outline-variant pb-1 mb-1.5">
+                      <strong className="text-error">{inc.id}</strong>
+                      <span className="bg-red-950 text-error px-1 rounded text-[10px]">PRIORITY {inc.priorityScore}</span>
                     </div>
-                    <div className="space-y-1 text-[11px] text-gray-200">
-                      <div>District: <strong className="text-white">{inc.district}</strong></div>
+                    <div className="space-y-1 text-[11px] text-on-surface">
+                      <div>District: <strong className="text-on-surface">{inc.district}</strong></div>
                       <div>Radius: <strong>{inc.radiusM}m</strong> | Clusters: <strong>{inc.sosCount} SOS</strong></div>
-                      <div>Affected People: <strong className="text-amber-400">{inc.affectedPeople} Pax</strong></div>
-                      <div>Critical Calls: <strong className="text-red-400">{inc.criticalCount} Immediate</strong></div>
+                      <div>Affected People: <strong className="text-tertiary">{inc.affectedPeople} Pax</strong></div>
+                      <div>Critical Calls: <strong className="text-error">{inc.criticalCount} Immediate</strong></div>
                     </div>
                   </div>
                 </Popup>
@@ -691,12 +699,12 @@ export const InteractiveEOCMap: React.FC<InteractiveEOCMapProps> = ({
           >
             <Popup>
               <div className="text-xs font-sans p-1">
-                <strong className="text-emerald-400 block font-bold">EVACUATION CORRIDOR: NH-316</strong>
+                <strong className="text-secondary block font-bold">Evacuation corridor — NH-316</strong>
                 <span className="text-on-surface-variant text-[11px] block mb-2">Raised Embankment (+6.2m Datum) • 98.8% Optimal</span>
                 {onInspectRoute && (
                   <button
                     onClick={() => onInspectRoute('nh-316')}
-                    className="w-full bg-emerald-950 hover:bg-emerald-900 border border-emerald-700 text-emerald-300 py-1 px-2 rounded text-[11px] font-sans cursor-pointer"
+                    className="w-full bg-secondary/10 hover:bg-secondary/20 border border-secondary/30 text-on-secondary-container py-1 px-2 rounded text-[11px] cursor-pointer transition-colors"
                   >
                     Inspect AI Safety Corridor
                   </button>
@@ -719,14 +727,14 @@ export const InteractiveEOCMap: React.FC<InteractiveEOCMapProps> = ({
               >
                 <Popup>
                   <div className="min-w-[240px] text-xs font-sans">
-                    <div className="flex justify-between items-center pb-1 mb-1.5 border-b border-gray-700">
-                      <strong className="text-emerald-400">{shelter.name}</strong>
-                      <span className="text-[10px] bg-emerald-950 text-emerald-300 px-1 rounded">{shelter.status || 'OPEN'}</span>
+                    <div className="flex justify-between items-center pb-1 mb-1.5 border-b border-outline-variant">
+                      <strong className="text-secondary">{shelter.name}</strong>
+                      <span className="text-[10px] bg-emerald-950 text-secondary px-1 rounded">{shelter.status || 'OPEN'}</span>
                     </div>
-                    <div className="space-y-1 text-gray-200 text-[11px]">
+                    <div className="space-y-1 text-on-surface text-[11px]">
                       <div>Occupancy: <strong>{shelter.occupied} / {shelter.capacity}</strong> ({Math.round(occPct)}%)</div>
-                      <div>Available Beds: <strong className="text-white">{availableCap} Free</strong></div>
-                      <div>Medical Post: <span className="text-yellow-400">{shelter.tierText || 'Active'}</span></div>
+                      <div>Available Beds: <strong className="text-on-surface">{availableCap} Free</strong></div>
+                      <div>Medical Post: <span className="text-tertiary">{shelter.tierText || 'Active'}</span></div>
                     </div>
                   </div>
                 </Popup>
@@ -740,10 +748,10 @@ export const InteractiveEOCMap: React.FC<InteractiveEOCMapProps> = ({
             <Marker key={amb.id} position={[amb.lat, amb.lng]} icon={createAmbulanceIcon(amb.id, amb.status)}>
               <Popup>
                 <div className="min-w-[210px] text-xs font-sans">
-                  <strong className="text-green-400 block mb-1">{amb.name}</strong>
+                  <strong className="text-secondary block mb-1">{amb.name}</strong>
                   <div className="space-y-0.5 text-on-surface-variant text-[11px]">
                     <div>Type: <strong>AMBULANCE (ALS)</strong></div>
-                    <div>Status: <span className={amb.status === 'AVAILABLE' ? 'text-green-400' : 'text-amber-400'}>{amb.status}</span></div>
+                    <div>Status: <span className={amb.status === 'AVAILABLE' ? 'text-secondary' : 'text-tertiary'}>{amb.status}</span></div>
                     <div>District: <strong>{amb.district}</strong></div>
                     <div>Assigned: <strong>{amb.incidentId}</strong></div>
                   </div>
@@ -760,9 +768,9 @@ export const InteractiveEOCMap: React.FC<InteractiveEOCMapProps> = ({
                 <div className="min-w-[210px] text-xs font-sans">
                   <strong className="text-on-surface block mb-1">{team.name}</strong>
                   <div className="space-y-0.5 text-on-surface-variant text-[11px]">
-                    <div>Type: <strong>RESCUE TEAM (NDRF)</strong></div>
+                    <div>Type: <strong>Rescue team — NDRF</strong></div>
                     <div>Size: <strong>{team.size} Personnel</strong></div>
-                    <div>Status: <strong className="text-white">{team.status}</strong></div>
+                    <div>Status: <strong className="text-on-surface">{team.status}</strong></div>
                     <div>Assigned Incident: <strong>{team.incidentId}</strong></div>
                   </div>
                 </div>
@@ -794,9 +802,9 @@ export const InteractiveEOCMap: React.FC<InteractiveEOCMapProps> = ({
             <Marker key={med.id} position={[med.lat, med.lng]} icon={createMedicalTeamIcon(med.id, med.status)}>
               <Popup>
                 <div className="min-w-[200px] text-xs font-sans">
-                  <strong className="text-emerald-400 block mb-1">{med.name}</strong>
+                  <strong className="text-secondary block mb-1">{med.name}</strong>
                   <div className="space-y-0.5 text-on-surface-variant text-[11px]">
-                    <div>Type: <strong>MEDICAL TEAM</strong></div>
+                    <div>Type: <strong>Medical team</strong></div>
                     <div>Doctors / EMT: <strong>{med.doctors} Trauma Specialists</strong></div>
                     <div>Status: <strong>{med.status}</strong></div>
                   </div>
@@ -811,9 +819,9 @@ export const InteractiveEOCMap: React.FC<InteractiveEOCMapProps> = ({
             <Marker key={veh.id} position={[veh.lat, veh.lng]} icon={createVehicleIcon(veh.id)}>
               <Popup>
                 <div className="min-w-[200px] text-xs font-sans">
-                  <strong className="text-orange-400 block mb-1">{veh.name}</strong>
+                  <strong className="text-tertiary block mb-1">{veh.name}</strong>
                   <div className="space-y-0.5 text-on-surface-variant text-[11px]">
-                    <div>Type: <strong>RESCUE VEHICLE (Amphibious)</strong></div>
+                    <div>Type: <strong>Rescue vehicle — amphibious</strong></div>
                     <div>Assigned: <strong>{veh.incidentId}</strong></div>
                   </div>
                 </div>
@@ -897,7 +905,7 @@ export const InteractiveEOCMap: React.FC<InteractiveEOCMapProps> = ({
       <div className="absolute bottom-3 right-[70px] z-[1000] bg-surface/95 border border-outline-variant/80 px-2.5 py-1.5 rounded-lg shadow-lg backdrop-blur-md flex items-center gap-2 font-sans text-[11px] sm:text-xs text-on-surface select-none">
         <span className="w-2 h-2 rounded-full bg-status-green "></span>
         <span className="text-primary font-bold">GPS:</span>
-        <span className="text-emerald-600 font-bold tracking-wider">
+        <span className="text-secondary font-bold tracking-wider">
           {liveCoords.lat.toFixed(4)}° N, {liveCoords.lng.toFixed(4)}° E
         </span>
         <span className="text-on-surface-variant text-[10px] hidden sm:inline border-l border-outline-variant pl-2">

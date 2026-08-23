@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useEOC } from '../../context/EOCContext';
+import { API_BASE } from '../../services/api';
 
 interface DispatchRecommendation {
   resource_type: string;
@@ -86,7 +87,7 @@ export const RescueDispatchModal: React.FC<RescueDispatchModalProps> = ({ incide
   const fetchRecommendations = async () => {
     try {
       const token = localStorage.getItem('access_token') || 'dummy-token';
-      const res = await fetch(`http://localhost:8000/api/v1/resources/dispatch-recommendations/${incidentId}`, {
+      const res = await fetch(`${API_BASE}/api/v1/resources/dispatch-recommendations/${incidentId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -154,8 +155,8 @@ export const RescueDispatchModal: React.FC<RescueDispatchModalProps> = ({ incide
     try {
       const token = localStorage.getItem('access_token') || 'dummy-token';
       const [assignRes, auditRes] = await Promise.all([
-        fetch(`http://localhost:8000/api/v1/resources/assignments/active?incident_id=${incidentId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
-        fetch(`http://localhost:8000/api/v1/resources/audit-trail?incident_id=${incidentId}`, { headers: { 'Authorization': `Bearer ${token}` } })
+        fetch(`${API_BASE}/api/v1/resources/assignments/active?incident_id=${incidentId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch(`${API_BASE}/api/v1/resources/audit-trail?incident_id=${incidentId}`, { headers: { 'Authorization': `Bearer ${token}` } })
       ]);
       
       if (assignRes.ok) {
@@ -191,9 +192,38 @@ export const RescueDispatchModal: React.FC<RescueDispatchModalProps> = ({ incide
     }
 
     setIsSubmitting(true);
+
+    // Records the batch against the local assignment list when the server can't
+    // confirm it. Needed from catch as well as the non-OK branch: a refused
+    // connection throws straight past this, and the old catch just switched to
+    // Active Operations with a success toast over an empty list.
+    const assignLocally = () => {
+      setActiveAssignments(prev => {
+        // Minted against the current queue depth, not the asset id alone. The same
+        // asset can legitimately be tasked twice; keying on the id alone collided,
+        // and since the lifecycle handler matches on assignment_id, advancing one
+        // row also dragged the older — already completed — mission back to ON_SCENE.
+        const newAssignments = selectedAssetIds.map((id, i) => {
+          const asset = availableAssets.find(a => a.id === id);
+          return {
+            assignment_id: `ASSIGN-LOCAL-${id}-${prev.length + i + 1}`,
+            resource_id: id,
+            resource_name: asset?.name || id,
+            resource_type: asset?.type || 'ASSET',
+            status: 'EN_ROUTE',
+            dispatch_time: new Date().toLocaleTimeString()
+          };
+        });
+        return [...newAssignments, ...prev];
+      });
+      showToast(`${selectedAssetIds.length} assets tasked locally — not yet synced.`);
+      setSelectedAssetIds([]);
+      setActiveTab('active_operations');
+    };
+
     try {
       const token = localStorage.getItem('access_token') || 'dummy-token';
-      const res = await fetch(`http://localhost:8000/api/v1/resources/dispatch-batch`, {
+      const res = await fetch(`${API_BASE}/api/v1/resources/dispatch-batch`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -205,39 +235,47 @@ export const RescueDispatchModal: React.FC<RescueDispatchModalProps> = ({ incide
 
       if (res.ok) {
         const json = await res.json();
-        showToast(`Authorized Dispatch: ${json.data.length} assets deployed!`);
+        showToast(`${json.data.length} assets dispatched to ${incidentId}.`);
+        // Drop the ticks, or the next Confirm re-tasks everything still checked.
+        setSelectedAssetIds([]);
         setActiveTab('active_operations');
         fetchActiveAssignmentsAndAudit();
       } else {
-        // Fallback local mock update
-        const newAssignments = selectedAssetIds.map(id => {
-          const asset = availableAssets.find(a => a.id === id);
-          return {
-            assignment_id: `ASSIGN-${Date.now()}-${id}`,
-            resource_id: id,
-            resource_name: asset?.name || id,
-            resource_type: asset?.type || 'ASSET',
-            status: 'EN_ROUTE',
-            dispatch_time: new Date().toLocaleTimeString()
-          };
-        });
-        setActiveAssignments(prev => [...newAssignments, ...prev]);
-        showToast(`Authorized Dispatch: ${selectedAssetIds.length} assets deployed!`);
-        setActiveTab('active_operations');
+        assignLocally();
       }
     } catch {
-      showToast(`Authorized Dispatch confirmed for ${selectedAssetIds.length} assets.`);
-      setActiveTab('active_operations');
+      assignLocally();
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Progress Lifecycle (EN_ROUTE ➔ ON_SCENE ➔ RESCUING ➔ COMPLETED)
+  // Progress Lifecycle (EN_ROUTE → ON_SCENE → RESCUING → COMPLETED)
   const handleProgressLifecycle = async (assignmentId: string, nextStatus: string) => {
+    // What the stepper cells say, so a toast never reports a raw enum.
+    const phrasing: Record<string, string> = {
+      ON_SCENE: 'on scene',
+      RESCUING: 'extracting',
+      COMPLETED: 'released'
+    };
+
+    // The catch used to skip arrival_time/completion_time, so offline the badge
+    // flipped to ON SCENE while cell 2 still read "Awaiting arrival". One
+    // implementation for both branches keeps the row internally consistent.
+    const advanceLocally = () => {
+      const stamp = new Date().toLocaleTimeString();
+      setActiveAssignments(prev => prev.map(a => a.assignment_id === assignmentId ? {
+        ...a,
+        status: nextStatus,
+        arrival_time: nextStatus === 'ON_SCENE' ? stamp : a.arrival_time,
+        completion_time: nextStatus === 'COMPLETED' ? stamp : a.completion_time
+      } : a));
+      showToast(`Asset marked ${phrasing[nextStatus] || nextStatus.toLowerCase()} locally — not yet synced.`);
+    };
+
     try {
       const token = localStorage.getItem('access_token') || 'dummy-token';
-      const res = await fetch(`http://localhost:8000/api/v1/resources/assignments/${assignmentId}/lifecycle`, {
+      const res = await fetch(`${API_BASE}/api/v1/resources/assignments/${assignmentId}/lifecycle`, {
         method: 'PATCH',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -247,32 +285,24 @@ export const RescueDispatchModal: React.FC<RescueDispatchModalProps> = ({ incide
       });
 
       if (res.ok) {
-        showToast(`Lifecycle Updated: Asset is now ${nextStatus}`);
+        showToast(`Asset marked ${phrasing[nextStatus] || nextStatus.toLowerCase()}.`);
         fetchActiveAssignmentsAndAudit();
       } else {
-        // Local state update
-        setActiveAssignments(prev => prev.map(a => a.assignment_id === assignmentId ? {
-          ...a,
-          status: nextStatus,
-          arrival_time: nextStatus === 'ON_SCENE' ? new Date().toLocaleTimeString() : a.arrival_time,
-          completion_time: nextStatus === 'COMPLETED' ? new Date().toLocaleTimeString() : a.completion_time
-        } : a));
-        showToast(`Lifecycle Updated: Asset is now ${nextStatus}`);
+        advanceLocally();
       }
     } catch {
-      setActiveAssignments(prev => prev.map(a => a.assignment_id === assignmentId ? { ...a, status: nextStatus } : a));
-      showToast(`Lifecycle status updated to ${nextStatus}`);
+      advanceLocally();
     }
   };
 
   const getStatusBadge = (st: string) => {
     switch (st) {
       case 'DISPATCHED':
-      case 'EN_ROUTE': return <span className="bg-blue-500/10 text-on-surface border border-blue-500/20 px-2 py-0.5 rounded text-[10px] font-bold font-sans">EN ROUTE</span>;
-      case 'ON_SCENE': return <span className="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded text-[10px] font-bold font-sans">ON SCENE (ARRIVED)</span>;
-      case 'RESCUING': return <span className="bg-red-500/10 text-red-400 border border-red-500/20 px-2 py-0.5 rounded text-[10px] font-bold font-sans ">ACTIVE RESCUING</span>;
-      case 'COMPLETED': return <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded text-[10px] font-bold font-sans">COMPLETED</span>;
-      default: return <span className="bg-gray-800 text-on-surface-variant px-2 py-0.5 rounded text-[10px] font-sans">{st}</span>;
+      case 'EN_ROUTE': return <span className="bg-primary/10 text-on-primary-container border border-primary/20 px-2 py-0.5 rounded text-[10px] font-bold">EN ROUTE</span>;
+      case 'ON_SCENE': return <span className="bg-tertiary/10 text-on-tertiary-container border border-tertiary/20 px-2 py-0.5 rounded text-[10px] font-bold">ON SCENE</span>;
+      case 'RESCUING': return <span className="bg-error/10 text-on-error-container border border-error/20 px-2 py-0.5 rounded text-[10px] font-bold">RESCUING</span>;
+      case 'COMPLETED': return <span className="bg-secondary/10 text-on-secondary-container border border-secondary/20 px-2 py-0.5 rounded text-[10px] font-bold">COMPLETED</span>;
+      default: return <span className="bg-surface-container-high text-on-surface-variant px-2 py-0.5 rounded text-[10px]">{st}</span>;
     }
   };
 
@@ -283,13 +313,13 @@ export const RescueDispatchModal: React.FC<RescueDispatchModalProps> = ({ incide
         {/* Modal Header */}
         <div className="p-4 sm:p-5 border-b border-outline-variant bg-surface-container-lowest flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-secondary/15 border border-secondary/30 flex items-center justify-center text-secondary">
+            <div className="w-10 h-10 rounded-xl bg-secondary/15 border border-secondary/30 flex items-center justify-center text-on-secondary-container">
               <span className="material-symbols-outlined text-[24px]">rocket_launch</span>
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="font-sans font-bold text-base sm:text-lg text-on-surface">Tactical Rescue Dispatch</h2>
-                <span className="bg-error/15 text-error border border-error/30 px-2 py-0.5 rounded font-sans text-[10px] font-bold">
+                <span className="bg-error/15 text-on-error-container border border-error/30 px-2 py-0.5 rounded font-sans text-[10px] font-bold">
                   PRIORITY {incidentInfo.priority_score}/100
                 </span>
               </div>
@@ -342,57 +372,43 @@ export const RescueDispatchModal: React.FC<RescueDispatchModalProps> = ({ incide
             <div className="space-y-6 animate-in fade-in">
               
               {/* Pre-Dispatch Incident Intelligence Telemetry Bar */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-surface-container-lowest p-3.5 rounded-xl border border-outline-variant/30 font-sans text-xs">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-surface-container-lowest p-3.5 rounded-xl border border-outline-variant/30 text-xs">
                 <div>
                   <span className="text-on-surface-variant block text-[10px] uppercase">Victims Affected</span>
-                  <strong className="text-white text-sm">{incidentInfo.people_affected} People</strong>
+                  <strong className="text-on-surface text-sm tabular-nums">{incidentInfo.people_affected} People</strong>
                 </div>
                 <div>
                   <span className="text-on-surface-variant block text-[10px] uppercase">Medical Requirement</span>
-                  <strong className={incidentInfo.medical_required ? 'text-error text-sm' : 'text-on-surface-variant text-sm'}>
-                    {incidentInfo.medical_required ? '🚨 URGENT TRAUMA' : 'None Reported'}
+                  <strong className={incidentInfo.medical_required ? 'text-on-error-container text-sm' : 'text-on-surface-variant text-sm'}>
+                    {incidentInfo.medical_required ? 'Urgent trauma' : 'None reported'}
                   </strong>
                 </div>
                 <div>
                   <span className="text-on-surface-variant block text-[10px] uppercase">Hazard Condition</span>
-                  <strong className="text-amber-400 text-sm">{incidentInfo.hazard_severity}</strong>
+                  <strong className="text-on-tertiary-container text-sm">{incidentInfo.hazard_severity}</strong>
                 </div>
                 <div>
                   <span className="text-on-surface-variant block text-[10px] uppercase">GPS Confidence</span>
-                  <strong className="text-emerald-400 text-sm">{incidentInfo.location_accuracy}</strong>
+                  <strong className="text-on-secondary-container text-sm tabular-nums">{incidentInfo.location_accuracy}</strong>
                 </div>
               </div>
 
               {/* Available Fleet Readiness Counters */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="bg-surface-container p-3 rounded-lg border border-outline-variant/30 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-base">🚑</span>
-                    <span className="text-xs font-semibold">Ambulances</span>
+                {[
+                  { icon: 'ambulance', label: 'Ambulances', n: inventory.ambulances },
+                  { icon: 'shield', label: 'NDRF Teams', n: inventory.rescue_teams },
+                  { icon: 'directions_boat', label: 'Rescue Boats', n: inventory.boats },
+                  { icon: 'medical_services', label: 'Medical Squads', n: inventory.medical_teams },
+                ].map(c => (
+                  <div key={c.label} className="bg-surface-container p-3 rounded-lg border border-outline-variant/30 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[18px] text-on-surface-variant">{c.icon}</span>
+                      <span className="text-xs font-semibold">{c.label}</span>
+                    </div>
+                    <span className="font-semibold text-on-secondary-container tabular-nums">{c.n} Ready</span>
                   </div>
-                  <span className="font-sans font-bold text-green-400">{inventory.ambulances} Ready</span>
-                </div>
-                <div className="bg-surface-container p-3 rounded-lg border border-outline-variant/30 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-base">🛡️</span>
-                    <span className="text-xs font-semibold">NDRF Teams</span>
-                  </div>
-                  <span className="font-sans font-bold text-green-400">{inventory.rescue_teams} Ready</span>
-                </div>
-                <div className="bg-surface-container p-3 rounded-lg border border-outline-variant/30 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-base">🚤</span>
-                    <span className="text-xs font-semibold">Rescue Boats</span>
-                  </div>
-                  <span className="font-sans font-bold text-on-surface">{inventory.boats} Ready</span>
-                </div>
-                <div className="bg-surface-container p-3 rounded-lg border border-outline-variant/30 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-base">🩺</span>
-                    <span className="text-xs font-semibold">Medical Squads</span>
-                  </div>
-                  <span className="font-sans font-bold text-emerald-400">{inventory.medical_teams} Ready</span>
-                </div>
+                ))}
               </div>
 
               {/* Deterministic AI Recommendations */}
@@ -402,7 +418,10 @@ export const RescueDispatchModal: React.FC<RescueDispatchModalProps> = ({ incide
                     <span className="material-symbols-outlined text-secondary text-[16px]">psychology</span>
                     Deterministic AI Recommendations (Explainable Rules)
                   </h3>
-                  <span className="text-[10px] text-amber-400 font-sans">⚠️ Requires Human Coordinator Confirmation</span>
+                  <span className="text-[10px] text-on-tertiary-container flex items-center gap-1">
+                    <span className="material-symbols-outlined text-[13px]">warning</span>
+                    Requires coordinator confirmation
+                  </span>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -410,8 +429,8 @@ export const RescueDispatchModal: React.FC<RescueDispatchModalProps> = ({ incide
                     <div key={idx} className="bg-surface-container-lowest border border-secondary/30 rounded-xl p-3.5 space-y-2 flex flex-col justify-between">
                       <div>
                         <div className="flex justify-between items-start">
-                          <span className="font-sans font-bold text-xs text-secondary">{rec.resource_type}</span>
-                          <span className="text-[10px] text-emerald-400 font-sans font-bold bg-emerald-950 px-1.5 py-0.5 rounded">{rec.priority_weight}</span>
+                          <span className="font-bold text-xs text-on-secondary-container">{rec.resource_type}</span>
+                          <span className="text-[10px] text-on-secondary-container font-bold bg-secondary/15 px-1.5 py-0.5 rounded tabular-nums">{rec.priority_weight}</span>
                         </div>
                         <p className="font-bold text-sm text-on-surface mt-1">{rec.recommended_asset_name}</p>
                         <p className="text-[11px] text-on-surface-variant mt-1 leading-snug">
@@ -456,9 +475,11 @@ export const RescueDispatchModal: React.FC<RescueDispatchModalProps> = ({ incide
                             </div>
                           </div>
 
-                          <div className="text-right font-sans text-xs">
-                            <span className="text-primary font-bold">{asset.distance_km} km</span>
-                            <span className="text-on-surface-variant block text-[10px]">ETA ~{asset.eta_minutes} mins</span>
+                          <div className="text-right text-xs">
+                            {/* text-primary lands on 4.49:1 over the white row — a hair
+                                under AA. The container ink carries the same meaning. */}
+                            <span className="text-on-primary-container font-bold tabular-nums">{asset.distance_km} km</span>
+                            <span className="text-on-surface-variant block text-[10px] tabular-nums">ETA ~{asset.eta_minutes} mins</span>
                           </div>
                         </div>
                       );
@@ -479,8 +500,8 @@ export const RescueDispatchModal: React.FC<RescueDispatchModalProps> = ({ incide
 
                 <div className="flex items-center justify-between pt-3 border-t border-outline-variant">
                   <span className="text-[11px] text-on-surface-variant flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-[16px] text-emerald-400">verified_user</span>
-                    <span>Dispatched by Authorized Rescue Coordinator (Strictly Audited).</span>
+                    <span className="material-symbols-outlined text-[16px] text-on-secondary-container">verified_user</span>
+                    <span>Dispatched by an authorized rescue coordinator — logged to the audit trail.</span>
                   </span>
 
                   <div className="flex gap-3">
@@ -488,7 +509,7 @@ export const RescueDispatchModal: React.FC<RescueDispatchModalProps> = ({ incide
                     <button
                       type="submit"
                       disabled={isSubmitting || selectedAssetIds.length === 0}
-                      className="px-6 py-2 bg-secondary hover:bg-secondary-fixed text-on-secondary font-bold rounded-lg flex items-center gap-2 text-xs shadow-lg disabled:opacity-30 cursor-pointer"
+                      className="px-6 py-2 bg-secondary hover:bg-secondary/90 text-on-secondary font-bold rounded-lg flex items-center gap-2 text-xs shadow-lg disabled:opacity-30 cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-[16px]">send</span>
                       Confirm &amp; Authorize Dispatch ({selectedAssetIds.length})
@@ -507,16 +528,16 @@ export const RescueDispatchModal: React.FC<RescueDispatchModalProps> = ({ incide
                 <h3 className="font-bold text-xs uppercase text-on-surface-variant">
                   Active Mission Lifecycle Tracker ({activeAssignments.length} Deployments)
                 </h3>
-                <span className="text-[11px] text-primary font-sans">
-                  State Machine: DISPATCHED ➔ EN_ROUTE ➔ ON_SCENE ➔ RESCUING ➔ COMPLETED
+                <span className="text-[11px] text-on-surface-variant">
+                  State machine: DISPATCHED → EN_ROUTE → ON_SCENE → RESCUING → COMPLETED
                 </span>
               </div>
 
               {activeAssignments.length === 0 ? (
                 <div className="bg-surface-container p-10 rounded-xl text-center text-on-surface-variant space-y-2">
-                  <span className="material-symbols-outlined text-3xl text-gray-500">assignment_turned_in</span>
-                  <p className="font-bold text-on-surface">No Active Operations</p>
-                  <p className="text-xs">All deployed resources for this incident have reached completion or are awaiting dispatch.</p>
+                  <span className="material-symbols-outlined text-3xl text-on-surface-variant">assignment_turned_in</span>
+                  <p className="font-bold text-on-surface">No active operations</p>
+                  <p className="text-xs">Nothing is deployed against this incident yet. Assets tasked from the Pre-Dispatch tab appear here.</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -526,29 +547,29 @@ export const RescueDispatchModal: React.FC<RescueDispatchModalProps> = ({ incide
                         <div>
                           <div className="flex items-center gap-2">
                             <span className="font-bold text-on-surface text-sm">{assign.resource_name || assign.resource_id}</span>
-                            <span className="font-sans text-[10px] text-on-surface-variant bg-surface px-1.5 py-0.2 rounded border border-outline-variant/30">{assign.resource_type}</span>
+                            <span className="text-[10px] text-on-surface-variant bg-surface px-1.5 py-0.2 rounded border border-outline-variant/30">{assign.resource_type}</span>
                           </div>
-                          <span className="text-[10px] font-sans text-on-surface-variant">Assignment ID: {assign.assignment_id}</span>
+                          <span className="text-[10px] text-on-surface-variant">Assignment ID: {assign.assignment_id}</span>
                         </div>
                         {getStatusBadge(assign.status)}
                       </div>
 
                       {/* Stepper Progress Bar */}
-                      <div className="grid grid-cols-4 gap-2 pt-2 border-t border-outline-variant font-sans text-[11px]">
-                        <div className={`p-2 rounded border text-center ${assign.status === 'EN_ROUTE' || assign.status === 'DISPATCHED' ? 'bg-blue-500/20 border-blue-500 text-blue-300 font-bold' : 'bg-surface border-outline-variant text-gray-500'}`}>
-                          <span>1. EN ROUTE</span>
+                      <div className="grid grid-cols-4 gap-2 pt-2 border-t border-outline-variant text-[11px]">
+                        <div className={`p-2 rounded border text-center ${assign.status === 'EN_ROUTE' || assign.status === 'DISPATCHED' ? 'bg-primary/15 border-primary/40 text-on-primary-container font-bold' : 'bg-surface border-outline-variant text-on-surface-variant'}`}>
+                          <span>1. En route</span>
                           <span className="block text-[9px] mt-0.5">{assign.dispatch_time || 'Dispatched'}</span>
                         </div>
-                        <div className={`p-2 rounded border text-center ${assign.status === 'ON_SCENE' ? 'bg-amber-500/20 border-amber-500 text-amber-300 font-bold' : 'bg-surface border-outline-variant text-gray-500'}`}>
-                          <span>2. ON SCENE</span>
-                          <span className="block text-[9px] mt-0.5">{assign.arrival_time || 'Pending Arrival'}</span>
+                        <div className={`p-2 rounded border text-center ${assign.status === 'ON_SCENE' ? 'bg-tertiary/15 border-tertiary/40 text-on-tertiary-container font-bold' : 'bg-surface border-outline-variant text-on-surface-variant'}`}>
+                          <span>2. On scene</span>
+                          <span className="block text-[9px] mt-0.5">{assign.arrival_time || 'Awaiting arrival'}</span>
                         </div>
-                        <div className={`p-2 rounded border text-center ${assign.status === 'RESCUING' ? 'bg-red-500/20 border-red-500 text-red-300 font-bold' : 'bg-surface border-outline-variant text-gray-500'}`}>
-                          <span>3. RESCUING</span>
-                          <span className="block text-[9px] mt-0.5">Active Extraction</span>
+                        <div className={`p-2 rounded border text-center ${assign.status === 'RESCUING' ? 'bg-error/15 border-error/40 text-on-error-container font-bold' : 'bg-surface border-outline-variant text-on-surface-variant'}`}>
+                          <span>3. Rescuing</span>
+                          <span className="block text-[9px] mt-0.5">Extraction</span>
                         </div>
-                        <div className={`p-2 rounded border text-center ${assign.status === 'COMPLETED' ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300 font-bold' : 'bg-surface border-outline-variant text-gray-500'}`}>
-                          <span>4. COMPLETED</span>
+                        <div className={`p-2 rounded border text-center ${assign.status === 'COMPLETED' ? 'bg-secondary/15 border-secondary/40 text-on-secondary-container font-bold' : 'bg-surface border-outline-variant text-on-surface-variant'}`}>
+                          <span>4. Completed</span>
                           <span className="block text-[9px] mt-0.5">{assign.completion_time || 'Resolution'}</span>
                         </div>
                       </div>
@@ -558,25 +579,25 @@ export const RescueDispatchModal: React.FC<RescueDispatchModalProps> = ({ incide
                         {assign.status === 'EN_ROUTE' && (
                           <button
                             onClick={() => handleProgressLifecycle(assign.assignment_id, 'ON_SCENE')}
-                            className="px-3 py-1.5 bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 rounded text-xs font-bold font-sans transition-colors"
+                            className="px-3 py-1.5 bg-tertiary/10 hover:bg-tertiary/20 text-on-tertiary-container border border-tertiary/30 rounded text-xs font-semibold transition-colors cursor-pointer"
                           >
-                            Mark Arrived On-Scene ➔
+                            Mark arrived on-scene
                           </button>
                         )}
                         {assign.status === 'ON_SCENE' && (
                           <button
                             onClick={() => handleProgressLifecycle(assign.assignment_id, 'RESCUING')}
-                            className="px-3 py-1.5 bg-red-500/15 hover:bg-red-500/25 text-red-300 border border-red-500/30 rounded text-xs font-bold font-sans transition-colors"
+                            className="px-3 py-1.5 bg-error/10 hover:bg-error/20 text-on-error-container border border-error/30 rounded text-xs font-semibold transition-colors cursor-pointer"
                           >
-                            Initiate Extraction (Rescuing) ➔
+                            Begin extraction
                           </button>
                         )}
                         {assign.status === 'RESCUING' && (
                           <button
                             onClick={() => handleProgressLifecycle(assign.assignment_id, 'COMPLETED')}
-                            className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-xs font-bold font-sans transition-colors shadow"
+                            className="px-4 py-1.5 bg-secondary hover:bg-secondary/90 text-on-secondary rounded text-xs font-semibold transition-colors shadow cursor-pointer"
                           >
-                            Complete &amp; Release Asset ➔
+                            Complete and release
                           </button>
                         )}
                       </div>
@@ -608,10 +629,10 @@ export const RescueDispatchModal: React.FC<RescueDispatchModalProps> = ({ incide
                       <div className="space-y-0.5">
                         <div className="flex items-center gap-2">
                           <strong className="text-on-surface">{log.resource_id}</strong>
-                          <span className="text-on-surface-variant">({log.old_status || 'NEW'} ➔ {log.new_status})</span>
+                          <span className="text-on-surface-variant">({log.old_status || 'NEW'} → {log.new_status})</span>
                         </div>
                         <p className="text-[11px] text-on-surface-variant">{log.notes || 'Status transition logged'}</p>
-                        <span className="text-[10px] text-gray-500">Officer Sub: {log.changed_by || 'EOC_RESCUE_COORDINATOR'}</span>
+                        <span className="text-[10px] text-on-surface-variant">Officer: {log.changed_by || 'EOC_RESCUE_COORDINATOR'}</span>
                       </div>
                       <span className="text-[10px] text-primary">{new Date(log.changed_at).toLocaleTimeString()}</span>
                     </div>

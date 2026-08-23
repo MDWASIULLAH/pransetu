@@ -161,7 +161,7 @@ export const AIRouteInspector: React.FC<AIRouteInspectorProps> = ({
                 <h2 className="text-base sm:text-lg font-semibold text-on-surface">
                   AI Evacuation Route Verification Engine
                 </h2>
-                <span className="bg-status-green/10 text-emerald-600 border border-status-green/20 text-[10px] font-sans font-medium px-2 py-0.5 rounded">
+                <span className="bg-status-green/10 text-secondary border border-status-green/20 text-[10px] font-sans font-medium px-2 py-0.5 rounded">
                   ML VALIDATED
                 </span>
               </div>
@@ -182,7 +182,7 @@ export const AIRouteInspector: React.FC<AIRouteInspectorProps> = ({
 
         {/* Route Selector Pills */}
         <div className="px-4 sm:px-5 py-3 bg-surface-container-low border-b border-outline-variant flex items-center gap-2 overflow-x-auto no-scrollbar">
-          <span className="text-xs font-medium text-on-surface-variant shrink-0 font-sans">INSPECT ROUTE:</span>
+          <span className="text-xs font-medium text-on-surface-variant shrink-0 font-sans">Inspect route</span>
           {Object.entries(sampleRoutes).map(([key, r]) => (
             <button
               key={key}
@@ -192,7 +192,7 @@ export const AIRouteInspector: React.FC<AIRouteInspectorProps> = ({
               }}
               className={`px-3 py-1.5 rounded text-xs font-medium whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1.5 border ${
                 selectedRouteKey === key
-                  ? 'bg-surface-container-lowestest text-on-surface border-outline font-semibold shadow-sm'
+                  ? 'bg-surface-container-high text-on-surface border-outline font-semibold shadow-sm'
                   : 'bg-surface border-outline-variant text-on-surface-variant hover:text-on-surface hover:bg-surface-container-lowest'
               }`}
             >
@@ -210,7 +210,7 @@ export const AIRouteInspector: React.FC<AIRouteInspectorProps> = ({
             <span className="text-[10px] text-on-surface-variant font-medium uppercase font-sans block">AI Safety Confidence</span>
             <div>
               <div className="flex items-baseline gap-1 mt-1">
-                <span className="text-lg font-semibold font-sans text-emerald-600">{route.confidenceScore}%</span>
+                <span className="text-lg font-semibold font-sans text-secondary">{route.confidenceScore}%</span>
                 <span className="text-[10px] text-on-surface-variant font-sans font-medium">OPTIMAL</span>
               </div>
               <span className="text-[10px] text-on-surface-variant/80">Loss: 0.014 • 10-fold CV</span>
@@ -245,7 +245,7 @@ export const AIRouteInspector: React.FC<AIRouteInspectorProps> = ({
             <span className="text-[10px] text-on-surface-variant font-medium uppercase font-sans block">Bridge Integrity</span>
             <div>
               <div className="flex items-baseline gap-1 mt-1">
-                <span className="text-sm font-medium font-sans text-emerald-600 flex items-center gap-1">
+                <span className="text-sm font-medium font-sans text-secondary flex items-center gap-1">
                   <span className="material-symbols-outlined text-[16px]">check_circle</span>
                   {route.bridgeStatus}
                 </span>
@@ -308,7 +308,7 @@ export const AIRouteInspector: React.FC<AIRouteInspectorProps> = ({
                           Weight: {(feat.weight * 100).toFixed(0)}%
                         </span>
                       </div>
-                      <div className="w-full bg-surface-container-lowestest h-1.5 rounded-full mt-2 overflow-hidden">
+                      <div className="w-full bg-surface-container-high h-1.5 rounded-full mt-2 overflow-hidden">
                         <div
                           className="bg-on-surface-variant h-full rounded-full"
                           style={{ width: `${feat.weight * 100}%` }}
@@ -316,7 +316,7 @@ export const AIRouteInspector: React.FC<AIRouteInspectorProps> = ({
                       </div>
                     </div>
                     <div className="sm:text-right shrink-0">
-                      <span className="font-sans text-xs font-medium text-on-surface bg-surface-container-lowestest border border-outline-variant/30 px-2 py-1 rounded inline-block">
+                      <span className="font-sans text-xs font-medium text-on-surface bg-surface-container-high border border-outline-variant/30 px-2 py-1 rounded inline-block">
                         {feat.value}
                       </span>
                     </div>
@@ -344,7 +344,7 @@ export const AIRouteInspector: React.FC<AIRouteInspectorProps> = ({
                     style={{ bottom: `${(effectiveSurge / 12) * 100}%` }}
                   >
                     <span>SURGE WATER LEVEL ({effectiveSurge.toFixed(1)}m)</span>
-                    <span>HAZARD THRESHOLD</span>
+                    <span>Hazard threshold</span>
                   </div>
 
                   {/* Road Deck Profile */}
@@ -356,7 +356,7 @@ export const AIRouteInspector: React.FC<AIRouteInspectorProps> = ({
                         <div key={i} className="flex-1 flex flex-col items-center h-full justify-end group relative">
                           <div
                             className={`w-full rounded-t transition-all ${
-                              isClear ? 'bg-surface-container-lowestest' : 'bg-error'
+                              isClear ? 'bg-surface-container-high' : 'bg-error'
                             }`}
                             style={{ height: `${heightPercent}%` }}
                           />
@@ -385,7 +385,7 @@ export const AIRouteInspector: React.FC<AIRouteInspectorProps> = ({
                 {route.waypoints.map((wp, idx) => (
                   <div key={idx} className="p-3 bg-surface-container-low rounded border border-outline-variant/30 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded bg-surface-container-lowestest flex items-center justify-center font-sans text-xs font-semibold text-on-surface">
+                      <div className="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center font-sans text-xs font-semibold text-on-surface">
                         0{idx + 1}
                       </div>
                       <div>
@@ -407,7 +407,7 @@ export const AIRouteInspector: React.FC<AIRouteInspectorProps> = ({
                       </div>
                       <div className="text-right">
                         <span className="text-[10px] text-on-surface-variant block uppercase">Status</span>
-                        <span className="px-2 py-0.5 rounded bg-surface-container-lowestest border border-outline-variant/30 text-on-surface font-medium text-[10px]">
+                        <span className="px-2 py-0.5 rounded bg-surface-container-high border border-outline-variant/30 text-on-surface font-medium text-[10px]">
                           {wp.clearance}
                         </span>
                       </div>
@@ -447,9 +447,9 @@ export const AIRouteInspector: React.FC<AIRouteInspectorProps> = ({
                   </div>
 
                   {isSurgeExceeded ? (
-                    <div className="p-3 bg-error/10 border border-error/20 rounded text-error text-xs flex items-center justify-between">
+                    <div className="p-3 bg-error/10 border border-error/20 rounded text-on-error-container text-xs flex items-center justify-between">
                       <div>
-                        <strong>⚠️ CRITICAL: Road Submergence Imminent!</strong>
+                        <strong>Road submergence imminent</strong>
                         <p className="text-[11px] opacity-80 mt-0.5">Surge exceeds minimum elevation at Kushabhadra Causeway.</p>
                       </div>
                       <button
@@ -464,8 +464,8 @@ export const AIRouteInspector: React.FC<AIRouteInspectorProps> = ({
                       </button>
                     </div>
                   ) : (
-                    <div className="p-3 bg-status-green/10 border border-status-green/20 rounded text-emerald-600 text-xs">
-                      <strong>✅ AI Status: Corridor 100% Passable</strong>
+                    <div className="p-3 bg-status-green/10 border border-status-green/20 rounded text-secondary text-xs">
+                      <strong>Corridor passable</strong>
                       <p className="text-[11px] opacity-80 mt-0.5">Remaining dry buffer clearance: +{effectiveMargin.toFixed(1)}m above surge.</p>
                     </div>
                   )}
@@ -483,7 +483,7 @@ export const AIRouteInspector: React.FC<AIRouteInspectorProps> = ({
                       <div>
                         <div className="flex justify-between items-start mb-1">
                           <span className="font-semibold text-xs text-on-surface">{alt.name}</span>
-                          <span className="font-sans text-[10px] text-on-surface bg-surface-container-lowestest px-1.5 py-0.5 rounded border border-outline-variant/30">
+                          <span className="font-sans text-[10px] text-on-surface bg-surface-container-high px-1.5 py-0.5 rounded border border-outline-variant/30">
                             {alt.risk}
                           </span>
                         </div>
@@ -495,7 +495,7 @@ export const AIRouteInspector: React.FC<AIRouteInspectorProps> = ({
                           onClick={() => onSelectAlternative?.(alt.name)}
                           className="hover:underline font-medium cursor-pointer"
                         >
-                          Select Route →
+                          Select route
                         </button>
                       </div>
                     </div>
@@ -515,7 +515,7 @@ export const AIRouteInspector: React.FC<AIRouteInspectorProps> = ({
 
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-surface-container-lowest border border-outline-variant/30 text-on-surface font-medium rounded hover:bg-surface-container-lowestest cursor-pointer transition-colors"
+            className="px-4 py-2 bg-surface-container-lowest border border-outline-variant/30 text-on-surface font-medium rounded hover:bg-surface-container-high cursor-pointer transition-colors"
           >
             Close Inspector
           </button>

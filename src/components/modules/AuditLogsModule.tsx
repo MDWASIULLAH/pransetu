@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { useEOC } from '../../context/EOCContext';
+import { API_BASE } from '../../services/api';
 
 export interface UnifiedAuditLog {
   audit_id: string;
@@ -37,7 +38,7 @@ export const AuditLogsModule: React.FC = () => {
       const actionQuery = filterAction !== 'ALL' ? `&action=${filterAction}` : '';
       const entityQuery = filterEntity !== 'ALL' ? `&entity_type=${filterEntity}` : '';
       
-      const res = await fetch(`http://localhost:8000/api/v1/audit/logs?limit=100${actionQuery}${entityQuery}`, { headers: { 'Authorization': `Bearer ${token}` }, signal: controller.signal });
+      const res = await fetch(`${API_BASE}/api/v1/audit/logs?limit=100${actionQuery}${entityQuery}`, { headers: { 'Authorization': `Bearer ${token}` }, signal: controller.signal });
 
       if (res.ok) {
         const json = await res.json();
@@ -143,20 +144,20 @@ export const AuditLogsModule: React.FC = () => {
       {/* Header */}
       <div className="bg-surface border border-outline-variant/30 p-5 rounded-xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+          <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-on-primary-container">
             <span className="material-symbols-outlined text-[22px]">security</span>
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h1 className="font-sans font-bold text-lg sm:text-xl text-on-surface">
-                Unified Security Audit Trail
+                Audit trail
               </h1>
-              <span className="bg-primary/10 text-primary border border-primary/20 px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">
-                Immutable Compliance
+              <span className="bg-surface-container-high text-on-surface-variant border border-outline-variant px-2 py-0.5 rounded text-[10px] font-medium">
+                Append-only
               </span>
             </div>
             <p className="text-sm text-on-surface-variant mt-0.5">
-              Comprehensive tamper-evident ledger recording all authentication, RBAC, dispatch, alert, and configuration actions.
+              Sign-ins, role changes, dispatches, alerts, and config edits — written once, never updated.
             </p>
           </div>
         </div>
@@ -200,37 +201,37 @@ export const AuditLogsModule: React.FC = () => {
       <div className="flex flex-wrap items-center justify-between gap-3 bg-surface p-4 rounded-xl border border-outline-variant/30">
         <div className="flex flex-wrap items-center gap-3 text-xs">
           <div>
-            <span className="text-on-surface-variant font-sans text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider block mb-0.5">Filter Action</span>
+            <span className="text-on-surface-variant font-sans text-[11px] font-semibold uppercase tracking-wider block mb-0.5">Filter Action</span>
             <select
               value={filterAction}
               onChange={(e) => setFilterAction(e.target.value)}
               className="bg-surface border border-outline-variant rounded p-1.5 text-xs text-on-surface font-semibold focus:outline-none focus:border-primary"
             >
-              <option value="ALL">All 18 Actions</option>
-              <option value="LOGIN">LOGIN</option>
-              <option value="LOGOUT">LOGOUT</option>
-              <option value="ROLE_CHANGE">ROLE_CHANGE</option>
-              <option value="PERMISSION_CHANGE">PERMISSION_CHANGE</option>
-              <option value="SOS_ACKNOWLEDGE">SOS_ACKNOWLEDGE</option>
-              <option value="SOS_ESCALATE">SOS_ESCALATE</option>
-              <option value="INCIDENT_MODIFY">INCIDENT_MODIFY</option>
-              <option value="PRIORITY_CHANGE">PRIORITY_CHANGE</option>
-              <option value="RESOURCE_ASSIGN">RESOURCE_ASSIGN</option>
-              <option value="RESOURCE_DISPATCH">RESOURCE_DISPATCH</option>
-              <option value="RESOURCE_STATUS_CHANGE">RESOURCE_STATUS_CHANGE</option>
-              <option value="SHELTER_CHANGE">SHELTER_CHANGE</option>
-              <option value="ALERT_PUBLISH">ALERT_PUBLISH</option>
-              <option value="CAMPAIGN_CREATE">CAMPAIGN_CREATE</option>
-              <option value="CAMPAIGN_START">CAMPAIGN_START</option>
-              <option value="CAMPAIGN_STOP">CAMPAIGN_STOP</option>
-              <option value="USER_CREATE">USER_CREATE</option>
-              <option value="USER_DEACTIVATE">USER_DEACTIVATE</option>
-              <option value="SYSTEM_CONFIG_CHANGE">SYSTEM_CONFIG_CHANGE</option>
+              <option value="ALL">All actions</option>
+              <option value="LOGIN">Sign in</option>
+              <option value="LOGOUT">Sign out</option>
+              <option value="ROLE_CHANGE">Role changed</option>
+              <option value="PERMISSION_CHANGE">Permission changed</option>
+              <option value="SOS_ACKNOWLEDGE">SOS acknowledged</option>
+              <option value="SOS_ESCALATE">SOS escalated</option>
+              <option value="INCIDENT_MODIFY">Incident edited</option>
+              <option value="PRIORITY_CHANGE">Priority changed</option>
+              <option value="RESOURCE_ASSIGN">Resource assigned</option>
+              <option value="RESOURCE_DISPATCH">Resource dispatched</option>
+              <option value="RESOURCE_STATUS_CHANGE">Resource status changed</option>
+              <option value="SHELTER_CHANGE">Shelter updated</option>
+              <option value="ALERT_PUBLISH">Alert published</option>
+              <option value="CAMPAIGN_CREATE">Campaign created</option>
+              <option value="CAMPAIGN_START">Campaign started</option>
+              <option value="CAMPAIGN_STOP">Campaign stopped</option>
+              <option value="USER_CREATE">User created</option>
+              <option value="USER_DEACTIVATE">User deactivated</option>
+              <option value="SYSTEM_CONFIG_CHANGE">Config changed</option>
             </select>
           </div>
 
           <div>
-            <span className="text-on-surface-variant font-sans text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider block mb-0.5">Entity Type</span>
+            <span className="text-on-surface-variant font-sans text-[11px] font-semibold uppercase tracking-wider block mb-0.5">Entity Type</span>
             <select
               value={filterEntity}
               onChange={(e) => setFilterEntity(e.target.value)}

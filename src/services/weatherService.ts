@@ -149,7 +149,7 @@ export async function fetchGlobalCityWeather(cityName: string): Promise<District
       lastUpdated: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
       isRealApi: true
     };
-  } catch (error) {
+  } catch {
     return getFallbackCityWeather(cityName);
   }
 }
@@ -196,7 +196,7 @@ export async function fetchCoordinatesWeather(lat: number, lon: number, location
       lastUpdated: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
       isRealApi: true
     };
-  } catch (error) {
+  } catch {
     return getFallbackCityWeather(locationLabel || 'Global Station', lat, lon);
   }
 }

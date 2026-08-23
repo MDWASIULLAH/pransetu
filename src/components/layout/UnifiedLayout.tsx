@@ -123,20 +123,20 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
 
             <form onSubmit={handleRaiseAlert} className="mt-5 space-y-5">
               <div>
-                <label className="font-data-label text-on-surface-variant block mb-1.5">Severity Level</label>
+                <label className="text-on-surface-variant block mb-1.5">Severity Level</label>
                 <select 
                   value={alertSeverity} 
                   onChange={(e) => setAlertSeverity(e.target.value as any)}
                   className="w-full bg-surface-container-high border border-outline-variant rounded p-2.5 text-on-surface text-body-sm focus:outline-none focus:border-outline"
                 >
-                  <option value="RED_CRITICAL">RED ALERT - Immediate Evacuation</option>
-                  <option value="ORANGE_WARNING">ORANGE ALERT - High Wind Warning</option>
-                  <option value="YELLOW_WATCH">YELLOW WATCH - Preparedness</option>
+                  <option value="RED_CRITICAL">Red — immediate evacuation</option>
+                  <option value="ORANGE_WARNING">Orange — high wind warning</option>
+                  <option value="YELLOW_WATCH">Yellow — preparedness</option>
                 </select>
               </div>
 
               <div>
-                <label className="font-data-label text-on-surface-variant block mb-1.5">Message</label>
+                <label className="text-on-surface-variant block mb-1.5">Message</label>
                 <textarea 
                   rows={3} 
                   value={alertMessage}
@@ -156,7 +156,7 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
                 </button>
                 <button 
                   type="submit"
-                  className="px-4 py-2 bg-error text-on-error rounded text-body-sm font-medium hover:bg-red-600 transition-colors flex items-center gap-2"
+                  className="px-4 py-2 bg-error text-on-error rounded text-body-sm font-medium hover:bg-error/90 transition-colors flex items-center gap-2"
                 >
                   <span className="material-symbols-outlined text-[18px]">campaign</span>
                   Broadcast
@@ -203,15 +203,15 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
 
         {/* Center: System Telemetry */}
         <div className="hidden lg:flex flex-1 items-center justify-center gap-6">
-          <div className="flex items-center gap-1.5 text-on-surface-variant text-data-label">
+          <div className="flex items-center gap-1.5 text-on-surface-variant text-xs">
             <div className="w-1.5 h-1.5 rounded-full bg-secondary"></div>
             <span>System Nominal</span>
           </div>
-          <div className="flex items-center gap-1.5 text-on-surface-variant text-data-label">
+          <div className="flex items-center gap-1.5 text-on-surface-variant text-xs">
             <span className="material-symbols-outlined text-[14px]">satellite_alt</span>
             <span>Uplink Active</span>
           </div>
-          <div className="font-data-value text-on-surface-variant text-[12px]">
+          <div className="tabular-nums text-on-surface-variant text-[12px]">
             {currentTime || '00:00:00'} IST
           </div>
         </div>
@@ -240,10 +240,10 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
 
           <button 
             onClick={() => setAlertModalOpen(true)}
-            className="h-6 sm:h-7 px-2 sm:px-3 bg-error/10 text-error hover:bg-error/20 border border-error/20 rounded text-[10px] sm:text-data-label font-semibold flex items-center gap-1 transition-colors"
+            className="h-6 sm:h-7 px-2 sm:px-3 bg-error/10 text-on-error-container hover:bg-error/20 border border-error/20 rounded text-[10px] sm:text-xs font-semibold flex items-center gap-1 transition-colors"
           >
             <span className="material-symbols-outlined text-[12px] sm:hidden">warning</span>
-            <span className="hidden sm:inline">RAISE ALERT</span>
+            <span className="hidden sm:inline">Raise alert</span>
             <span className="sm:hidden">ALERT</span>
           </button>
 
@@ -265,7 +265,7 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
                 <div className="absolute right-0 top-10 w-56 bg-surface border border-outline-variant rounded shadow-lg p-2 z-[1002]">
                   <div className="px-2 pb-2 mb-2 border-b border-outline-variant">
                     <p className="font-medium text-body-sm text-on-surface">{user?.name || 'Operator'}</p>
-                    <p className="text-data-label text-on-surface-variant mt-0.5">{user?.role || 'Admin'}</p>
+                    <p className="text-xs text-on-surface-variant mt-0.5">{user?.role || 'Admin'}</p>
                   </div>
                   <button
                     onClick={() => {
@@ -286,7 +286,7 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
       {/* Main Body */}
       <div className="flex-1 flex pt-14 h-full overflow-hidden">
         
-        {/* Sidebar (Minimalist, Seamless) */}
+        {/* Sidebar — collapses to icons; hidden below md, where the drawer takes over */}
         <aside
           className={`hidden md:flex flex-col bg-background border-r border-outline-variant transition-all duration-200 z-30 shrink-0 sticky top-14 h-[calc(100vh-3.5rem)] ${
             sidebarOpen ? 'w-60' : 'w-14'
@@ -311,7 +311,7 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
                     {sidebarOpen && <span>{item.label}</span>}
                   </div>
                   {sidebarOpen && isActive && (
-                    <span className="text-data-label text-primary">{item.badge}</span>
+                    <span className="text-xs text-on-surface-variant">{item.badge}</span>
                   )}
                 </button>
               );
@@ -360,7 +360,7 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
                           <span className="material-symbols-outlined text-[20px] opacity-80">{item.icon}</span>
                           <span>{item.label}</span>
                         </div>
-                        {isActive && <span className="text-data-label text-primary">{item.badge}</span>}
+                        {isActive && <span className="text-xs text-on-surface-variant">{item.badge}</span>}
                       </button>
                     );
                   })}

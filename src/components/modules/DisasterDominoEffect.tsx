@@ -146,8 +146,8 @@ export const DisasterDominoEffect: React.FC<DisasterDominoEffectProps> = ({ onCl
   const selectedNode = DOMINO_TREE.find((n) => n.id === selectedNodeId) || DOMINO_TREE[0];
 
   const getSeverityBadge = (sev: DominoNode['severity']) => {
-    if (sev === 'CRITICAL') return 'bg-error/10 text-error border-error/20';
-    if (sev === 'WARNING') return 'bg-secondary/10 text-secondary border-secondary/20';
+    if (sev === 'CRITICAL') return 'bg-error/10 text-on-error-container border-error/20';
+    if (sev === 'WARNING') return 'bg-secondary/10 text-on-secondary-container border-secondary/20';
     return 'bg-surface-container-lowest text-on-surface-variant border-outline-variant';
   };
 
@@ -165,7 +165,7 @@ export const DisasterDominoEffect: React.FC<DisasterDominoEffectProps> = ({ onCl
                 <h3 className="font-sans text-base sm:text-lg font-semibold text-on-surface">
                   Disaster Domino Effect: Multi-Hazard Cascading Risk
                 </h3>
-                <span className="bg-error/10 text-error text-[10px] font-sans font-medium px-2 py-0.5 rounded border border-error/20">
+                <span className="bg-error/10 text-on-error-container text-[10px] font-sans font-medium px-2 py-0.5 rounded border border-error/20">
                   AI PREDICTION ACTIVE
                 </span>
               </div>
@@ -216,7 +216,7 @@ export const DisasterDominoEffect: React.FC<DisasterDominoEffectProps> = ({ onCl
                   onClick={() => setSelectedNodeId(node.id)}
                   className={`p-3 rounded border transition-all cursor-pointer ${
                     selectedNodeId === node.id
-                      ? 'bg-surface-container-lowestest border-outline shadow-sm'
+                      ? 'bg-surface-container-high border-outline shadow-sm'
                       : 'bg-surface-container-low border-outline-variant hover:bg-surface-container-lowest'
                   }`}
                 >
@@ -228,7 +228,7 @@ export const DisasterDominoEffect: React.FC<DisasterDominoEffectProps> = ({ onCl
                   </div>
                   <div className="flex justify-between items-center mt-2 text-[11px] font-sans text-on-surface-variant">
                     <span>Impact: {node.impactPercentage}%</span>
-                    <span className="text-on-surface font-medium">Inspect →</span>
+                    <span className="text-on-surface font-medium">Inspect</span>
                   </div>
                 </div>
               ))}
@@ -246,7 +246,7 @@ export const DisasterDominoEffect: React.FC<DisasterDominoEffectProps> = ({ onCl
                   onClick={() => setSelectedNodeId(node.id)}
                   className={`p-3 rounded border transition-all cursor-pointer ${
                     selectedNodeId === node.id
-                      ? 'bg-surface-container-lowestest border-outline shadow-sm'
+                      ? 'bg-surface-container-high border-outline shadow-sm'
                       : 'bg-surface-container-low border-outline-variant hover:bg-surface-container-lowest'
                   }`}
                 >
@@ -258,7 +258,7 @@ export const DisasterDominoEffect: React.FC<DisasterDominoEffectProps> = ({ onCl
                   </div>
                   <div className="flex justify-between items-center mt-2 text-[11px] font-sans text-on-surface-variant">
                     <span>Impact: {node.impactPercentage}%</span>
-                    <span className="text-on-surface font-medium">Inspect →</span>
+                    <span className="text-on-surface font-medium">Inspect</span>
                   </div>
                 </div>
               ))}
@@ -276,7 +276,7 @@ export const DisasterDominoEffect: React.FC<DisasterDominoEffectProps> = ({ onCl
                   onClick={() => setSelectedNodeId(node.id)}
                   className={`p-3 rounded border transition-all cursor-pointer ${
                     selectedNodeId === node.id
-                      ? 'bg-surface-container-lowestest border-outline shadow-sm'
+                      ? 'bg-surface-container-high border-outline shadow-sm'
                       : 'bg-surface-container-low border-outline-variant hover:bg-surface-container-lowest'
                   }`}
                 >
@@ -288,7 +288,7 @@ export const DisasterDominoEffect: React.FC<DisasterDominoEffectProps> = ({ onCl
                   </div>
                   <div className="flex justify-between items-center mt-2 text-[11px] font-sans text-on-surface-variant">
                     <span>Impact: {node.impactPercentage}%</span>
-                    <span className="text-on-surface font-medium">Inspect →</span>
+                    <span className="text-on-surface font-medium">Inspect</span>
                   </div>
                 </div>
               ))}
@@ -321,9 +321,9 @@ export const DisasterDominoEffect: React.FC<DisasterDominoEffectProps> = ({ onCl
 
             {/* Countermeasure Action */}
             <div className="p-3 bg-status-green/10 border border-status-green/20 rounded flex items-start gap-2.5">
-              <span className="material-symbols-outlined text-emerald-600 text-[18px] shrink-0 mt-0.5">shield</span>
+              <span className="material-symbols-outlined text-secondary text-[18px] shrink-0 mt-0.5">shield</span>
               <div>
-                <span className="text-xs font-sans font-medium text-emerald-600 block uppercase">
+                <span className="text-xs font-sans font-medium text-secondary block uppercase">
                   PRANSETU Proactive Countermeasure / Action Protocol
                 </span>
                 <p className="text-xs text-on-surface mt-0.5">
@@ -337,11 +337,11 @@ export const DisasterDominoEffect: React.FC<DisasterDominoEffectProps> = ({ onCl
         {/* Footer */}
         <div className="p-4 bg-surface border-t border-outline-variant flex justify-between items-center text-xs font-sans">
           <span className="text-on-surface-variant">
-            ⚡ Algorithmic Dependency Graph: 11 Nodes Active
+            Dependency graph — 11 nodes active
           </span>
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-surface-container-lowest text-on-surface font-medium rounded hover:bg-surface-container-lowestest cursor-pointer transition-colors border border-outline-variant/30"
+            className="px-4 py-2 bg-surface-container-lowest text-on-surface font-medium rounded hover:bg-surface-container-high cursor-pointer transition-colors border border-outline-variant/30"
           >
             Close Inspector
           </button>

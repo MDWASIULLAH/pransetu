@@ -61,7 +61,7 @@ export const SOSLogs: React.FC = () => {
   };
 
   return (
-    <div className="p-4 sm:p-margin-mobile md:p-margin-desktop min-h-screen bg-background text-on-background w-full max-w-[1600px] mx-auto">
+    <div className="p-4 sm:p-6 min-h-screen bg-background text-on-background w-full max-w-[1600px] mx-auto">
       {/* Signal Audit Modal: Canonical Packet & Multi-Hop Relay Inspector */}
       {selectedLog && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-3 sm:p-4 animate-in fade-in">
@@ -77,7 +77,7 @@ export const SOSLogs: React.FC = () => {
                     <h3 className="font-sans text-sm sm:text-base font-semibold text-on-surface">
                       Canonical SOS Packet Inspector
                     </h3>
-                    <span className="font-sans text-[10px] bg-surface-container-lowestest text-on-surface-variant px-2 py-0.5 rounded border border-outline-variant/30 font-medium">
+                    <span className="font-sans text-[10px] bg-surface-container-high text-on-surface-variant px-2 py-0.5 rounded border border-outline-variant/30 font-medium">
                       {selectedLog.id}
                     </span>
                   </div>
@@ -95,7 +95,7 @@ export const SOSLogs: React.FC = () => {
             </div>
 
             {/* Lifecycle Progression Timeline */}
-            <div className="px-4 sm:px-6 py-4 bg-surface-container-lowestest/30 border-b border-outline-variant">
+            <div className="px-4 sm:px-6 py-4 bg-surface-container-high/30 border-b border-outline-variant">
               <span className="text-[10px] font-sans font-medium text-on-surface-variant uppercase tracking-wider block mb-3">
                 Canonical Protocol Lifecycle Progression
               </span>
@@ -116,17 +116,21 @@ export const SOSLogs: React.FC = () => {
                             isCurrent
                               ? 'bg-on-surface text-surface'
                               : isDone
-                              ? 'bg-surface-container-lowestest text-on-surface-variant border border-outline-variant'
-                              : 'bg-surface text-outline-variant border border-outline-variant/50'
+                              ? 'bg-surface-container-high text-on-surface-variant border border-outline-variant'
+                              : 'bg-surface text-on-surface-variant border border-outline-variant'
                           }`}
                         >
-                          {isDone && !isCurrent ? '✓' : idx + 1}
+                          {isDone && !isCurrent ? (
+                            <span className="material-symbols-outlined text-[13px]">check</span>
+                          ) : (
+                            idx + 1
+                          )}
                         </div>
                         {idx < LIFECYCLE_STEPS.length - 1 && (
                           <div className={`flex-1 h-[1px] ${idx < currentIdx ? 'bg-on-surface-variant' : 'bg-outline-variant'}`} />
                         )}
                       </div>
-                      <span className={`text-[9px] font-sans mt-1.5 leading-tight ${isCurrent ? 'text-on-surface font-medium' : isDone ? 'text-on-surface-variant' : 'text-outline-variant'}`}>
+                      <span className={`text-[9px] font-sans mt-1.5 leading-tight ${isCurrent ? 'text-on-surface font-medium' : isDone ? 'text-on-surface-variant' : 'text-on-surface-variant'}`}>
                         {step.label}
                       </span>
                     </div>
@@ -244,7 +248,7 @@ export const SOSLogs: React.FC = () => {
                     {selectedLog.relayPath.map((node, idx) => (
                       <div key={idx} className="p-3 bg-surface-container rounded-xl border border-outline-variant/60 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-7 h-7 rounded-lg bg-surface-container-lowestest flex items-center justify-center font-sans text-xs font-bold text-primary">
+                          <div className="w-7 h-7 rounded-lg bg-surface-container-high flex items-center justify-center font-sans text-xs font-bold text-primary">
                             0{idx + 1}
                           </div>
                           <div>
@@ -297,7 +301,7 @@ export const SOSLogs: React.FC = () => {
                   resolveSignal(selectedLog.id);
                   setSelectedLog(null);
                 }}
-                className="px-3 py-1.5 bg-surface border border-outline-variant/30 text-on-surface rounded-lg text-xs text-xs hover:bg-surface-container-lowestest cursor-pointer font-medium transition-colors"
+                className="px-3 py-1.5 bg-surface border border-outline-variant/30 text-on-surface rounded-lg text-xs hover:bg-surface-container-high cursor-pointer font-medium transition-colors"
               >
                 Mark Rescued / Closed
               </button>
@@ -305,7 +309,7 @@ export const SOSLogs: React.FC = () => {
               <div className="flex gap-2">
                 <button 
                   onClick={() => setSelectedLog(null)}
-                  className="px-3 py-1.5 bg-surface border border-outline-variant/30 text-on-surface rounded-lg text-xs text-xs hover:bg-surface-container-lowestest cursor-pointer font-bold"
+                  className="px-3 py-1.5 bg-surface border border-outline-variant/30 text-on-surface rounded-lg text-xs hover:bg-surface-container-high cursor-pointer font-bold"
                 >
                   Close
                 </button>
@@ -314,7 +318,7 @@ export const SOSLogs: React.FC = () => {
                     dispatchTeamToSignal(selectedLog.id);
                     setSelectedLog(null);
                   }}
-                  className="px-4 py-1.5 bg-secondary text-on-secondary font-bold rounded-lg hover:bg-secondary-fixed cursor-pointer flex items-center gap-1.5 text-xs shadow-sm"
+                  className="px-4 py-1.5 bg-secondary text-on-secondary font-bold rounded-lg hover:bg-secondary/90 cursor-pointer flex items-center gap-1.5 text-xs shadow-sm"
                 >
                   <span className="material-symbols-outlined text-[16px]">send</span>
                   Dispatch Rescue Team
@@ -400,9 +404,9 @@ export const SOSLogs: React.FC = () => {
             <tbody className="divide-y divide-outline-variant/60 text-sm">
               {filteredLogs.map((log) => {
                 let badgeClass = "bg-surface-container text-on-surface border border-outline-variant/30";
-                if (log.status.toLowerCase() === 'critical') badgeClass = "bg-error/10 text-error border border-error/20";
-                if (log.status.toLowerCase() === 'urgent') badgeClass = "bg-primary/10 text-primary border border-primary/20";
-                if (log.status.toLowerCase() === 'pending') badgeClass = "bg-surface-container-lowestest text-on-surface-variant border border-outline-variant/30";
+                if (log.status.toLowerCase() === 'critical') badgeClass = "bg-error/10 text-on-error-container border border-error/20";
+                if (log.status.toLowerCase() === 'urgent') badgeClass = "bg-primary/10 text-on-primary-container border border-primary/20";
+                if (log.status.toLowerCase() === 'pending') badgeClass = "bg-surface-container-high text-on-surface-variant border border-outline-variant/30";
 
                 return (
                 <tr key={log.id} className="hover:bg-surface transition-colors group cursor-default">
@@ -433,7 +437,7 @@ export const SOSLogs: React.FC = () => {
                   <td className="p-3.5 text-right">
                     <button
                       onClick={() => setSelectedLog(log)}
-                      className="px-3 py-1 bg-surface border border-outline-variant/30 text-on-surface hover:bg-surface-container-lowestest rounded text-[11px] font-medium transition-colors cursor-pointer inline-flex items-center gap-1.5 opacity-0 group-hover:opacity-100 focus:opacity-100"
+                      className="px-3 py-1 bg-surface border border-outline-variant/30 text-on-surface hover:bg-surface-container-high rounded text-[11px] font-medium transition-colors cursor-pointer inline-flex items-center gap-1.5 opacity-0 group-hover:opacity-100 focus:opacity-100"
                     >
                       <span className="material-symbols-outlined text-[14px]">visibility</span>
                       Inspect

@@ -71,7 +71,7 @@ export const Login: React.FC<LoginProps> = ({
       </div>
 
       {/* Main Content Container */}
-      <main className="relative z-20 w-full max-w-[420px] px-margin-mobile md:px-0 py-8">
+      <main className="relative z-20 w-full max-w-[420px] px-4 md:px-0 py-8">
         {/* Login Card */}
         <div className="bg-surface-container/90 backdrop-blur-sm border border-outline-variant/30 rounded-xl shadow-lg overflow-hidden flex flex-col">
           {/* Top Accent Bar */}
@@ -85,7 +85,7 @@ export const Login: React.FC<LoginProps> = ({
                 </span>
               </div>
               <h1 className="font-sans text-2xl md:text-3xl font-bold text-primary tracking-tight">
-                PRANSETU S
+                PRANSETU
               </h1>
               <p className="text-sm text-xs text-on-surface-variant uppercase tracking-widest">
                 EOC Access Gateway
@@ -107,17 +107,17 @@ export const Login: React.FC<LoginProps> = ({
               {/* Access Role Input */}
               <div className="flex flex-col gap-1">
                 <label
-                  className="text-xs text-xs text-on-surface-variant uppercase font-sans"
+                  className="text-xs text-on-surface-variant uppercase font-sans"
                   htmlFor="access_role"
                 >
                   Access Level / Role
                 </label>
                 <div className="relative">
-                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none text-[18px]">
+                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[18px]">
                     admin_panel_settings
                   </span>
                   <select
-                    className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-lg py-2.5 pl-10 pr-3 font-data-value text-xs sm:text-sm text-on-surface appearance-none focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors cursor-pointer"
+                    className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-lg py-2.5 pl-10 pr-3 tabular-nums text-xs sm:text-sm text-on-surface appearance-none focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors cursor-pointer"
                     id="access_role"
                     name="access_role"
                     value={role}
@@ -130,7 +130,7 @@ export const Login: React.FC<LoginProps> = ({
                     <option value="coordinator">Rescue Coordinator</option>
                     <option value="observer">Observer</option>
                   </select>
-                  <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none text-[18px]">
+                  <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[18px]">
                     expand_more
                   </span>
                 </div>
@@ -139,17 +139,17 @@ export const Login: React.FC<LoginProps> = ({
               {/* Badge ID Input */}
               <div className="flex flex-col gap-1">
                 <label
-                  className="text-xs text-xs text-on-surface-variant uppercase font-sans"
+                  className="text-xs text-on-surface-variant uppercase font-sans"
                   htmlFor="badge_id"
                 >
                   Badge ID / Username
                 </label>
                 <div className="relative">
-                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none text-[18px]">
+                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[18px]">
                     badge
                   </span>
                   <input
-                    className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-lg py-2.5 pl-10 pr-3 font-data-value text-xs sm:text-sm text-on-surface placeholder:text-outline-variant/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                    className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-lg py-2.5 pl-10 pr-3 tabular-nums text-xs sm:text-sm text-on-surface placeholder:text-on-surface-variant/70 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
                     id="badge_id"
                     name="badge_id"
                     placeholder="e.g. OP-8492"
@@ -164,24 +164,24 @@ export const Login: React.FC<LoginProps> = ({
               {/* Password Input */}
               <div className="flex flex-col gap-1">
                 <label
-                  className="text-xs text-xs text-on-surface-variant uppercase flex justify-between font-sans"
+                  className="text-xs text-on-surface-variant uppercase flex justify-between font-sans"
                   htmlFor="password"
                 >
                   <span>Security Key</span>
                   <button
                     type="button"
                     onClick={() => alert('Password reset protocol initiated. Contact EOC SysAdmin: +91 674-2534177')}
-                    className="text-primary hover:text-tertiary-fixed transition-colors font-medium cursor-pointer"
+                    className="text-primary hover:text-primary/80 transition-colors font-medium cursor-pointer"
                   >
                     Forgot?
                   </button>
                 </label>
                 <div className="relative">
-                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none text-[18px]">
+                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[18px]">
                     key
                   </span>
                   <input
-                    className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-lg py-2.5 pl-10 pr-10 font-data-value text-xs sm:text-sm text-on-surface placeholder:text-outline-variant/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                    className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-lg py-2.5 pl-10 pr-10 tabular-nums text-xs sm:text-sm text-on-surface placeholder:text-on-surface-variant/70 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
                     id="password"
                     name="password"
                     placeholder="••••••••"
@@ -192,7 +192,7 @@ export const Login: React.FC<LoginProps> = ({
                   />
                   <button
                     aria-label="Toggle password visibility"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-outline-variant hover:text-on-surface transition-colors focus:outline-none cursor-pointer"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors focus:outline-none cursor-pointer"
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                   >
@@ -224,7 +224,7 @@ export const Login: React.FC<LoginProps> = ({
 
                 <button
                   disabled={isAuthenticating}
-                  className="w-full bg-primary hover:bg-primary-fixed border border-transparent text-on-primary font-sans text-sm font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-[0_0_15px_rgba(190,198,224,0.15)] hover:shadow-[0_0_20px_rgba(190,198,224,0.3)] cursor-pointer disabled:opacity-75"
+                  className="w-full bg-primary hover:bg-primary/90 border border-transparent text-on-primary font-sans text-sm font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-[0_0_15px_rgba(190,198,224,0.15)] hover:shadow-[0_0_20px_rgba(190,198,224,0.3)] cursor-pointer disabled:opacity-75"
                   type="submit"
                 >
                   {isAuthenticating ? (
@@ -253,7 +253,7 @@ export const Login: React.FC<LoginProps> = ({
               No active credentials?{' '}
               <button
                 onClick={onNavigateToRegister}
-                className="text-primary hover:text-tertiary-fixed underline underline-offset-2 transition-colors font-medium cursor-pointer ml-1"
+                className="text-primary hover:text-primary/80 underline underline-offset-2 transition-colors font-medium cursor-pointer ml-1"
               >
                 Request Access
               </button>

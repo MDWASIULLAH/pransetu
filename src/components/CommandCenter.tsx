@@ -5,6 +5,7 @@ import { AIRouteInspector } from './modules/AIRouteInspector';
 import { LiveWeatherWidget } from './modules/LiveWeatherWidget';
 import { DisasterDominoEffect } from './modules/DisasterDominoEffect';
 import { RescueDispatchModal } from './dispatch/RescueDispatchModal';
+import { apiFetch, isBackendOffline } from '../services/api';
 
 interface CommandCenterKPIs {
   active_sos: number;
@@ -72,27 +73,35 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigate }) => {
     average_sos_delivery_time: '24s'
   });
 
-  const fetchLiveKPIs = async () => {
-    try {
-      const token = localStorage.getItem('access_token') || 'dummy-token';
-      const res = await fetch(`http://localhost:8000/api/v1/command-center/kpis`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const json = await res.json();
-        if (json.data) {
-          setKpis(json.data);
-        }
-      }
-    } catch (e) {
-      // Retain live state gracefully if backend temporarily unreachable
-    }
-  };
+  const [feedLive, setFeedLive] = useState(false);
 
+  // Poll the KPI endpoint, but back off instead of retrying every 3s forever when
+  // the backend is down — that buried real errors under a wall of failed requests.
   useEffect(() => {
-    fetchLiveKPIs();
-    const interval = setInterval(fetchLiveKPIs, 3000); // 3-second live database refresh
-    return () => clearInterval(interval);
+    let cancelled = false;
+    let timer: number;
+
+    const poll = async () => {
+      let delay = 3000;
+      try {
+        const res = await apiFetch('/api/v1/command-center/kpis');
+        const json = await res.json();
+        if (!cancelled && json.data) {
+          setKpis(json.data);
+          setFeedLive(true);
+        }
+      } catch {
+        if (!cancelled) setFeedLive(false);
+        delay = isBackendOffline() ? 30000 : 5000;
+      }
+      if (!cancelled) timer = window.setTimeout(poll, delay);
+    };
+
+    poll();
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, []);
 
   const topCriticalSignal = signals.find((s) => s.status === 'Critical') || signals[0];
@@ -104,6 +113,68 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigate }) => {
       s.source.toLowerCase().includes(searchQuery.toLowerCase()) ||
       s.details.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Triage weights, applied to the top signal's own fields. The gauge shows the
+  // sum of these three, so the ring and the breakdown can never disagree —
+  // previously the ring was a hardcoded 98% clip and the rows summed to 94.
+  const triage = (() => {
+    const medical = topCriticalSignal?.medicalRequired ? 40 : 0;
+    const cluster = Math.min(30, Math.round((topCriticalSignal?.peopleCount ?? 0) * 2.5));
+    const relayDelay = Math.min(30, (topCriticalSignal?.hopCount ?? 1) * 8);
+    return {
+      total: medical + cluster + relayDelay,
+      factors: [
+        { label: 'Medical need', points: medical },
+        { label: `Cluster size (${topCriticalSignal?.peopleCount ?? 0})`, points: cluster },
+        { label: `Relay delay (${topCriticalSignal?.hopCount ?? 1} hops)`, points: relayDelay }
+      ]
+    };
+  })();
+
+  const headline = [
+    {
+      label: 'Active SOS',
+      value: kpis.active_sos,
+      tone: 'text-on-surface',
+      note: `${kpis.assistance_required} awaiting assistance`,
+      to: 'sos'
+    },
+    {
+      label: 'Critical',
+      value: kpis.critical_sos,
+      tone: 'text-error',
+      note: 'medical or entrapment',
+      to: 'sos'
+    },
+    {
+      label: 'Unaccounted',
+      value: kpis.unaccounted,
+      tone: 'text-on-surface',
+      note: `${kpis.safe_confirmed.toLocaleString()} confirmed safe`,
+      to: 'safeverify'
+    },
+    {
+      label: 'Affected population',
+      value: kpis.total_affected_people,
+      tone: 'text-on-surface',
+      note: `across ${kpis.active_incidents} incidents`,
+      to: 'map'
+    }
+  ];
+
+  const logistics: { label: string; value: number | string; of?: number; tone: string; to: string }[] = [
+    { label: 'Shelters open', value: kpis.open_shelters, tone: 'text-on-surface', to: 'resources' },
+    { label: 'Ambulances', value: kpis.available_ambulances, of: kpis.available_ambulances + kpis.dispatched_ambulances, tone: 'text-on-surface', to: 'resources' },
+    { label: 'Rescue teams', value: kpis.available_rescue_teams, of: kpis.available_rescue_teams + kpis.active_rescue_teams, tone: 'text-on-surface', to: 'resources' },
+    { label: 'Boats', value: kpis.available_boats, tone: 'text-on-surface', to: 'resources' },
+    { label: 'Medical teams', value: kpis.available_medical_teams, tone: 'text-on-surface', to: 'resources' },
+    {
+      label: 'Pending sync',
+      value: kpis.pending_synchronization,
+      tone: kpis.pending_synchronization > 0 ? 'text-tertiary' : 'text-on-surface',
+      to: 'sos'
+    }
+  ];
 
   return (
     <div className="p-4 sm:p-6 max-w-[1680px] mx-auto w-full space-y-6">
@@ -120,226 +191,78 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigate }) => {
         <RescueDispatchModal incidentId={dispatchIncidentId} onClose={() => setDispatchIncidentId(null)} />
       )}
 
-      {/* TOP-LEVEL LIVE DATABASE KPIS (17 Real Database Metrics - Clickable to Open Operational Views) */}
-      <section className="space-y-4 mb-4">
-        <div className="flex items-center justify-between pb-2 border-b border-outline-variant/30">
-          <div className="flex items-center gap-3">
-            <span className="w-2 h-2 rounded-full bg-status-green "></span>
-            <div>
-              <h2 className="font-sans text-base font-semibold text-on-surface tracking-tight">
-                Command Center Overview
-              </h2>
-            </div>
+      <section className="space-y-3">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 pb-3 border-b border-outline-variant">
+          <div className="flex items-baseline gap-3">
+            <h2 className="text-base font-semibold text-on-surface tracking-tight">Situation summary</h2>
+            <span className="text-[11px] text-on-surface-variant">Cyclone response &middot; Coastal Odisha</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-sans text-on-surface-variant">
-              Network Latency:
+          <div className="flex items-center gap-5 text-[11px]">
+            <span className="text-on-surface-variant">
+              Mesh delivery{' '}
+              <span className="text-on-surface font-medium tabular-nums">{kpis.average_sos_delivery_time}</span>
             </span>
-            <span className="text-[11px] font-medium text-primary">{kpis.average_sos_delivery_time}</span>
+            <span className={`inline-flex items-center gap-1.5 ${feedLive ? 'text-secondary' : 'text-on-surface-variant'}`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${feedLive ? 'bg-secondary' : 'bg-outline'}`} />
+              {feedLive ? 'Live feed' : 'Seed data — API offline'}
+            </span>
           </div>
         </div>
 
-        {/* Primary Row: SOS, Population & Incidents */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-          
-          {/* 1. ACTIVE SOS */}
-          <div 
-            onClick={() => onNavigate?.('sos')}
-            className="bg-surface border border-outline-variant/40 hover:border-outline-variant rounded-xl p-3.5 flex flex-col justify-between cursor-pointer transition-colors shadow-sm"
-          >
-            <div className="flex items-center gap-1.5 mb-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-error"></span>
-              <span className="text-xs font-medium text-on-surface-variant">Active SOS</span>
-            </div>
-            <div className="flex items-baseline gap-1.5 mt-auto">
-              <span className="font-sans text-2xl font-semibold text-on-surface">{kpis.active_sos}</span>
-            </div>
-          </div>
-
-          {/* 2. CRITICAL SOS */}
-          <div 
-            onClick={() => onNavigate?.('sos')}
-            className="bg-surface border border-outline-variant/40 hover:border-outline-variant rounded-xl p-3.5 flex flex-col justify-between cursor-pointer transition-colors shadow-sm"
-          >
-            <div className="flex items-center gap-1.5 mb-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-error/50"></span>
-              <span className="text-xs font-medium text-on-surface-variant">Critical SOS</span>
-            </div>
-            <div className="flex items-baseline gap-1.5 mt-auto">
-              <span className="font-sans text-2xl font-semibold text-error">{kpis.critical_sos}</span>
-            </div>
-          </div>
-
-          {/* 3. ASSISTANCE REQUIRED */}
-          <div 
-            onClick={() => onNavigate?.('sos')}
-            className="bg-surface border border-outline-variant/40 hover:border-outline-variant rounded-xl p-3.5 flex flex-col justify-between cursor-pointer transition-colors shadow-sm"
-          >
-            <div className="flex items-center gap-1.5 mb-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-              <span className="text-xs font-medium text-on-surface-variant">Assistance</span>
-            </div>
-            <div className="flex items-baseline gap-1.5 mt-auto">
-              <span className="font-sans text-2xl font-semibold text-amber-500">{kpis.assistance_required}</span>
-            </div>
-          </div>
-
-          {/* 4. SAFE CONFIRMED */}
-          <div 
-            onClick={() => onNavigate?.('safeverify')}
-            className="bg-surface border border-outline-variant/40 hover:border-outline-variant rounded-xl p-3.5 flex flex-col justify-between cursor-pointer transition-colors shadow-sm"
-          >
-            <div className="flex items-center gap-1.5 mb-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-              <span className="text-xs font-medium text-on-surface-variant">Safe Verified</span>
-            </div>
-            <div className="flex items-baseline gap-1.5 mt-auto">
-              <span className="font-sans text-2xl font-semibold text-emerald-500">{kpis.safe_confirmed.toLocaleString()}</span>
-            </div>
-          </div>
-
-          {/* 5. UNACCOUNTED */}
-          <div 
-            onClick={() => onNavigate?.('safeverify')}
-            className="bg-surface border border-outline-variant/40 hover:border-outline-variant rounded-xl p-3.5 flex flex-col justify-between cursor-pointer transition-colors shadow-sm"
-          >
-            <div className="flex items-center gap-1.5 mb-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
-              <span className="text-xs font-medium text-on-surface-variant">Unaccounted</span>
-            </div>
-            <div className="flex items-baseline gap-1.5 mt-auto">
-              <span className="font-sans text-2xl font-semibold text-purple-400">{kpis.unaccounted}</span>
-            </div>
-          </div>
-
-          {/* 6. TOTAL AFFECTED PEOPLE */}
-          <div 
-            onClick={() => onNavigate?.('map')}
-            className="bg-surface border border-outline-variant/40 hover:border-outline-variant rounded-xl p-3.5 flex flex-col justify-between cursor-pointer transition-colors shadow-sm"
-          >
-            <div className="flex items-center gap-1.5 mb-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-gray-500"></span>
-              <span className="text-xs font-medium text-on-surface-variant">Affected Pax</span>
-            </div>
-            <div className="flex items-baseline gap-1.5 mt-auto">
-              <span className="font-sans text-2xl font-semibold text-on-surface">{kpis.total_affected_people.toLocaleString()}</span>
-            </div>
-          </div>
-
-          {/* 7. ACTIVE INCIDENTS */}
-          <div 
-            onClick={() => onNavigate?.('map')}
-            className="bg-surface border border-outline-variant/40 hover:border-outline-variant rounded-xl p-3.5 flex flex-col justify-between cursor-pointer transition-colors shadow-sm"
-          >
-            <div className="flex items-center gap-1.5 mb-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
-              <span className="text-xs font-medium text-on-surface-variant">Incidents</span>
-            </div>
-            <div className="flex items-baseline gap-1.5 mt-auto">
-              <span className="font-sans text-2xl font-semibold text-primary">{kpis.active_incidents}</span>
-            </div>
-          </div>
-
+        {/* The four figures the duty officer reports upward. Everything else is
+            detail and lives in the strip below. */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 border border-outline-variant rounded-lg bg-surface lg:divide-x lg:divide-outline-variant">
+          {headline.map((m, i) => (
+            <button
+              key={m.label}
+              onClick={() => onNavigate?.(m.to)}
+              className={`text-left px-4 py-3.5 hover:bg-surface-container-high transition-colors ${
+                i < 2 ? 'border-b border-outline-variant lg:border-b-0' : ''
+              } ${i % 2 === 0 ? 'border-r border-outline-variant lg:border-r-0' : ''}`}
+            >
+              <span className="block text-[11px] text-on-surface-variant">{m.label}</span>
+              <span className={`block mt-1 text-[26px] leading-none font-semibold tabular-nums ${m.tone}`}>
+                {m.value.toLocaleString()}
+              </span>
+              <span className="block mt-1.5 text-[11px] text-on-surface-variant">{m.note}</span>
+            </button>
+          ))}
         </div>
 
-        {/* Secondary Row: Shelters, Logistics & Offline Telemetry */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-10 gap-3">
-          
-          {/* 8. OPEN SHELTERS */}
-          <div 
-            onClick={() => onNavigate?.('resources')}
-            className="bg-surface border border-outline-variant/40 hover:border-outline-variant rounded-xl p-3 flex flex-col justify-between cursor-pointer transition-colors shadow-sm"
-          >
-            <span className="text-[11px] font-medium text-on-surface-variant mb-1">Open Shelters</span>
-            <span className="font-sans text-lg font-semibold text-emerald-500">{kpis.open_shelters}</span>
-          </div>
-
-          {/* 9. SHELTER OCCUPANCY */}
-          <div 
-            onClick={() => onNavigate?.('resources')}
-            className="bg-surface border border-outline-variant/40 hover:border-outline-variant rounded-xl p-3 flex flex-col justify-between cursor-pointer transition-colors shadow-sm"
-          >
-            <span className="text-[11px] font-medium text-on-surface-variant mb-1">Shelter Load</span>
-            <div className="flex flex-col gap-1.5">
-              <span className="font-sans text-lg font-semibold text-primary leading-none">{kpis.shelter_occupancy_percent}%</span>
-              <div className="w-full bg-surface-container-lowestest h-1 rounded-full overflow-hidden">
-                <div className="bg-primary h-full transition-all duration-500" style={{ width: `${Math.min(100, kpis.shelter_occupancy_percent)}%` }}></div>
+        {/* Logistics readout. Dense on purpose — these get scanned, not studied. */}
+        <div className="border border-outline-variant rounded-lg bg-surface px-4 py-3">
+          <div className="flex flex-wrap items-start gap-x-7 gap-y-3">
+            <div className="min-w-[116px]">
+              <span className="block text-[10px] text-on-surface-variant">Shelter load</span>
+              <div className="mt-1 flex items-baseline gap-2">
+                <span className="text-sm font-semibold text-on-surface tabular-nums">{kpis.shelter_occupancy_percent}%</span>
+                <span className="text-[11px] text-on-surface-variant tabular-nums">
+                  {kpis.total_shelter_occupancy.toLocaleString()}/{kpis.total_shelter_capacity.toLocaleString()}
+                </span>
+              </div>
+              <div className="mt-1.5 h-1 w-full rounded-full bg-surface-container-high overflow-hidden">
+                <div
+                  className={`h-full transition-all duration-500 ${
+                    kpis.shelter_occupancy_percent > 90 ? 'bg-error' : 'bg-primary'
+                  }`}
+                  style={{ width: `${Math.min(100, kpis.shelter_occupancy_percent)}%` }}
+                />
               </div>
             </div>
-          </div>
 
-          {/* 10. AVAILABLE AMBULANCES */}
-          <div 
-            onClick={() => onNavigate?.('resources')}
-            className="bg-surface border border-outline-variant/40 hover:border-outline-variant rounded-xl p-3 flex flex-col justify-between cursor-pointer transition-colors shadow-sm"
-          >
-            <span className="text-[11px] font-medium text-on-surface-variant mb-1">Avail Amb.</span>
-            <span className="font-sans text-lg font-semibold text-emerald-500">{kpis.available_ambulances}</span>
+            {logistics.map((m) => (
+              <button key={m.label} onClick={() => onNavigate?.(m.to)} className="text-left group">
+                <span className="block text-[10px] text-on-surface-variant">{m.label}</span>
+                <span className="mt-1 flex items-baseline gap-1">
+                  <span className={`text-sm font-semibold tabular-nums ${m.tone}`}>{m.value}</span>
+                  {m.of !== undefined && (
+                    <span className="text-[11px] text-on-surface-variant tabular-nums">/ {m.of}</span>
+                  )}
+                </span>
+                <span className="block mt-0.5 h-px w-full bg-transparent group-hover:bg-outline-variant transition-colors" />
+              </button>
+            ))}
           </div>
-
-          {/* 11. DISPATCHED AMBULANCES */}
-          <div 
-            onClick={() => onNavigate?.('resources')}
-            className="bg-surface border border-outline-variant/40 hover:border-outline-variant rounded-xl p-3 flex flex-col justify-between cursor-pointer transition-colors shadow-sm"
-          >
-            <span className="text-[11px] font-medium text-on-surface-variant mb-1">Disp. Amb.</span>
-            <span className="font-sans text-lg font-semibold text-amber-500">{kpis.dispatched_ambulances}</span>
-          </div>
-
-          {/* 12. AVAILABLE RESCUE TEAMS */}
-          <div 
-            onClick={() => onNavigate?.('resources')}
-            className="bg-surface border border-outline-variant/40 hover:border-outline-variant rounded-xl p-3 flex flex-col justify-between cursor-pointer transition-colors shadow-sm"
-          >
-            <span className="text-[11px] font-medium text-on-surface-variant mb-1">Avail Teams</span>
-            <span className="font-sans text-lg font-semibold text-emerald-500">{kpis.available_rescue_teams}</span>
-          </div>
-
-          {/* 13. ACTIVE RESCUE TEAMS */}
-          <div 
-            onClick={() => onNavigate?.('resources')}
-            className="bg-surface border border-outline-variant/40 hover:border-outline-variant rounded-xl p-3 flex flex-col justify-between cursor-pointer transition-colors shadow-sm"
-          >
-            <span className="text-[11px] font-medium text-on-surface-variant mb-1">Active Teams</span>
-            <span className="font-sans text-lg font-semibold text-amber-500">{kpis.active_rescue_teams}</span>
-          </div>
-
-          {/* 14. AVAILABLE BOATS */}
-          <div 
-            onClick={() => onNavigate?.('resources')}
-            className="bg-surface border border-outline-variant/40 hover:border-outline-variant rounded-xl p-3 flex flex-col justify-between cursor-pointer transition-colors shadow-sm"
-          >
-            <span className="text-[11px] font-medium text-on-surface-variant mb-1">Avail Boats</span>
-            <span className="font-sans text-lg font-semibold text-primary">{kpis.available_boats}</span>
-          </div>
-
-          {/* 15. AVAILABLE MEDICAL TEAMS */}
-          <div 
-            onClick={() => onNavigate?.('resources')}
-            className="bg-surface border border-outline-variant/40 hover:border-outline-variant rounded-xl p-3 flex flex-col justify-between cursor-pointer transition-colors shadow-sm"
-          >
-            <span className="text-[11px] font-medium text-on-surface-variant mb-1">Med Teams</span>
-            <span className="font-sans text-lg font-semibold text-emerald-500">{kpis.available_medical_teams}</span>
-          </div>
-
-          {/* 16. PENDING SYNCHRONIZATION */}
-          <div 
-            onClick={() => onNavigate?.('sos')}
-            className="bg-surface border border-outline-variant/40 hover:border-outline-variant rounded-xl p-3 flex flex-col justify-between cursor-pointer transition-colors shadow-sm"
-          >
-            <span className="text-[11px] font-medium text-on-surface-variant mb-1">Pending Sync</span>
-            <span className="font-sans text-lg font-semibold text-secondary">{kpis.pending_synchronization}</span>
-          </div>
-
-          {/* 17. AVERAGE SOS DELIVERY TIME */}
-          <div 
-            onClick={() => onNavigate?.('sos')}
-            className="bg-surface border border-outline-variant/40 hover:border-outline-variant rounded-xl p-3 flex flex-col justify-between cursor-pointer transition-colors shadow-sm"
-          >
-            <span className="text-[11px] font-medium text-on-surface-variant mb-1">Avg Delivery</span>
-            <span className="font-sans text-lg font-semibold text-primary">{kpis.average_sos_delivery_time}</span>
-          </div>
-
         </div>
       </section>
 
@@ -356,7 +279,7 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigate }) => {
                 <button
                   onClick={() => setFloodZonesActive(!floodZonesActive)}
                   className={`px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs rounded transition-colors cursor-pointer ${
-                    floodZonesActive ? 'bg-primary/20 text-primary font-bold' : 'text-on-surface-variant hover:text-on-surface'
+                    floodZonesActive ? 'bg-primary/20 text-on-primary-container font-bold' : 'text-on-surface-variant hover:text-on-surface'
                   }`}
                 >
                   Flood Zones
@@ -364,7 +287,7 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigate }) => {
                 <button
                   onClick={() => setEvacRoutesActive(!evacRoutesActive)}
                   className={`px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs rounded transition-colors cursor-pointer ${
-                    evacRoutesActive ? 'bg-primary/20 text-primary font-bold' : 'text-on-surface-variant hover:text-on-surface'
+                    evacRoutesActive ? 'bg-primary/20 text-on-primary-container font-bold' : 'text-on-surface-variant hover:text-on-surface'
                   }`}
                 >
                   Evac Routes
@@ -383,7 +306,7 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigate }) => {
                 </button>
                 <button
                   onClick={() => setDominoModalOpen(true)}
-                  className="px-2 sm:px-3 py-1 sm:py-1.5 rounded bg-error/10 backdrop-blur border border-error/20 text-error text-[10px] sm:text-xs hover:bg-error/20 transition-colors shadow font-bold cursor-pointer"
+                  className="px-2 sm:px-3 py-1 sm:py-1.5 rounded bg-error/10 backdrop-blur border border-error/20 text-on-error-container text-[10px] sm:text-xs hover:bg-error/20 transition-colors shadow font-bold cursor-pointer"
                 >
                   Cascading Domino Risk
                 </button>
@@ -406,12 +329,11 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigate }) => {
 
         {/* 3. SOS Live Stream (Center Right) */}
         <div className="col-span-12 xl:col-span-4 bg-surface border border-outline-variant/30 rounded-lg flex flex-col h-[500px]">
-          <div className="p-4 border-b border-outline-variant flex justify-between items-center">
-            <h2 className="font-sans font-semibold text-on-surface">Live Signals Stream</h2>
-            <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-error "></div>
-              <span className="text-xs text-on-surface-variant">{signals.length} Ingested</span>
-            </div>
+          <div className="p-4 border-b border-outline-variant flex justify-between items-baseline">
+            <h2 className="text-base font-semibold text-on-surface">Incoming signals</h2>
+            <span className="text-xs text-on-surface-variant tabular-nums">
+              {searchQuery ? `${filteredSignals.length} of ${signals.length}` : `${signals.length} ingested`}
+            </span>
           </div>
 
           <div className="p-2 border-b border-outline-variant">
@@ -424,71 +346,94 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigate }) => {
           </div>
 
           <div className="flex-1 overflow-y-auto p-2 space-y-1">
-            {filteredSignals.map((item) => {
-              const isSelected = selectedSignalId === item.id;
-              const isCritical = item.status === 'Critical';
-              return (
-                <div
-                  key={item.id}
-                  onClick={() => setSelectedSignalId(item.id)}
-                  className={`p-3 rounded-md cursor-pointer transition-colors border ${
-                    isSelected ? 'bg-surface-container-lowest border-outline-variant' : 'bg-transparent border-transparent hover:bg-surface-container-low'
-                  }`}
+            {filteredSignals.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center gap-1 px-6 text-center">
+                <span className="text-sm text-on-surface-variant">No signals match “{searchQuery}”</span>
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="text-xs text-primary hover:underline"
                 >
-                  <div className="flex justify-between items-start mb-1.5">
-                    <div className="flex items-center gap-2">
-                      <span className="font-data-value text-on-surface font-sans font-bold">{item.id}</span>
-                      {isCritical && <span className="w-1.5 h-1.5 rounded-full bg-error"></span>}
+                  Clear search
+                </button>
+              </div>
+            ) : (
+              filteredSignals.map((item) => {
+                const isSelected = selectedSignalId === item.id;
+                const isCritical = item.status === 'Critical';
+                return (
+                  <div
+                    key={item.id}
+                    onClick={() => setSelectedSignalId(item.id)}
+                    className={`p-3 rounded-md cursor-pointer transition-colors border ${
+                      isSelected ? 'bg-surface-container-lowest border-outline-variant' : 'bg-transparent border-transparent hover:bg-surface-container-low'
+                    }`}
+                  >
+                    <div className="flex justify-between items-start mb-1.5">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-on-surface">{item.id}</span>
+                        {isCritical && <span className="w-1.5 h-1.5 rounded-full bg-error"></span>}
+                      </div>
+                      <span className="text-[11px] text-on-surface-variant tabular-nums">Score {item.score}</span>
                     </div>
-                    <span className="font-data-value text-on-surface-variant text-[11px] font-sans">Score {item.score}</span>
+
+                    <div className="flex justify-between items-center mt-2 text-[11px] text-on-surface-variant">
+                      <span>{item.source} &middot; {item.people} pax</span>
+                      <span className="text-primary">{item.relay}</span>
+                    </div>
                   </div>
-                  
-                  <div className="flex justify-between items-center mt-2 text-[11px] text-on-surface-variant">
-                    <span>{item.source} • {item.people} pax</span>
-                    <span className="text-xs text-primary font-sans">{item.relay}</span>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
         </div>
 
         {/* 4. AI Priority Engine (Bottom Left) */}
         <div className="col-span-12 xl:col-span-4 bg-surface border border-outline-variant/30 rounded-xl p-5 flex flex-col justify-between shadow-sm">
           <div>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="font-sans text-lg font-semibold text-on-surface">Priority Triage (Domino-AI)</h2>
-              <span className="text-[10px] font-semibold text-primary uppercase tracking-wider">DETERMINISTIC XAI</span>
+            <div className="flex justify-between items-baseline mb-5">
+              <h2 className="text-base font-semibold text-on-surface">Priority triage</h2>
+              <span className="text-[11px] text-on-surface-variant">
+                {topCriticalSignal?.id ?? 'no active signal'}
+              </span>
             </div>
 
             <div className="flex items-center gap-6">
-              <div className="w-20 h-20 border-4 border-error/20 rounded-full flex items-center justify-center text-center bg-error/5 relative">
-                 <div className="absolute inset-0 border-4 border-error rounded-full" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 98%, 0 100%)' }}></div>
-                <span className="font-sans text-3xl text-error font-bold z-10">{topCriticalSignal?.score || 98}</span>
+              <div className="relative w-20 h-20 shrink-0">
+                <svg viewBox="0 0 36 36" className="w-20 h-20 -rotate-90">
+                  <circle
+                    cx="18" cy="18" r="15.9" fill="none" strokeWidth="3"
+                    stroke="currentColor" className="text-outline-variant"
+                  />
+                  <circle
+                    cx="18" cy="18" r="15.9" fill="none" strokeWidth="3" strokeLinecap="round"
+                    stroke="currentColor" className={triage.total >= 80 ? 'text-error' : 'text-tertiary'}
+                    pathLength={100} strokeDasharray={`${triage.total} 100`}
+                  />
+                </svg>
+                <span className="absolute inset-0 flex items-center justify-center text-2xl font-semibold tabular-nums text-on-surface">
+                  {triage.total}
+                </span>
               </div>
-              <div className="flex-1 space-y-3">
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-on-surface-variant font-medium">Medical Trauma</span>
-                  <span className="font-sans text-error font-semibold">+40 pts</span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-on-surface-variant font-medium">Cluster Population</span>
-                  <span className="font-sans text-amber-600 font-semibold">+30 pts</span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-on-surface-variant font-medium">SOS Latency Delta</span>
-                  <span className="font-sans text-primary font-semibold">+24 pts</span>
-                </div>
-              </div>
+
+              <dl className="flex-1 space-y-2.5 text-sm">
+                {triage.factors.map((f) => (
+                  <div key={f.label} className="flex justify-between items-baseline">
+                    <dt className="text-on-surface-variant">{f.label}</dt>
+                    <dd className="tabular-nums text-on-surface">
+                      {f.points > 0 ? `+${f.points}` : '—'}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
             </div>
           </div>
-          
+
           <button
             onClick={() => setDispatchIncidentId(topCriticalSignal?.id || 'INC-2026-PURI-01')}
             className="w-full mt-8 py-2.5 bg-primary hover:bg-primary/90 text-on-primary rounded-lg text-sm font-semibold transition-colors cursor-pointer shadow-sm flex items-center justify-center gap-2"
           >
             <span className="material-symbols-outlined text-[18px]">local_shipping</span>
-            Deploy Resources to {topCriticalSignal?.id || 'OD-7A92'}
+            Deploy to {topCriticalSignal?.id || 'OD-7A92'}
           </button>
         </div>
 
@@ -496,8 +441,8 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigate }) => {
         <div className="col-span-12 xl:col-span-4 bg-surface border border-outline-variant/30 rounded-xl p-5 flex flex-col justify-between shadow-sm">
           <div>
             <div className="flex justify-between items-center mb-6">
-              <h2 className="font-sans text-lg font-semibold text-on-surface">Automated IVR Telemetry</h2>
-              <span className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">{activeCampaign.title}</span>
+              <h2 className="text-base font-semibold text-on-surface">IVR check-in responses</h2>
+              <span className="text-[11px] text-on-surface-variant">{activeCampaign.title}</span>
             </div>
 
             <div className="space-y-3 mb-6">
@@ -518,19 +463,24 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigate }) => {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
-            <button onClick={() => recordDTMF('1')} className="bg-surface border border-outline-variant/50 hover:bg-surface-container-low p-3 rounded-lg text-center transition-colors cursor-pointer shadow-sm">
-              <span className="block text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-1">1 = SAFE</span>
-              <span className="font-sans text-lg text-emerald-600 font-bold">{activeCampaign.safeCount}</span>
-            </button>
-            <button onClick={() => recordDTMF('2')} className="bg-surface border border-outline-variant/50 hover:bg-surface-container-low p-3 rounded-lg text-center transition-colors cursor-pointer shadow-sm">
-              <span className="block text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-1">2 = ASSIST</span>
-              <span className="font-sans text-lg text-amber-600 font-bold">{activeCampaign.foodWaterCount}</span>
-            </button>
-            <button onClick={() => recordDTMF('3')} className="bg-surface border border-outline-variant/50 hover:bg-surface-container-low p-3 rounded-lg text-center transition-colors cursor-pointer shadow-sm">
-              <span className="block text-[10px] font-semibold text-error uppercase tracking-wider mb-1">3 = TRAPPED</span>
-              <span className="font-sans text-lg text-error font-bold">{activeCampaign.medicalCount}</span>
-            </button>
+          <div className="grid grid-cols-4 gap-2">
+            {[
+              { key: '1' as const, label: 'Safe', value: activeCampaign.safeCount, tone: 'text-secondary' },
+              { key: '2' as const, label: 'Supplies', value: activeCampaign.foodWaterCount, tone: 'text-tertiary' },
+              { key: '3' as const, label: 'Trapped', value: activeCampaign.trappedCount, tone: 'text-error' },
+              { key: '4' as const, label: 'Medical', value: activeCampaign.medicalCount, tone: 'text-error' }
+            ].map((k) => (
+              <button
+                key={k.key}
+                onClick={() => recordDTMF(k.key)}
+                className="bg-surface border border-outline-variant/50 hover:bg-surface-container-low p-3 rounded-lg text-center transition-colors cursor-pointer shadow-sm"
+              >
+                <span className="block text-[10px] text-on-surface-variant mb-1">
+                  {k.key} &middot; {k.label}
+                </span>
+                <span className={`text-lg font-bold tabular-nums ${k.tone}`}>{k.value.toLocaleString()}</span>
+              </button>
+            ))}
           </div>
         </div>
 

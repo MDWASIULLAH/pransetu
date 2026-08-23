@@ -49,7 +49,7 @@ export const Register: React.FC<RegisterProps> = ({ onNavigateToLogin }) => {
       <div className="absolute inset-0 z-0 bg-gradient-to-t from-background via-transparent to-background pointer-events-none"></div>
 
       {/* Registration Card Container */}
-      <main className="relative z-10 w-full max-w-lg px-margin-mobile md:px-0 py-stack-lg flex flex-col gap-4 sm:gap-stack-lg">
+      <main className="relative z-10 w-full max-w-lg px-4 md:px-0 py-stack-lg flex flex-col gap-4 sm:gap-stack-lg">
         {/* Branding Header */}
         <div className="text-center flex flex-col items-center gap-1">
           <div className="h-16 w-16 bg-surface-container-lowest rounded-full border border-outline-variant/30 flex items-center justify-center mb-2 shadow-[0_0_15px_rgba(190,198,224,0.1)]">
@@ -61,7 +61,7 @@ export const Register: React.FC<RegisterProps> = ({ onNavigateToLogin }) => {
             </span>
           </div>
           <h1 className="font-sans text-2xl md:text-3xl font-bold text-primary tracking-tight">
-            PRANSETU S
+            PRANSETU
           </h1>
           <p className="text-sm text-xs text-on-surface-variant uppercase tracking-widest">
             Operator Registration Protocol
@@ -84,7 +84,7 @@ export const Register: React.FC<RegisterProps> = ({ onNavigateToLogin }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex flex-col gap-1">
                 <label
-                  className="text-xs text-xs text-on-surface-variant uppercase font-sans"
+                  className="text-xs text-on-surface-variant uppercase font-sans"
                   htmlFor="fullName"
                 >
                   Full Legal Name
@@ -102,13 +102,13 @@ export const Register: React.FC<RegisterProps> = ({ onNavigateToLogin }) => {
 
               <div className="flex flex-col gap-1">
                 <label
-                  className="text-xs text-xs text-on-surface-variant uppercase font-sans"
+                  className="text-xs text-on-surface-variant uppercase font-sans"
                   htmlFor="badgeId"
                 >
                   Gov Badge ID
                 </label>
                 <input
-                  className="bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-sm text-xs sm:text-sm rounded-lg px-3 py-2 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors font-data-value"
+                  className="bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-sm text-xs sm:text-sm rounded-lg px-3 py-2 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors tabular-nums"
                   id="badgeId"
                   placeholder="OD-EOC-####"
                   required
@@ -122,7 +122,7 @@ export const Register: React.FC<RegisterProps> = ({ onNavigateToLogin }) => {
             {/* Department Dropdown */}
             <div className="flex flex-col gap-1">
               <label
-                className="text-xs text-xs text-on-surface-variant uppercase font-sans"
+                className="text-xs text-on-surface-variant uppercase font-sans"
                 htmlFor="department"
               >
                 Assigned Agency / Department
@@ -154,7 +154,7 @@ export const Register: React.FC<RegisterProps> = ({ onNavigateToLogin }) => {
             {/* Access Role Dropdown */}
             <div className="flex flex-col gap-1">
               <label
-                className="text-xs text-xs text-on-surface-variant uppercase font-sans"
+                className="text-xs text-on-surface-variant uppercase font-sans"
                 htmlFor="accessRole"
               >
                 Requested Access Role
@@ -186,7 +186,7 @@ export const Register: React.FC<RegisterProps> = ({ onNavigateToLogin }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex flex-col gap-1">
                 <label
-                  className="text-xs text-xs text-on-surface-variant uppercase font-sans"
+                  className="text-xs text-on-surface-variant uppercase font-sans"
                   htmlFor="phone"
                 >
                   Secure Comm Number
@@ -196,7 +196,7 @@ export const Register: React.FC<RegisterProps> = ({ onNavigateToLogin }) => {
                     call
                   </span>
                   <input
-                    className="w-full bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-sm text-xs sm:text-sm rounded-lg pl-9 pr-3 py-2 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors font-data-value"
+                    className="w-full bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-sm text-xs sm:text-sm rounded-lg pl-9 pr-3 py-2 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors tabular-nums"
                     id="phone"
                     placeholder="+91"
                     required
@@ -209,7 +209,7 @@ export const Register: React.FC<RegisterProps> = ({ onNavigateToLogin }) => {
 
               <div className="flex flex-col gap-1">
                 <label
-                  className="text-xs text-xs text-on-surface-variant uppercase font-sans"
+                  className="text-xs text-on-surface-variant uppercase font-sans"
                   htmlFor="email"
                 >
                   Official Email
@@ -232,12 +232,12 @@ export const Register: React.FC<RegisterProps> = ({ onNavigateToLogin }) => {
             </div>
 
             {/* Verification Notice (Callout) */}
-            <div className="mt-1 bg-surface-variant border border-outline-variant/30 rounded-lg p-3 flex items-start gap-3">
+            <div className="mt-1 bg-surface-container border border-outline-variant/30 rounded-lg p-3 flex items-start gap-3">
               <span className="material-symbols-outlined text-secondary text-[20px] shrink-0 mt-0.5">
                 policy
               </span>
               <div>
-                <p className="font-data-value text-xs font-bold text-on-surface mb-0.5">
+                <p className="tabular-nums text-xs font-bold text-on-surface mb-0.5">
                   Authorization Required
                 </p>
                 <p className="text-sm text-[11px] text-on-surface-variant leading-relaxed">
@@ -252,10 +252,10 @@ export const Register: React.FC<RegisterProps> = ({ onNavigateToLogin }) => {
                 disabled={isSubmitting}
                 className={`w-full font-sans text-sm font-bold rounded-lg py-3 flex justify-center items-center gap-2 active:scale-[0.98] transition-all cursor-pointer ${
                   isSuccess
-                    ? 'bg-[#14532d] text-[#86efac]'
+                    ? 'bg-secondary text-on-secondary'
                     : isSubmitting
                     ? 'bg-primary opacity-80 pointer-events-none text-on-primary'
-                    : 'bg-primary text-on-primary hover:bg-primary-fixed'
+                    : 'bg-primary text-on-primary hover:bg-primary/90'
                 }`}
                 type="submit"
               >
@@ -283,7 +283,7 @@ export const Register: React.FC<RegisterProps> = ({ onNavigateToLogin }) => {
                   <button
                     type="button"
                     onClick={onNavigateToLogin}
-                    className="text-primary hover:text-primary-fixed underline decoration-primary/50 underline-offset-4 transition-colors font-data-value font-bold ml-1 cursor-pointer"
+                    className="text-primary hover:text-primary/80 underline decoration-primary/50 underline-offset-4 transition-colors tabular-nums font-bold ml-1 cursor-pointer"
                   >
                     Authenticate Here
                   </button>
@@ -294,7 +294,7 @@ export const Register: React.FC<RegisterProps> = ({ onNavigateToLogin }) => {
         </div>
 
         {/* Footer / Meta Info */}
-        <div className="text-center text-xs text-xs text-outline flex items-center justify-center gap-2 font-sans">
+        <div className="text-center text-xs text-outline flex items-center justify-center gap-2 font-sans">
           <span className="material-symbols-outlined text-[14px]">lock</span>
           SECURE END-TO-END ENCRYPTION (AES-256)
         </div>
