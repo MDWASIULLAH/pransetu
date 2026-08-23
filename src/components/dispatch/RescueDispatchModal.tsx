@@ -311,55 +311,59 @@ export const RescueDispatchModal: React.FC<RescueDispatchModalProps> = ({ incide
       <div className="bg-surface border border-outline-variant/30 rounded-xl w-full max-w-4xl shadow-lg max-h-[92vh] flex flex-col overflow-hidden text-on-surface text-sm">
         
         {/* Modal Header */}
-        <div className="p-4 sm:p-5 border-b border-outline-variant bg-surface-container-lowest flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-secondary/15 border border-secondary/30 flex items-center justify-center text-on-secondary-container">
-              <span className="material-symbols-outlined text-[24px]">rocket_launch</span>
+        <div className="p-4 sm:p-5 border-b border-outline-variant bg-surface-container-lowest flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="flex items-start sm:items-center gap-3">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-secondary/15 border border-secondary/30 flex items-center justify-center text-on-secondary-container shrink-0">
+              <span className="material-symbols-outlined text-[24px] sm:text-[28px]">rocket_launch</span>
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="font-sans font-bold text-base sm:text-lg text-on-surface">Tactical Rescue Dispatch</h2>
-                <span className="bg-error/15 text-on-error-container border border-error/30 px-2 py-0.5 rounded font-sans text-[10px] font-bold">
-                  PRIORITY {incidentInfo.priority_score}/100
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="font-sans font-bold text-lg sm:text-xl text-on-surface tracking-tight">Tactical Rescue Dispatch</h2>
+                <span className="bg-error/15 text-on-error-container border border-error/30 px-2.5 py-0.5 rounded-full font-sans text-[10px] font-black uppercase tracking-wider shadow-sm">
+                  Priority {incidentInfo.priority_score}/100
                 </span>
               </div>
-              <p className="text-xs text-on-surface-variant font-sans mt-0.5">
-                Incident {incidentInfo.incident_id} • {incidentInfo.district} ({incidentInfo.coordinates})
+              <p className="text-xs text-on-surface-variant font-sans mt-1 flex items-center gap-1.5 flex-wrap">
+                <span className="font-semibold text-on-surface">#{incidentInfo.incident_id}</span>
+                <span className="w-1 h-1 rounded-full bg-outline-variant"></span>
+                <span>{incidentInfo.district}</span>
+                <span className="w-1 h-1 rounded-full bg-outline-variant"></span>
+                <span className="font-mono text-[11px] bg-surface-container px-1.5 rounded">{incidentInfo.coordinates}</span>
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 justify-between w-full lg:w-auto">
             {/* View Tabs */}
-            <div className="flex bg-surface border border-outline-variant/30 p-1 rounded-lg">
+            <div className="flex bg-surface-container-low border border-outline-variant/30 p-1.5 rounded-xl overflow-x-auto [&::-webkit-scrollbar]:hidden w-full lg:w-auto shadow-inner">
               <button
                 onClick={() => setActiveTab('dispatch')}
-                className={`px-3 py-1 rounded text-xs font-semibold transition-colors ${
-                  activeTab === 'dispatch' ? 'bg-primary text-on-primary shadow' : 'text-on-surface-variant hover:text-on-surface'
+                className={`px-3 sm:px-4 py-2 rounded-lg text-[11px] sm:text-xs font-bold transition-all whitespace-nowrap ${
+                  activeTab === 'dispatch' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
                 }`}
               >
-                1. Pre-Dispatch &amp; Recommendations
+                1. Intelligence &amp; Dispatch
               </button>
               <button
                 onClick={() => setActiveTab('active_operations')}
-                className={`px-3 py-1 rounded text-xs font-semibold transition-colors ${
-                  activeTab === 'active_operations' ? 'bg-primary text-on-primary shadow' : 'text-on-surface-variant hover:text-on-surface'
+                className={`px-3 sm:px-4 py-2 rounded-lg text-[11px] sm:text-xs font-bold transition-all whitespace-nowrap ${
+                  activeTab === 'active_operations' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
                 }`}
               >
-                2. Live Operations ({activeAssignments.length})
+                2. Live Ops ({activeAssignments.length})
               </button>
               <button
                 onClick={() => setActiveTab('audit')}
-                className={`px-3 py-1 rounded text-xs font-semibold transition-colors ${
-                  activeTab === 'audit' ? 'bg-primary text-on-primary shadow' : 'text-on-surface-variant hover:text-on-surface'
+                className={`px-3 sm:px-4 py-2 rounded-lg text-[11px] sm:text-xs font-bold transition-all whitespace-nowrap ${
+                  activeTab === 'audit' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
                 }`}
               >
-                3. Audit Trail
+                3. Audit Log
               </button>
             </div>
 
-            <button onClick={onClose} className="text-on-surface-variant hover:text-on-surface p-1 rounded-lg">
-              <span className="material-symbols-outlined">close</span>
+            <button onClick={onClose} className="text-on-surface-variant hover:text-on-surface hover:bg-error/10 hover:text-error hover:border-error/30 p-2 bg-surface-container-low rounded-xl border border-outline-variant/30 shrink-0 self-start transition-colors">
+              <span className="material-symbols-outlined text-[20px] block">close</span>
             </button>
           </div>
         </div>
@@ -372,55 +376,60 @@ export const RescueDispatchModal: React.FC<RescueDispatchModalProps> = ({ incide
             <div className="space-y-6 animate-in fade-in">
               
               {/* Pre-Dispatch Incident Intelligence Telemetry Bar */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-surface-container-lowest p-3.5 rounded-xl border border-outline-variant/30 text-xs">
-                <div>
-                  <span className="text-on-surface-variant block text-[10px] uppercase">Victims Affected</span>
-                  <strong className="text-on-surface text-sm tabular-nums">{incidentInfo.people_affected} People</strong>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 bg-surface-container-lowest p-4 rounded-2xl border border-outline-variant/40 text-xs shadow-sm">
+                <div className="bg-surface p-3.5 rounded-xl border border-outline-variant/20 flex flex-col justify-center">
+                  <span className="text-on-surface-variant block text-[10px] uppercase font-bold tracking-wider mb-1.5 flex items-center gap-1.5"><span className="material-symbols-outlined text-[14px]">groups</span> Victims Affected</span>
+                  <strong className="text-on-surface text-base sm:text-lg tabular-nums font-black leading-none">{incidentInfo.people_affected} <span className="text-sm font-semibold text-on-surface-variant">People</span></strong>
                 </div>
-                <div>
-                  <span className="text-on-surface-variant block text-[10px] uppercase">Medical Requirement</span>
-                  <strong className={incidentInfo.medical_required ? 'text-on-error-container text-sm' : 'text-on-surface-variant text-sm'}>
-                    {incidentInfo.medical_required ? 'Urgent trauma' : 'None reported'}
+                <div className="bg-surface p-3.5 rounded-xl border border-outline-variant/20 flex flex-col justify-center">
+                  <span className="text-on-surface-variant block text-[10px] uppercase font-bold tracking-wider mb-1.5 flex items-center gap-1.5"><span className="material-symbols-outlined text-[14px]">local_hospital</span> Medical Requirement</span>
+                  <strong className={incidentInfo.medical_required ? 'text-on-error-container text-base sm:text-lg font-black leading-none' : 'text-on-surface-variant text-base font-bold leading-none'}>
+                    {incidentInfo.medical_required ? 'Urgent Trauma' : 'None Reported'}
                   </strong>
                 </div>
-                <div>
-                  <span className="text-on-surface-variant block text-[10px] uppercase">Hazard Condition</span>
-                  <strong className="text-on-tertiary-container text-sm truncate block" title={incidentInfo.hazard_severity}>{incidentInfo.hazard_severity}</strong>
+                <div className="bg-surface p-3.5 rounded-xl border border-outline-variant/20 flex flex-col justify-center overflow-hidden">
+                  <span className="text-on-surface-variant block text-[10px] uppercase font-bold tracking-wider mb-1.5 flex items-center gap-1.5"><span className="material-symbols-outlined text-[14px]">warning</span> Hazard Condition</span>
+                  <strong className="text-on-tertiary-container text-sm sm:text-base font-black leading-tight break-words" title={incidentInfo.hazard_severity}>{incidentInfo.hazard_severity}</strong>
                 </div>
-                <div>
-                  <span className="text-on-surface-variant block text-[10px] uppercase">GPS Confidence</span>
-                  <strong className="text-on-secondary-container text-sm tabular-nums">{incidentInfo.location_accuracy}</strong>
+                <div className="bg-surface p-3.5 rounded-xl border border-outline-variant/20 flex flex-col justify-center">
+                  <span className="text-on-surface-variant block text-[10px] uppercase font-bold tracking-wider mb-1.5 flex items-center gap-1.5"><span className="material-symbols-outlined text-[14px]">my_location</span> GPS Confidence</span>
+                  <strong className="text-on-secondary-container text-base sm:text-lg tabular-nums font-black leading-none">{incidentInfo.location_accuracy}</strong>
                 </div>
               </div>
 
               {/* Available Fleet Readiness Counters */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 {[
-                  { icon: 'ambulance', label: 'Ambulances', n: inventory.ambulances },
-                  { icon: 'shield', label: 'NDRF Teams', n: inventory.rescue_teams },
-                  { icon: 'directions_boat', label: 'Rescue Boats', n: inventory.boats },
-                  { icon: 'medical_services', label: 'Medical Squads', n: inventory.medical_teams },
+                  { icon: 'ambulance', label: 'Ambulances', n: inventory.ambulances, color: 'text-error' },
+                  { icon: 'shield', label: 'NDRF Teams', n: inventory.rescue_teams, color: 'text-primary' },
+                  { icon: 'directions_boat', label: 'Rescue Boats', n: inventory.boats, color: 'text-secondary' },
+                  { icon: 'medical_services', label: 'Medical Squads', n: inventory.medical_teams, color: 'text-tertiary' },
                 ].map(c => (
-                  <div key={c.label} className="bg-surface-container p-3 rounded-lg border border-outline-variant/30 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[18px] text-on-surface-variant">{c.icon}</span>
-                      <span className="text-xs font-semibold">{c.label}</span>
+                  <div key={c.label} className="bg-surface-container p-4 rounded-xl border border-outline-variant/30 flex items-center justify-between shadow-sm transition-all hover:bg-surface-container-high group cursor-default">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-full bg-surface flex items-center justify-center border border-outline-variant/20 shadow-sm shrink-0 group-hover:scale-110 transition-transform">
+                        <span className={`material-symbols-outlined text-[20px] ${c.color}`}>{c.icon}</span>
+                      </div>
+                      <span className="text-sm font-bold text-on-surface tracking-tight">{c.label}</span>
                     </div>
-                    <span className="font-semibold text-on-secondary-container tabular-nums">{c.n} Ready</span>
+                    <div className="flex flex-col items-end">
+                      <span className="font-black text-on-surface tabular-nums text-xl leading-none">{c.n}</span>
+                      <span className="text-[9px] text-on-surface-variant uppercase font-black tracking-widest mt-1">Ready</span>
+                    </div>
                   </div>
                 ))}
               </div>
 
               {/* Deterministic AI Recommendations */}
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-xs uppercase text-on-surface-variant flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-secondary text-[16px]">psychology</span>
-                    Deterministic AI Recommendations (Explainable Rules)
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-secondary/5 p-3.5 rounded-xl border border-secondary/20">
+                  <h3 className="font-black text-xs uppercase text-on-secondary-container flex items-center gap-2 tracking-wide">
+                    <span className="material-symbols-outlined text-secondary text-[20px]">psychology</span>
+                    Deterministic AI Recommendations
                   </h3>
-                  <span className="text-[10px] text-on-tertiary-container flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[13px]">warning</span>
-                    Requires coordinator confirmation
+                  <span className="text-[10px] text-on-surface-variant flex items-center gap-1.5 bg-surface px-2.5 py-1.5 rounded-lg border border-outline-variant/30 font-bold shadow-sm w-fit">
+                    <span className="material-symbols-outlined text-[14px] text-error">warning</span>
+                    Requires Coordinator Confirmation
                   </span>
                 </div>
 
