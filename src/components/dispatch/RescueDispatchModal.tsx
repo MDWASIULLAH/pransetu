@@ -496,32 +496,37 @@ export const RescueDispatchModal: React.FC<RescueDispatchModalProps> = ({ incide
                   </div>
                 </div>
 
-                <div>
-                  <label className="text-xs text-on-surface-variant uppercase block mb-1 text-xs font-medium">Deployment Tactical Notes &amp; Channel Instructions</label>
-                  <input
-                    type="text"
+                <div className="pt-2">
+                  <label className="text-[10px] sm:text-xs text-on-surface-variant font-bold tracking-wider uppercase block mb-2">
+                    Deployment Tactical Notes &amp; Channel Instructions
+                  </label>
+                  <textarea
                     value={dispatchNotes}
                     onChange={(e) => setDispatchNotes(e.target.value)}
-                    className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded p-2.5 text-xs text-on-surface focus:outline-none focus:border-primary font-sans"
+                    placeholder="E.g., Immediate multi-agency emergency deployment authorized. Use radio channel 4."
+                    className="w-full bg-surface border border-outline-variant/50 rounded-xl p-3.5 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all font-sans resize-none shadow-sm"
+                    rows={3}
                     required
                   />
                 </div>
 
-                <div className="flex items-center justify-between pt-3 border-t border-outline-variant">
-                  <span className="text-[11px] text-on-surface-variant flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-[16px] text-on-secondary-container">verified_user</span>
-                    <span>Dispatched by an authorized rescue coordinator — logged to the audit trail.</span>
-                  </span>
+                <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-4 pt-5 mt-2 border-t border-outline-variant/40">
+                  <div className="text-[10px] sm:text-[11px] text-on-surface-variant flex items-center justify-center sm:justify-start gap-2 w-full sm:w-auto text-center sm:text-left bg-surface-container-lowest sm:bg-transparent p-2.5 sm:p-0 rounded-lg border border-outline-variant/20 sm:border-none">
+                    <span className="material-symbols-outlined text-[16px] text-primary">verified_user</span>
+                    <span>Dispatched by authorized coordinator. Logged to audit trail.</span>
+                  </div>
 
-                  <div className="flex gap-3">
-                    <button type="button" onClick={onClose} className="px-4 py-2 bg-surface-container border border-outline-variant/30 rounded text-xs">Cancel</button>
+                  <div className="flex items-center gap-2.5 w-full sm:w-auto">
+                    <button type="button" onClick={onClose} className="flex-1 sm:flex-none px-4 py-3 sm:py-2.5 bg-surface hover:bg-surface-container-high border border-outline-variant/50 rounded-xl text-sm font-bold text-on-surface-variant transition-colors shadow-sm">
+                      Cancel
+                    </button>
                     <button
                       type="submit"
                       disabled={isSubmitting || selectedAssetIds.length === 0}
-                      className="px-6 py-2 bg-secondary hover:bg-secondary/90 text-on-secondary font-bold rounded-lg flex items-center gap-2 text-xs shadow-lg disabled:opacity-30 cursor-pointer"
+                      className="flex-[2] sm:flex-none px-5 py-3 sm:py-2.5 bg-secondary hover:bg-secondary/90 text-on-secondary font-black rounded-xl flex items-center justify-center gap-2 text-sm shadow-md hover:shadow-lg disabled:opacity-30 disabled:hover:shadow-md transition-all cursor-pointer"
                     >
-                      <span className="material-symbols-outlined text-[16px]">send</span>
-                      Confirm &amp; Authorize Dispatch ({selectedAssetIds.length})
+                      <span className="material-symbols-outlined text-[18px]">send</span>
+                      <span>Authorize ({selectedAssetIds.length})</span>
                     </button>
                   </div>
                 </div>
