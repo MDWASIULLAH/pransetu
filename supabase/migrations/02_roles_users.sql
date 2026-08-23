@@ -1,10 +1,15 @@
-CREATE TYPE user_role AS ENUM (
-    'SUPER_ADMIN',
-    'DISASTER_MANAGEMENT_OFFICER',
-    'EOC_OPERATOR',
-    'RESCUE_COORDINATOR',
-    'OBSERVER'
-);
+-- Idempotent enum creation: CREATE TYPE has no IF NOT EXISTS form, so the
+-- canonical guard is a DO block that swallows duplicate_object.
+DO $$ BEGIN
+    CREATE TYPE user_role AS ENUM (
+        'SUPER_ADMIN',
+        'DISASTER_MANAGEMENT_OFFICER',
+        'EOC_OPERATOR',
+        'RESCUE_COORDINATOR',
+        'OBSERVER'
+    );
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 CREATE TABLE IF NOT EXISTS public.users (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -24,6 +29,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS update_users_modtime ON public.users;
 CREATE TRIGGER update_users_modtime
 BEFORE UPDATE ON public.users
 FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
@@ -62,6 +68,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+DROP TRIGGER IF EXISTS on_user_role_change ON public.users;
 CREATE TRIGGER on_user_role_change
 AFTER INSERT OR UPDATE ON public.users
 FOR EACH ROW EXECUTE PROCEDURE sync_role_to_jwt();

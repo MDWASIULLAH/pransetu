@@ -31,10 +31,12 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Attach triggers to critical tables
+DROP TRIGGER IF EXISTS audit_sos_events ON public.sos_events;
 CREATE TRIGGER audit_sos_events
 AFTER INSERT OR UPDATE OR DELETE ON public.sos_events
 FOR EACH ROW EXECUTE PROCEDURE audit_trigger_func();
 
+DROP TRIGGER IF EXISTS audit_incidents ON public.incidents;
 CREATE TRIGGER audit_incidents
 AFTER INSERT OR UPDATE OR DELETE ON public.incidents
 FOR EACH ROW EXECUTE PROCEDURE audit_trigger_func();

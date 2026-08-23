@@ -43,7 +43,7 @@ def login_user(
         "iat": int(now.timestamp()),
         "exp": int((now + timedelta(hours=12)).timestamp())
     }
-    access_token = jwt.encode(token_payload, settings.SUPABASE_JWT_SECRET, algorithm="HS256")
+    access_token = jwt.encode(token_payload, settings.legacy_supabase_secret, algorithm="HS256")
 
     # Record Audit Event
     log_audit_event(

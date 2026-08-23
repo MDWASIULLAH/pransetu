@@ -30,7 +30,7 @@ def create_mock_token(role: str) -> str:
         "sub": "user-123",
         "app_metadata": {"role": role}
     }
-    return jwt.encode(payload, settings.SUPABASE_JWT_SECRET, algorithm="HS256")
+    return jwt.encode(payload, settings.legacy_supabase_secret, algorithm="HS256")
 
 def test_observer_data_masking():
     client = TestClient(app)

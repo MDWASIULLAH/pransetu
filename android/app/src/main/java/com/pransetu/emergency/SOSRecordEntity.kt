@@ -9,7 +9,8 @@ import java.util.Date
 @Entity(tableName = "sos_records")
 @TypeConverters(Converters::class)
 data class SOSRecordEntity(
-    @PrimaryKey val id: String, 
+    @PrimaryKey val sosId: String, 
+    val protocolVersion: String = "1.0",
     val deviceId: String,
     val source: String = "ANDROID",
     // Sensitive data is encrypted so intermediate relay nodes cannot read it
@@ -41,12 +42,14 @@ class Converters {
 
 // Internal class used strictly before encryption or after decryption
 data class SOSPayload(
-    val lat: Double,
-    val lng: Double,
+    val latitude: Double,
+    val longitude: Double,
     val accuracyM: Float,
     val locationTimestamp: Long,
     val peopleCount: Int,
     val medicalRequired: Boolean,
     val severity: String,
-    val notes: String = ""
+    val message: String = "",
+    val userId: String? = null,
+    val phoneReference: String? = null
 )

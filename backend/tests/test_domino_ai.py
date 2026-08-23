@@ -12,7 +12,7 @@ def create_test_token(role: str, user_id: str = "test-officer-id") -> str:
         "sub": user_id,
         "app_metadata": {"role": role}
     }
-    return jwt.encode(payload, settings.SUPABASE_JWT_SECRET, algorithm="HS256")
+    return jwt.encode(payload, settings.legacy_supabase_secret, algorithm="HS256")
 
 def test_domino_ai_cascade_full_chain_and_metadata():
     mock_supabase = MagicMock()

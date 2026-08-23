@@ -83,6 +83,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Bind the trigger BEFORE INSERT so we can mutate NEW.incident_id
+DROP TRIGGER IF EXISTS trigger_sos_clustering ON public.sos_events;
 CREATE TRIGGER trigger_sos_clustering
 BEFORE INSERT ON public.sos_events
 FOR EACH ROW EXECUTE PROCEDURE process_sos_clustering();

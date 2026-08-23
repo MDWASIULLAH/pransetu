@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS public.resource_audit_logs (
     notes TEXT
 );
 
-CREATE INDEX resource_audit_logs_resource_id_idx ON public.resource_audit_logs(resource_id);
+CREATE INDEX IF NOT EXISTS resource_audit_logs_resource_id_idx ON public.resource_audit_logs(resource_id);
 
 -- Optional: Clean up old enums if they aren't used elsewhere
 -- DROP TYPE IF EXISTS resource_type CASCADE;

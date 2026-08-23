@@ -23,7 +23,7 @@ class GatewaySyncWorker(
     private val api: PRANSETUApi by lazy {
         Retrofit.Builder()
             // In a real environment, this should be configurable via BuildConfig or User settings
-            .baseUrl("https://pransetu.example.com")
+            .baseUrl("https://pransetu-v1.vercel.app")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(PRANSETUApi::class.java)
@@ -45,13 +45,13 @@ class GatewaySyncWorker(
                 
                 val response = api.uploadSOS(uploadPacket)
                 if (response["status"] == "success") {
-                    database.sosDao().updateDeliveryState(packet.id, "SERVER_DELIVERED")
-                    Log.i("GatewaySync", "Successfully synced SOS packet ${packet.id} to Server.")
+                    database.sosDao().updateDeliveryState(packet.sosId, "SERVER_DELIVERED")
+                    Log.i("GatewaySync", "Successfully synced SOS packet ${packet.sosId} to Server.")
                 } else {
                     allSuccess = false
                 }
             } catch (e: Exception) {
-                Log.e("GatewaySync", "Failed to upload packet ${packet.id} to FastAPI backend", e)
+                Log.e("GatewaySync", "Failed to upload packet ${packet.sosId} to FastAPI backend", e)
                 allSuccess = false
             }
         }

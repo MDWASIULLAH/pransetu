@@ -15,7 +15,7 @@ def require_permissions(required_permissions: List[str]) -> Callable:
             # Verify the JWT using the Supabase project JWT secret
             payload = jwt.decode(
                 token, 
-                settings.SUPABASE_JWT_SECRET, 
+                settings.legacy_supabase_secret, 
                 algorithms=["HS256"],
                 options={"verify_aud": False} # Supabase aud is usually "authenticated"
             )

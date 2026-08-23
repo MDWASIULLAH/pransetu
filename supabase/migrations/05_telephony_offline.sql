@@ -1,4 +1,6 @@
-CREATE TYPE safe_verify_state AS ENUM ('SAFE', 'ASSISTANCE', 'TRAPPED', 'MEDICAL', 'UNACCOUNTED');
+DO $$ BEGIN
+    CREATE TYPE safe_verify_state AS ENUM ('SAFE', 'ASSISTANCE', 'TRAPPED', 'MEDICAL', 'UNACCOUNTED');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 CREATE TABLE IF NOT EXISTS public.voice_campaigns (
     id TEXT PRIMARY KEY,
@@ -33,4 +35,4 @@ CREATE TABLE IF NOT EXISTS public.relay_events (
     rssi FLOAT,
     battery_level FLOAT
 );
-CREATE INDEX relay_events_sos_idx ON public.relay_events(sos_id);
+CREATE INDEX IF NOT EXISTS relay_events_sos_idx ON public.relay_events(sos_id);

@@ -23,21 +23,22 @@ export const SOSInjector = () => {
     const lng = baseLng + (Math.random() - 0.5) * 0.05;
 
     const newSOS: SOSRecord = {
-      id: `OD-${Math.random().toString(36).substr(2, 7)}`.toUpperCase(),
-      deviceId: `device-${Math.random().toString(36).substr(2, 5)}`,
+      sos_id: `OD-${Math.random().toString(36).substr(2, 7)}`.toUpperCase(),
+      protocol_version: '1.0',
+      device_id: `device-${Math.random().toString(36).substr(2, 5)}`,
       source: 'ANDROID',
-      lat,
-      lng,
-      accuracyM: Math.floor(Math.random() * 20) + 5,
-      locationTimestamp: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      peopleCount,
-      medicalRequired: medical,
+      latitude: lat,
+      longitude: lng,
+      accuracy_m: Math.floor(Math.random() * 20) + 5,
+      location_timestamp: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+      people_count: peopleCount,
+      medical_required: medical,
       severity,
-      hopCount: 0,
+      hop_count: 0,
       ttl: 86400,
-      deliveryState: 'SERVER_DELIVERED',
-      incidentId: district === 'Puri' ? 'INC-011' : 'INC-018'
+      delivery_state: 'SERVER_DELIVERED',
+      incident_id: district === 'Puri' ? 'INC-011' : 'INC-018'
     };
 
     injectSOS(newSOS);

@@ -12,23 +12,43 @@ import uuid
 router = APIRouter()
 
 async def verify_twilio_signature(request: Request, x_twilio_signature: str = Header(None)):
-    if not x_twilio_signature and settings.TWILIO_AUTH_TOKEN != "your-twilio-auth-token-here":
+    """Verify that an IVR webhook genuinely originated from Twilio.
+
+    Three distinct states, made explicit. The previous version keyed its bypass on
+    the auth token still equalling the literal placeholder
+    "your-twilio-auth-token-here", which meant a deployment that had simply never
+    set the variable accepted *any* unsigned request as authentic — anyone able to
+    reach this URL could inject emergency records. The bypass now depends on the
+    environment, not on a magic string, and is refused outright in production.
+    """
+    token = settings.TWILIO_AUTH_TOKEN
+
+    if not token:
+        if settings.is_production:
+            # Fail closed. An unverifiable webhook in production is not a
+            # degraded feature, it is an open ingestion endpoint.
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="IVR ingestion is unavailable: request signature verification is not configured.",
+            )
+        # Development and demo: accept unsigned requests so the IVR flow can be
+        # exercised without Twilio credentials.
+        return True
+
+    if not x_twilio_signature:
         raise HTTPException(status_code=403, detail="Missing Twilio Signature")
-        
-    validator = RequestValidator(settings.TWILIO_AUTH_TOKEN)
+
+    validator = RequestValidator(token)
     url = str(request.url)
-    
-    # Twilio validator expects https if behind a proxy
+
+    # Twilio signs the public URL, so a proxy-terminated TLS hop has to be
+    # reconstructed before the signature will match.
     if url.startswith("http://") and "localhost" not in url:
         url = url.replace("http://", "https://")
-        
+
     form_data = await request.form()
     post_vars = dict(form_data)
-    
-    # If the token is dummy for testing, skip validation
-    if settings.TWILIO_AUTH_TOKEN == "your-twilio-auth-token-here":
-        return True
-        
+
     if not validator.validate(url, post_vars, x_twilio_signature):
         raise HTTPException(status_code=403, detail="Invalid Twilio Signature")
     return True
@@ -110,7 +130,7 @@ async def ingest_ivr_webhook(
                 location_wkt = user_profile.data[0]["last_known_location"]
                 
             sos_payload = {
-                "id": f"IVR-{call_sid}",
+                "sos_id": f"IVR-{call_sid}",
                 "device_id": caller_id,
                 "source": SOSSource.IVR,
                 "location": location_wkt, # Strictly enforced policy: null if unknown
@@ -122,7 +142,7 @@ async def ingest_ivr_webhook(
                 "hop_count": 0,
                 "ttl": 24,
                 "citizen_phone": caller_id,
-                "notes": f"Generated from IVR Campaign {campaign_id}"
+                "message": f"Generated from IVR Campaign {campaign_id}"
             }
             supabase.table('sos_events').upsert(sos_payload, on_conflict="device_id,source,location_timestamp").execute()
             

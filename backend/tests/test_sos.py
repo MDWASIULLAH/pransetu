@@ -8,7 +8,7 @@ from app.core.db import get_supabase_client
 def setup_supabase_mock():
     mock_client = MagicMock()
     mock_response = MagicMock()
-    mock_response.data = [{"id": "TEST-ID"}]
+    mock_response.data = [{"sos_id": "TEST-ID"}]
     
     mock_table = MagicMock()
     mock_table.upsert.return_value.execute.return_value = mock_response
@@ -25,11 +25,11 @@ def setup_supabase_mock():
 def test_create_sos_android_valid():
     client = TestClient(app)
     payload = {
-        "id": "TEST-ID",
+        "sos_id": "TEST-ID",
         "device_id": "DEVICE-A",
         "source": "ANDROID",
-        "lat": 20.2961,
-        "lng": 85.8245,
+        "latitude": 20.2961,
+        "longitude": 85.8245,
         "accuracy_m": 15.0,
         "location_timestamp": "2026-08-21T10:00:00Z",
         "people_count": 2,
@@ -39,14 +39,14 @@ def test_create_sos_android_valid():
     response = client.post("/api/v1/sos/android", json=payload)
     assert response.status_code == 201
     assert response.json()["status"] == "success"
-    assert response.json()["id"] == "TEST-ID"
+    assert response.json()["sos_id"] == "TEST-ID"
 
 def test_create_sos_invalid_payload():
     client = TestClient(app)
     payload = {
-        "id": "TEST-ID",
-        "lat": 20.2961,
-        "lng": 85.8245
+        "sos_id": "TEST-ID",
+        "latitude": 20.2961,
+        "longitude": 85.8245
     }
     response = client.post("/api/v1/sos/android", json=payload)
     assert response.status_code == 422
@@ -74,11 +74,11 @@ def test_ivr_webhook_safe():
 def test_duplicate_sos_idempotency():
     client = TestClient(app)
     payload = {
-        "id": "OD-DUP",
+        "sos_id": "OD-DUP",
         "device_id": "DEVICE-B",
         "source": "ANDROID",
-        "lat": 20.0,
-        "lng": 85.0,
+        "latitude": 20.0,
+        "longitude": 85.0,
         "accuracy_m": 5.0,
         "location_timestamp": "2026-08-21T10:00:00Z"
     }

@@ -24,26 +24,31 @@ class SOSSource(str, Enum):
     EXTERNAL = 'EXTERNAL'
 
 class SOSRecordCreate(BaseModel):
-    id: str = Field(description="Unique identifier generated at source")
+    sos_id: str = Field(description="Unique identifier generated at source")
+    protocol_version: str = Field(default="1.0", description="Schema protocol version")
     device_id: str = Field(description="Originating device identifier")
     source: SOSSource = Field(description="Source of the SOS packet")
-    lat: float = Field(description="Latitude")
-    lng: float = Field(description="Longitude")
+    latitude: float = Field(description="Latitude")
+    longitude: float = Field(description="Longitude")
     accuracy_m: float = Field(description="Location accuracy in meters")
     location_timestamp: datetime = Field(description="Timestamp when the location was recorded")
     people_count: int = Field(default=1, description="Number of people involved")
     medical_required: bool = Field(default=False, description="Whether medical assistance is required")
     severity: SOSSeverity = Field(default=SOSSeverity.MEDIUM, description="Self-reported severity")
-    hop_count: int = Field(default=0, description="Number of LoRa hops taken")
+    message: Optional[str] = Field(default=None, description="Optional text message")
+    hop_count: int = Field(default=0, description="Number of hops taken")
     ttl: int = Field(default=24, description="Time to live or max hops")
     relay_trail: Optional[List[str]] = Field(default=[], description="Path of nodes traversed")
-    notes: Optional[str] = None
-    citizen_phone: Optional[str] = None
+    
+    # Optional sensitive fields
+    user_id: Optional[str] = None
+    phone_reference: Optional[str] = None
 
 class SOSRecordResponse(SOSRecordCreate):
     created_at: datetime
     delivery_state: DeliveryState
     incident_id: Optional[str] = None
+    priority_score: Optional[int] = Field(default=None, description="Computed priority 0-100")
     acknowledged_by: Optional[str] = None
 
     class Config:

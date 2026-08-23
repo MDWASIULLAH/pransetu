@@ -37,10 +37,11 @@ def create_sos_android(
 ):
     """Ingests an SOS event originating from the Android app with deduplication."""
     data = sos_data.model_dump()
-    location_wkt = f"SRID=4326;POINT({data['lng']} {data['lat']})"
+    location_wkt = f"SRID=4326;POINT({data['longitude']} {data['latitude']})"
     
     payload = {
-        "id": data["id"],
+        "sos_id": data["sos_id"],
+        "protocol_version": data["protocol_version"],
         "device_id": data["device_id"],
         "source": "ANDROID",
         "location": location_wkt,
@@ -52,8 +53,9 @@ def create_sos_android(
         "hop_count": data["hop_count"],
         "ttl": data["ttl"],
         "relay_trail": data["relay_trail"],
-        "notes": data["notes"],
-        "citizen_phone": data["citizen_phone"],
+        "message": data["message"],
+        "user_id": data.get("user_id"),
+        "phone_reference": data.get("phone_reference"),
     }
     
     try:
@@ -65,7 +67,7 @@ def create_sos_android(
         if not response.data:
             raise HTTPException(status_code=500, detail="Failed to ingest SOS")
             
-        return {"status": "success", "id": response.data[0]["id"], "idempotent": True}
+        return {"status": "success", "sos_id": response.data[0]["sos_id"], "idempotent": True}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -90,7 +92,7 @@ def acknowledge_sos(
     response = supabase.table('sos_events').update({
         "acknowledged_by": user_info["uid"],
         "delivery_state": "CLOSED"
-    }).eq("id", sos_id).execute()
+    }).eq("sos_id", sos_id).execute()
     
     if not response.data:
         raise HTTPException(status_code=404, detail="SOS not found")
@@ -120,7 +122,7 @@ def escalate_sos(
     response = supabase.table('sos_events').update({
         "severity": "CRITICAL",
         "escalated_by": user_info["uid"]
-    }).eq("id", sos_id).execute()
+    }).eq("sos_id", sos_id).execute()
 
     if not response.data:
         raise HTTPException(status_code=404, detail="SOS not found")

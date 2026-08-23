@@ -12,23 +12,31 @@ export type DeliveryState =
 export type SOSSource = 'ANDROID' | 'IVR' | 'EXTERNAL';
 
 export interface SOSRecord {
-  id: string; // e.g. OD-7A92F31
-  deviceId: string;
+  sos_id: string; // e.g. OD-7A92F31
+  protocol_version: string;
+  device_id: string;
   source: SOSSource;
-  lat: number;
-  lng: number;
-  accuracyM: number;
-  locationTimestamp: string;
-  createdAt: string;
-  peopleCount: number;
-  medicalRequired: boolean;
+  latitude: number;
+  longitude: number;
+  accuracy_m: number;
+  location_timestamp: string;
+  created_at: string;
+  people_count: number;
+  medical_required: boolean;
   severity: SOSSeverity;
-  hopCount: number;
+  message?: string;
+  hop_count: number;
   ttl: number;
-  deliveryState: DeliveryState;
-  incidentId?: string; // Associated spatial/operational cluster
-  relayTrail?: string[]; // Timestamped delivery path or just devices
-  acknowledgedBy?: string; // user id
-  notes?: string;
-  citizenPhone?: string; // Could be masked based on role
+  delivery_state: DeliveryState;
+  incident_id?: string; // Associated spatial/operational cluster
+  priority_score?: number; // Computed priority 0-100
+  relay_trail?: string[]; // Timestamped delivery path or just devices
+  acknowledged_by?: string; // user id
+  
+  // Sensitive/optional
+  user_id?: string;
+  phone_reference?: string;
+  user_name?: string;
+  user_phone?: string;
+  user_email?: string;
 }

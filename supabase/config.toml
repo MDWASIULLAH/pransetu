@@ -1,0 +1,58 @@
+# Supabase CLI configuration for PRANSETU.
+#
+# This file's only hard requirement is that it exist and parse: `supabase db push`
+# aborts with "cannot find project ref / config" before running a single migration
+# without it. That was the first blocker in the way of applying the schema.
+#
+# IMPORTANT — scope of this file: everything below configures the *local*
+# development stack (`supabase start`). It does NOT reconfigure a hosted project.
+# Settings for the live project are changed in the Supabase dashboard. The one
+# thing that does cross over is the migration history in supabase/migrations/,
+# which `supabase db push --db-url ...` applies to whatever database you point it at.
+
+# Local label for this project. `supabase link` rewrites this with the real
+# project ref; it does not need to match anything for `db push --db-url` to work.
+project_id = "pransetu"
+
+[api]
+enabled = true
+port = 54321
+# `extensions` is required in the search path because 01_extensions.sql installs
+# PostGIS into public but Supabase relocates extension objects.
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+# The command-centre KPI queries aggregate over full tables; the default cap of
+# 1000 would silently truncate those reads.
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+# Must match the hosted project's Postgres version if you use local dev or
+# `supabase db diff`. Newly provisioned Supabase projects are on 17; change this
+# to 15 if `supabase projects list` reports an older instance.
+major_version = 17
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+site_url = "http://localhost:5190"
+additional_redirect_urls = ["http://localhost:5190"]
+# Access tokens issued by Supabase are only used at the moment of password
+# verification — the backend immediately exchanges them for its own session
+# token, so this expiry is not what governs an operator's session length.
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+
+# No public self-registration: operator accounts are created only by an
+# administrator approving an access request. The backend provisions them with
+# auth.admin.create_user(), which is unaffected by this toggle — so turning
+# signup off closes the public path without closing the administrative one.
+enable_signup = false
+
+[auth.email]
+enable_signup = false
+enable_confirmations = false

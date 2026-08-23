@@ -1,7 +1,15 @@
-CREATE TYPE incident_status AS ENUM ('ACTIVE', 'RESCUE_DISPATCHED', 'RESOLVED');
-CREATE TYPE resource_status AS ENUM ('AVAILABLE', 'EN_ROUTE', 'ON_SITE', 'COMPLETED', 'UNAVAILABLE');
-CREATE TYPE resource_type AS ENUM ('RESCUE_TEAM', 'AMBULANCE', 'BOAT', 'MEDICAL_TEAM');
-CREATE TYPE shelter_status AS ENUM ('OPERATIONAL', 'FULL', 'CLOSED');
+DO $$ BEGIN
+    CREATE TYPE incident_status AS ENUM ('ACTIVE', 'RESCUE_DISPATCHED', 'RESOLVED');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN
+    CREATE TYPE resource_status AS ENUM ('AVAILABLE', 'EN_ROUTE', 'ON_SITE', 'COMPLETED', 'UNAVAILABLE');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN
+    CREATE TYPE resource_type AS ENUM ('RESCUE_TEAM', 'AMBULANCE', 'BOAT', 'MEDICAL_TEAM');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN
+    CREATE TYPE shelter_status AS ENUM ('OPERATIONAL', 'FULL', 'CLOSED');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 CREATE TABLE IF NOT EXISTS public.incidents (
     id TEXT PRIMARY KEY,
@@ -20,11 +28,12 @@ CREATE TABLE IF NOT EXISTS public.incidents (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+DROP TRIGGER IF EXISTS update_incidents_modtime ON public.incidents;
 CREATE TRIGGER update_incidents_modtime
 BEFORE UPDATE ON public.incidents
 FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
 
-CREATE INDEX incidents_location_idx ON public.incidents USING GIST (location);
+CREATE INDEX IF NOT EXISTS incidents_location_idx ON public.incidents USING GIST (location);
 
 CREATE TABLE IF NOT EXISTS public.resources (
     id TEXT PRIMARY KEY,
@@ -41,11 +50,12 @@ CREATE TABLE IF NOT EXISTS public.resources (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+DROP TRIGGER IF EXISTS update_resources_modtime ON public.resources;
 CREATE TRIGGER update_resources_modtime
 BEFORE UPDATE ON public.resources
 FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
 
-CREATE INDEX resources_location_idx ON public.resources USING GIST (location);
+CREATE INDEX IF NOT EXISTS resources_location_idx ON public.resources USING GIST (location);
 
 CREATE TABLE IF NOT EXISTS public.shelters (
     id TEXT PRIMARY KEY,
@@ -61,11 +71,12 @@ CREATE TABLE IF NOT EXISTS public.shelters (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+DROP TRIGGER IF EXISTS update_shelters_modtime ON public.shelters;
 CREATE TRIGGER update_shelters_modtime
 BEFORE UPDATE ON public.shelters
 FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
 
-CREATE INDEX shelters_location_idx ON public.shelters USING GIST (location);
+CREATE INDEX IF NOT EXISTS shelters_location_idx ON public.shelters USING GIST (location);
 
 CREATE TABLE IF NOT EXISTS public.rescue_assignments (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -84,4 +95,4 @@ CREATE TABLE IF NOT EXISTS public.disaster_zones (
     severity sos_severity NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-CREATE INDEX disaster_zones_polygon_idx ON public.disaster_zones USING GIST (polygon);
+CREATE INDEX IF NOT EXISTS disaster_zones_polygon_idx ON public.disaster_zones USING GIST (polygon);

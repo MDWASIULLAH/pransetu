@@ -41,21 +41,22 @@ export const OfflineRelaySimulator = () => {
             addLog('FastAPI: Packet received, validated, inserted to Supabase.');
             
             const newSOS: SOSRecord = {
-              id: `OD-${Math.random().toString(36).substr(2, 7)}`.toUpperCase(),
-              deviceId: 'phone-a-hashed',
+              sos_id: `OD-${Math.random().toString(36).substr(2, 7)}`.toUpperCase(),
+              protocol_version: '1.0',
+              device_id: 'phone-a-hashed',
               source: 'ANDROID',
-              lat: 19.85,
-              lng: 85.80,
-              accuracyM: 12,
-              locationTimestamp: new Date(Date.now() - 600000).toISOString(),
-              createdAt: new Date(Date.now() - 600000).toISOString(), // 10 mins ago
-              peopleCount: 3,
-              medicalRequired: true,
+              latitude: 19.85,
+              longitude: 85.80,
+              accuracy_m: 12,
+              location_timestamp: new Date(Date.now() - 600000).toISOString(),
+              created_at: new Date(Date.now() - 600000).toISOString(), // 10 mins ago
+              people_count: 3,
+              medical_required: true,
               severity: 'CRITICAL',
-              hopCount: 3,
+              hop_count: 3,
               ttl: 86400,
-              deliveryState: 'SERVER_DELIVERED',
-              relayTrail: ['Phone A', 'Phone B', 'Phone C', 'Gateway']
+              delivery_state: 'SERVER_DELIVERED',
+              relay_trail: ['Phone A', 'Phone B', 'Phone C', 'Gateway']
             };
             
             injectSOS(newSOS);

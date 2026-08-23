@@ -1,6 +1,12 @@
-CREATE TYPE sos_severity AS ENUM ('CRITICAL', 'HIGH', 'MEDIUM', 'LOW');
-CREATE TYPE delivery_state AS ENUM ('CREATED', 'STORED', 'RELAYING', 'RELAYED', 'GATEWAY_RECEIVED', 'SERVER_DELIVERED', 'CLOSED');
-CREATE TYPE sos_source AS ENUM ('ANDROID', 'IVR', 'EXTERNAL');
+DO $$ BEGIN
+    CREATE TYPE sos_severity AS ENUM ('CRITICAL', 'HIGH', 'MEDIUM', 'LOW');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN
+    CREATE TYPE delivery_state AS ENUM ('CREATED', 'STORED', 'RELAYING', 'RELAYED', 'GATEWAY_RECEIVED', 'SERVER_DELIVERED', 'CLOSED');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN
+    CREATE TYPE sos_source AS ENUM ('ANDROID', 'IVR', 'EXTERNAL');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 CREATE TABLE IF NOT EXISTS public.sos_events (
     id TEXT PRIMARY KEY,
@@ -27,5 +33,5 @@ CREATE TABLE IF NOT EXISTS public.sos_events (
 );
 
 -- Index for spatial queries
-CREATE INDEX sos_events_location_idx ON public.sos_events USING GIST (location);
-CREATE INDEX sos_events_created_at_idx ON public.sos_events(created_at);
+CREATE INDEX IF NOT EXISTS sos_events_location_idx ON public.sos_events USING GIST (location);
+CREATE INDEX IF NOT EXISTS sos_events_created_at_idx ON public.sos_events(created_at);

@@ -100,16 +100,16 @@ class MeshRelayEngine : Service() {
                     val record = gson.fromJson(meshPayload.data, SOSRecordEntity::class.java)
                     
                     // Always ACK receipt immediately so sender can stop retrying
-                    sendAck(endpointId, record.id)
+                    sendAck(endpointId, record.sosId)
                     
                     // Deduplication & Replay Protection
-                    val seen = database.seenPacketDao().hasSeenPacket(record.id)
+                    val seen = database.seenPacketDao().hasSeenPacket(record.sosId)
                     if (!seen) {
-                        database.seenPacketDao().insertSeenPacket(SeenPacketEntity(record.id))
+                        database.seenPacketDao().insertSeenPacket(SeenPacketEntity(record.sosId))
                         
                         // Loop Prevention: Drop if our device ID is already in the trail
                         if (record.relayTrail.contains(myDeviceId)) {
-                            Log.w("MeshRelay", "Dropped packet ${record.id} due to routing loop.")
+                            Log.w("MeshRelay", "Dropped packet ${record.sosId} due to routing loop.")
                             return@launch
                         }
 
@@ -124,7 +124,7 @@ class MeshRelayEngine : Service() {
                             )
                             database.sosDao().insertSOS(newRecord)
                         } else {
-                            Log.w("MeshRelay", "Dropped packet ${record.id} due to TTL limit.")
+                            Log.w("MeshRelay", "Dropped packet ${record.sosId} due to TTL limit.")
                         }
                     }
                 }

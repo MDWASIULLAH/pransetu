@@ -12,7 +12,7 @@ def create_test_token(role: str, user_id: str = "test-user-id") -> str:
         "sub": user_id,
         "app_metadata": {"role": role}
     }
-    return jwt.encode(payload, settings.SUPABASE_JWT_SECRET, algorithm="HS256")
+    return jwt.encode(payload, settings.legacy_supabase_secret, algorithm="HS256")
 
 def test_command_center_17_kpis_calculation():
     mock_supabase = MagicMock()

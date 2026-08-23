@@ -115,8 +115,8 @@ fun HomeScreen() {
                         val severity = if (medical) "CRITICAL" else "HIGH"
                         
                         val payload = SOSPayload(
-                            lat = 22.5726,
-                            lng = 88.3639,
+                            latitude = 22.5726,
+                            longitude = 88.3639,
                             accuracyM = gpsAccuracy,
                             locationTimestamp = System.currentTimeMillis() - (locationAgeSec * 1000),
                             peopleCount = people,
@@ -128,7 +128,8 @@ fun HomeScreen() {
                         val encrypted = EncryptionUtils.encrypt(jsonPayload)
 
                         val packet = SOSRecordEntity(
-                            id = UUID.randomUUID().toString(),
+                            sosId = UUID.randomUUID().toString(),
+                            protocolVersion = "1.0",
                             deviceId = "ANDROID-DEMO-DEVICE",
                             encryptedPayload = encrypted,
                             deliveryState = "STORED"

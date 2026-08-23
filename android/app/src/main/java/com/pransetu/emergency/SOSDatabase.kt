@@ -25,7 +25,7 @@ interface SOSDao {
     @Query("SELECT * FROM sos_records WHERE deliveryState IN ('STORED', 'RELAYED')")
     suspend fun getPendingUploads(): List<SOSRecordEntity>
     
-    @Query("UPDATE sos_records SET deliveryState = :newState WHERE id = :id")
+    @Query("UPDATE sos_records SET deliveryState = :newState WHERE sosId = :id")
     suspend fun updateDeliveryState(id: String, newState: String)
 }
 

@@ -15,7 +15,7 @@ def create_test_token(role: str, user_id: str = "test-officer-id") -> str:
         "sub": user_id,
         "app_metadata": {"role": role}
     }
-    return jwt.encode(payload, settings.SUPABASE_JWT_SECRET, algorithm="HS256")
+    return jwt.encode(payload, settings.legacy_supabase_secret, algorithm="HS256")
 
 # ==============================================================================
 # TEST 1 — REAL IVR END-TO-END ACCEPTANCE TEST
@@ -162,7 +162,7 @@ def test_acceptance_suite_2_offline_mesh_relay():
     # Gateway uploads to backend
     mock_upsert_res = MagicMock()
     mock_upsert_res.data = [{
-        "id": original_sos_id,
+        "sos_id": original_sos_id,
         "device_id": device_a,
         "source": "ANDROID",
         "hop_count": hop_count,
@@ -175,11 +175,11 @@ def test_acceptance_suite_2_offline_mesh_relay():
     mock_supabase.table.return_value.upsert.return_value.execute.return_value = mock_upsert_res
 
     payload = {
-        "id": original_sos_id,
+        "sos_id": original_sos_id,
         "device_id": device_a,
         "source": "ANDROID",
-        "lat": 19.8134,
-        "lng": 85.8312,
+        "latitude": 19.8134,
+        "longitude": 85.8312,
         "accuracy_m": 12.0,
         "location_timestamp": datetime.now(timezone.utc).isoformat(),
         "people_count": 6,
@@ -195,14 +195,14 @@ def test_acceptance_suite_2_offline_mesh_relay():
     assert upload_res.status_code == 201
     res_json = upload_res.json()
     assert res_json["status"] == "success"
-    assert res_json["id"] == original_sos_id
+    assert res_json["sos_id"] == original_sos_id
     assert res_json["idempotent"] is True
 
     # EOC verification: ensure data masking preserves trail but masks citizen privacy for observers
     obs_token = create_test_token(Role.OBSERVER.value, "obs-01")
     mock_select_res = MagicMock()
     mock_select_res.data = [{
-        "id": original_sos_id,
+        "sos_id": original_sos_id,
         "citizen_phone": "+919437012345",
         "location": "SRID=4326;POINT(85.8312 19.8134)",
         "hop_count": 3,
@@ -214,7 +214,7 @@ def test_acceptance_suite_2_offline_mesh_relay():
     list_res = client.get("/api/v1/sos/", headers={"Authorization": f"Bearer {obs_token}"})
     assert list_res.status_code == 200
     sos_record = list_res.json()["data"][0]
-    assert sos_record["id"] == original_sos_id
+    assert sos_record["sos_id"] == original_sos_id
     assert sos_record["hop_count"] == 3
     assert len(sos_record["relay_trail"]) == 4
     # Citizen phone masked for observer
@@ -247,15 +247,15 @@ def test_acceptance_suite_3_failures_and_invariants():
 
     # 1 & 2. Duplicate SOS & Duplicate Relay
     mock_upsert_res = MagicMock()
-    mock_upsert_res.data = [{"id": "OD-DUP-01"}]
+    mock_upsert_res.data = [{"sos_id": "OD-DUP-01"}]
     mock_supabase.table.return_value.upsert.return_value.execute.return_value = mock_upsert_res
 
     dup_payload = {
-        "id": "OD-DUP-01",
+        "sos_id": "OD-DUP-01",
         "device_id": "DEVICE-A",
         "source": "ANDROID",
-        "lat": 19.81,
-        "lng": 85.83,
+        "latitude": 19.81,
+        "longitude": 85.83,
         "accuracy_m": 10.0,
         "location_timestamp": "2026-08-21T12:00:00Z",
         "people_count": 2,
