@@ -33,8 +33,8 @@ export const SOSDetailDrawer = ({ sos, onClose, canMask = false }: SOSDetailDraw
   }, [sos.latitude, sos.longitude, isLive]);
 
   // Handle Identity
-  const userName = (sos as any).user_name || 'Unknown Citizen';
-  const rawPhone = (sos as any).contact_phone || (sos as any).phone || '+91 94370 88219';
+  const userName = (sos as any).userName || 'Unknown Citizen';
+  const rawPhone = (sos as any).userPhone || (sos as any).contactPhone || '+91 94370 88219';
   const displayPhone = canMask 
     ? rawPhone.replace(/(\+\d{2}\s?\d{2})\d{4}(\d{2})/, '$1****$2')
     : rawPhone;

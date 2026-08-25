@@ -336,7 +336,10 @@ const mapDatabaseToSOSSignal = (row: any): SOSSignal => {
     badgeBg: statusStr === 'Resolved' ? 'bg-surface-container-high' : (isCritical ? 'bg-error-container' : 'bg-tertiary-container'),
     badgeText: statusStr === 'Resolved' ? 'text-on-surface-variant' : (isCritical ? 'text-on-error-container' : 'text-on-tertiary-container'),
     scoreColor: statusStr === 'Resolved' ? 'text-on-surface-variant' : (isCritical ? 'text-error' : 'text-tertiary'),
-    relayPath: row.hopCount > 0 ? [`Node ${row.deviceIdentifier || 'Unknown'}`, 'Gateway'] : ['Direct API']
+    relayPath: row.hopCount > 0 ? [`Node ${row.deviceIdentifier || 'Unknown'}`, 'Gateway'] : ['Direct API'],
+    userName: row.userName,
+    userPhone: row.userPhone,
+    contactPhone: row.userPhone
   };
 };
 

@@ -466,49 +466,42 @@ export const RescueDispatchModal: React.FC<RescueDispatchModalProps> = ({ incide
           {activeTab === 'dispatch' && (
             <div className="space-y-5">
               
-              {/* Pre-Dispatch Incident Intelligence Telemetry Bar (Professional Redesign) */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 bg-surface-container-low p-4 rounded-xl border border-outline-variant/30 text-xs shadow-sm">
-                <div className="border-r border-outline-variant/30 pr-3">
-                  <span className="text-on-surface-variant block text-[10px] uppercase font-bold tracking-widest mb-1">Affected People</span>
-                  <strong className="text-on-surface text-xl tabular-nums font-black leading-none">{incidentInfo.people_affected} <span className="text-xs font-semibold text-on-surface-variant">Pax</span></strong>
+              {/* What we know about the incident */}
+              <div className="border border-outline-variant rounded-lg p-4 grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div>
+                  <div className="text-[11px] text-on-surface-variant">People affected</div>
+                  <div className="text-sm text-on-surface mt-1 tabular-nums">{incidentInfo.people_affected}</div>
                 </div>
-                <div className="lg:border-r border-outline-variant/30 px-0 lg:px-3">
-                  <span className="text-on-surface-variant block text-[10px] uppercase font-bold tracking-widest mb-1">Medical Needs</span>
-                  <strong className={incidentInfo.medical_required ? 'text-error text-base font-black leading-none' : 'text-on-surface-variant text-base font-bold leading-none'}>
-                    {incidentInfo.medical_required ? 'Urgent Trauma' : 'None Reported'}
-                  </strong>
+                <div>
+                  <div className="text-[11px] text-on-surface-variant">Medical</div>
+                  <div className={`text-sm mt-1 ${incidentInfo.medical_required ? 'text-error' : 'text-on-surface'}`}>
+                    {incidentInfo.medical_required ? 'Urgent trauma' : 'None reported'}
+                  </div>
                 </div>
-                <div className="border-r border-outline-variant/30 px-3 hidden lg:block">
-                  <span className="text-on-surface-variant block text-[10px] uppercase font-bold tracking-widest mb-1">Hazard Condition</span>
-                  <strong className="text-on-surface text-sm font-black leading-tight break-words">{incidentInfo.hazard_severity.replace(/_/g, ' ')}</strong>
+                <div>
+                  <div className="text-[11px] text-on-surface-variant">Hazard</div>
+                  <div className="text-sm text-on-surface mt-1">{readable(incidentInfo.hazard_severity) || 'Unknown'}</div>
                 </div>
-                <div className="pl-3 hidden lg:block">
-                  <span className="text-on-surface-variant block text-[10px] uppercase font-bold tracking-widest mb-1">GPS Confidence</span>
-                  <strong className="text-on-surface text-lg tabular-nums font-black leading-none">{incidentInfo.location_accuracy}</strong>
+                <div>
+                  <div className="text-[11px] text-on-surface-variant">Location accuracy</div>
+                  <div className="text-sm text-on-surface mt-1 tabular-nums">{incidentInfo.location_accuracy}</div>
                 </div>
               </div>
 
               {/* Available Fleet Readiness Counters */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                {[
-                  { icon: 'ambulance', label: 'Ambulances', n: inventory.ambulances, color: 'text-error' },
-                  { icon: 'shield', label: 'NDRF Teams', n: inventory.rescue_teams, color: 'text-primary' },
-                  { icon: 'directions_boat', label: 'Rescue Boats', n: inventory.boats, color: 'text-secondary' },
-                  { icon: 'medical_services', label: 'Medical Squads', n: inventory.medical_teams, color: 'text-tertiary' },
-                ].map(c => (
-                  <div key={c.label} className="bg-surface-container p-4 rounded-xl border border-outline-variant/30 flex items-center justify-between shadow-sm transition-all hover:bg-surface-container-high group cursor-default">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-surface flex items-center justify-center border border-outline-variant/20 shadow-sm shrink-0 group-hover:scale-110 transition-transform">
-                        <span className={`material-symbols-outlined text-[20px] ${c.color}`}>{c.icon}</span>
-                      </div>
-                      <span className="text-sm font-bold text-on-surface tracking-tight">{c.label}</span>
+              <div>
+                <div className="text-[11px] text-on-surface-variant mb-2">Available right now</div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {FLEET_ROWS.map(row => (
+                    <div key={row.key} className="border border-outline-variant rounded-lg px-3 py-2.5 flex items-center justify-between gap-2">
+                      <span className="flex items-center gap-2 min-w-0 text-xs text-on-surface-variant">
+                        <span className="material-symbols-outlined text-[16px] shrink-0">{row.icon}</span>
+                        <span className="truncate">{row.label}</span>
+                      </span>
+                      <span className="text-sm text-on-surface tabular-nums">{inventory[row.key]}</span>
                     </div>
-                    <div className="flex flex-col items-end">
-                      <span className="font-black text-on-surface tabular-nums text-xl leading-none">{c.n}</span>
-                      <span className="text-[9px] text-on-surface-variant uppercase font-black tracking-widest mt-1">Ready</span>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
 
               {/* Deterministic AI Recommendations */}
