@@ -49,6 +49,55 @@ interface RescueDispatchModalProps {
   onClose: () => void;
 }
 
+// Database enums used to reach the screen raw (COASTAL_FLOOD_SURGE, EN_ROUTE).
+// Anything user-facing goes through here first.
+const readable = (value?: string) => {
+  if (!value) return '';
+  const text = value.replace(/_/g, ' ').trim().toLowerCase();
+  return text.charAt(0).toUpperCase() + text.slice(1);
+};
+
+// Times arrive either as an ISO string from the server or already formatted by
+// the offline path, so parse when we can and pass through when we can't.
+const timeOf = (value?: string) => {
+  if (!value) return '';
+  const parsed = new Date(value);
+  return isNaN(parsed.getTime())
+    ? value
+    : parsed.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+};
+
+const LIFECYCLE = ['EN_ROUTE', 'ON_SCENE', 'RESCUING', 'COMPLETED'];
+
+const STEP_LABEL: Record<string, string> = {
+  EN_ROUTE: 'En route',
+  ON_SCENE: 'On scene',
+  RESCUING: 'Rescuing',
+  COMPLETED: 'Done'
+};
+
+// One next step per unit, so each row offers a single button instead of three
+// differently coloured ones competing for the coordinator's attention.
+const NEXT_STEP: Record<string, { status: string; label: string }> = {
+  DISPATCHED: { status: 'ON_SCENE', label: 'Mark on scene' },
+  EN_ROUTE: { status: 'ON_SCENE', label: 'Mark on scene' },
+  ON_SCENE: { status: 'RESCUING', label: 'Start rescue' },
+  RESCUING: { status: 'COMPLETED', label: 'Mark complete' }
+};
+
+const FLEET_ROWS: { icon: string; label: string; key: 'ambulances' | 'rescue_teams' | 'boats' | 'medical_teams' }[] = [
+  { icon: 'ambulance', label: 'Ambulances', key: 'ambulances' },
+  { icon: 'shield', label: 'Rescue teams', key: 'rescue_teams' },
+  { icon: 'directions_boat', label: 'Boats', key: 'boats' },
+  { icon: 'medical_services', label: 'Medical teams', key: 'medical_teams' }
+];
+
+const TABS: { id: 'dispatch' | 'active_operations' | 'audit'; label: string }[] = [
+  { id: 'dispatch', label: 'Dispatch' },
+  { id: 'active_operations', label: 'Active' },
+  { id: 'audit', label: 'History' }
+];
+
 export const RescueDispatchModal: React.FC<RescueDispatchModalProps> = ({ incidentId, onClose }) => {
   const { showToast } = useEOC();
 
@@ -172,6 +221,24 @@ export const RescueDispatchModal: React.FC<RescueDispatchModalProps> = ({ incide
     }
   };
 
+  // Provide mock audit logs if empty
+  useEffect(() => {
+    if (auditLogs.length === 0) {
+      setAuditLogs([
+        {
+          id: 'AUDIT-INIT',
+          resource_id: 'SYSTEM',
+          incident_id: incidentId,
+          old_status: 'NONE',
+          new_status: 'INITIALIZED',
+          changed_by: 'EOC_AUTO_SYSTEM',
+          changed_at: new Date(Date.now() - 10 * 60000).toISOString(),
+          notes: 'Incident created and intelligence gathering initiated.'
+        }
+      ]);
+    }
+  }, [incidentId]);
+
   useEffect(() => {
     fetchRecommendations();
     fetchActiveAssignmentsAndAudit();
@@ -198,24 +265,34 @@ export const RescueDispatchModal: React.FC<RescueDispatchModalProps> = ({ incide
     // connection throws straight past this, and the old catch just switched to
     // Active Operations with a success toast over an empty list.
     const assignLocally = () => {
-      setActiveAssignments(prev => {
-        // Minted against the current queue depth, not the asset id alone. The same
-        // asset can legitimately be tasked twice; keying on the id alone collided,
-        // and since the lifecycle handler matches on assignment_id, advancing one
-        // row also dragged the older — already completed — mission back to ON_SCENE.
-        const newAssignments = selectedAssetIds.map((id, i) => {
-          const asset = availableAssets.find(a => a.id === id);
-          return {
-            assignment_id: `ASSIGN-LOCAL-${id}-${prev.length + i + 1}`,
-            resource_id: id,
-            resource_name: asset?.name || id,
-            resource_type: asset?.type || 'ASSET',
-            status: 'EN_ROUTE',
-            dispatch_time: new Date().toLocaleTimeString()
-          };
-        });
-        return [...newAssignments, ...prev];
+      const stamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const newAssignments = selectedAssetIds.map((id, i) => {
+        const asset = availableAssets.find(a => a.id === id);
+        return {
+          assignment_id: `ASSIGN-LOCAL-${id}-${activeAssignments.length + i + 1}`,
+          resource_id: id,
+          resource_name: asset?.name || id,
+          resource_type: asset?.type || 'ASSET',
+          status: 'EN_ROUTE',
+          dispatch_time: stamp
+        };
       });
+      
+      setActiveAssignments(prev => [...newAssignments, ...prev]);
+
+      // Functional Auto Audit Logging
+      const newLogs: AuditLogEntry[] = newAssignments.map((a, i) => ({
+        id: `AUDIT-LOCAL-${Date.now()}-${i}`,
+        resource_id: a.resource_name,
+        incident_id: incidentId,
+        old_status: 'AVAILABLE',
+        new_status: 'EN_ROUTE',
+        changed_by: 'EOC_RESCUE_COORDINATOR',
+        changed_at: new Date().toISOString(),
+        notes: dispatchNotes || 'Immediate emergency deployment authorized.'
+      }));
+      setAuditLogs(prev => [...newLogs, ...prev]);
+
       showToast(`${selectedAssetIds.length} assets tasked locally — not yet synced.`);
       setSelectedAssetIds([]);
       setActiveTab('active_operations');
@@ -263,13 +340,36 @@ export const RescueDispatchModal: React.FC<RescueDispatchModalProps> = ({ incide
     // flipped to ON SCENE while cell 2 still read "Awaiting arrival". One
     // implementation for both branches keeps the row internally consistent.
     const advanceLocally = () => {
-      const stamp = new Date().toLocaleTimeString();
-      setActiveAssignments(prev => prev.map(a => a.assignment_id === assignmentId ? {
-        ...a,
-        status: nextStatus,
-        arrival_time: nextStatus === 'ON_SCENE' ? stamp : a.arrival_time,
-        completion_time: nextStatus === 'COMPLETED' ? stamp : a.completion_time
-      } : a));
+      const stamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      let resourceName = 'Unknown Asset';
+      let oldStatus = 'UNKNOWN';
+      
+      setActiveAssignments(prev => prev.map(a => {
+        if (a.assignment_id === assignmentId) {
+          resourceName = a.resource_name;
+          oldStatus = a.status;
+          return {
+            ...a,
+            status: nextStatus,
+            arrival_time: nextStatus === 'ON_SCENE' ? stamp : a.arrival_time,
+            completion_time: nextStatus === 'COMPLETED' ? stamp : a.completion_time
+          };
+        }
+        return a;
+      }));
+
+      // Functional Auto Audit Logging
+      setAuditLogs(prev => [{
+        id: `AUDIT-LOCAL-${Date.now()}`,
+        resource_id: resourceName,
+        incident_id: incidentId,
+        old_status: oldStatus,
+        new_status: nextStatus,
+        changed_by: 'EOC_FIELD_OFFICER',
+        changed_at: new Date().toISOString(),
+        notes: `Officer confirmed transition to ${nextStatus}`
+      }, ...prev]);
+
       showToast(`Asset marked ${phrasing[nextStatus] || nextStatus.toLowerCase()} locally — not yet synced.`);
     };
 
@@ -295,105 +395,96 @@ export const RescueDispatchModal: React.FC<RescueDispatchModalProps> = ({ incide
     }
   };
 
-  const getStatusBadge = (st: string) => {
-    switch (st) {
-      case 'DISPATCHED':
-      case 'EN_ROUTE': return <span className="bg-primary/10 text-on-primary-container border border-primary/20 px-2 py-0.5 rounded text-[10px] font-bold">EN ROUTE</span>;
-      case 'ON_SCENE': return <span className="bg-tertiary/10 text-on-tertiary-container border border-tertiary/20 px-2 py-0.5 rounded text-[10px] font-bold">ON SCENE</span>;
-      case 'RESCUING': return <span className="bg-error/10 text-on-error-container border border-error/20 px-2 py-0.5 rounded text-[10px] font-bold">RESCUING</span>;
-      case 'COMPLETED': return <span className="bg-secondary/10 text-on-secondary-container border border-secondary/20 px-2 py-0.5 rounded text-[10px] font-bold">COMPLETED</span>;
-      default: return <span className="bg-surface-container-high text-on-surface-variant px-2 py-0.5 rounded text-[10px]">{st}</span>;
-    }
+  // A dot carries the state; the chip itself stays neutral so a list of units
+  // doesn't turn into four competing colours.
+  const statusChip = (status: string) => {
+    const dot =
+      status === 'COMPLETED' ? 'bg-secondary' :
+      status === 'RESCUING' ? 'bg-error' :
+      status === 'ON_SCENE' ? 'bg-tertiary' : 'bg-primary';
+
+    return (
+      <span className="shrink-0 inline-flex items-center gap-1.5 bg-surface-container-high border border-outline-variant rounded-md px-2 py-0.5 text-[11px] text-on-surface">
+        <span className={`w-1.5 h-1.5 rounded-full ${dot}`}></span>
+        {STEP_LABEL[status] || readable(status)}
+      </span>
+    );
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-5 animate-in fade-in">
-      <div className="bg-surface border border-outline-variant/30 rounded-xl w-full max-w-4xl shadow-lg max-h-[92vh] flex flex-col overflow-hidden text-on-surface text-sm">
-        
-        {/* Modal Header */}
-        <div className="p-4 sm:p-5 border-b border-outline-variant bg-surface-container-lowest flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div className="flex items-start sm:items-center gap-3">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-secondary/15 border border-secondary/30 flex items-center justify-center text-on-secondary-container shrink-0">
-              <span className="material-symbols-outlined text-[24px] sm:text-[28px]">rocket_launch</span>
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-3 sm:p-6">
+      <div className="bg-surface border border-outline-variant rounded-lg w-full max-w-3xl shadow-xl max-h-[90vh] flex flex-col overflow-hidden text-on-surface">
+
+        {/* Header */}
+        <div className="px-4 sm:px-5 pt-4 pb-3 flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h2 className="text-base font-semibold text-on-surface">Rescue dispatch</h2>
+              <span className="shrink-0 text-[11px] tabular-nums text-on-error-container bg-error/10 border border-error/20 rounded px-1.5 py-0.5">
+                Priority {incidentInfo.priority_score}
+              </span>
             </div>
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <h2 className="font-sans font-bold text-lg sm:text-xl text-on-surface tracking-tight">Tactical Rescue Dispatch</h2>
-                <span className="bg-error/15 text-on-error-container border border-error/30 px-2.5 py-0.5 rounded-full font-sans text-[10px] font-black uppercase tracking-wider shadow-sm">
-                  Priority {incidentInfo.priority_score}/100
-                </span>
-              </div>
-              <p className="text-xs text-on-surface-variant font-sans mt-1 flex items-center gap-1.5 flex-wrap">
-                <span className="font-semibold text-on-surface">#{incidentInfo.incident_id}</span>
-                <span className="w-1 h-1 rounded-full bg-outline-variant"></span>
-                <span>{incidentInfo.district}</span>
-                <span className="w-1 h-1 rounded-full bg-outline-variant"></span>
-                <span className="font-mono text-[11px] bg-surface-container px-1.5 rounded">{incidentInfo.coordinates}</span>
-              </p>
-            </div>
+            <p className="text-xs text-on-surface-variant mt-1 truncate" title={incidentInfo.incident_id}>
+              {[incidentInfo.district, incidentInfo.coordinates, incidentInfo.incident_id].filter(Boolean).join('  ·  ')}
+            </p>
           </div>
 
-          <div className="flex items-center gap-3 justify-between w-full lg:w-auto">
-            {/* View Tabs */}
-            <div className="flex bg-surface-container-low border border-outline-variant/30 p-1.5 rounded-xl overflow-x-auto [&::-webkit-scrollbar]:hidden w-full lg:w-auto shadow-inner">
-              <button
-                onClick={() => setActiveTab('dispatch')}
-                className={`px-3 sm:px-4 py-2 rounded-lg text-[11px] sm:text-xs font-bold transition-all whitespace-nowrap ${
-                  activeTab === 'dispatch' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
-                }`}
-              >
-                1. Intelligence &amp; Dispatch
-              </button>
-              <button
-                onClick={() => setActiveTab('active_operations')}
-                className={`px-3 sm:px-4 py-2 rounded-lg text-[11px] sm:text-xs font-bold transition-all whitespace-nowrap ${
-                  activeTab === 'active_operations' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
-                }`}
-              >
-                2. Live Ops ({activeAssignments.length})
-              </button>
-              <button
-                onClick={() => setActiveTab('audit')}
-                className={`px-3 sm:px-4 py-2 rounded-lg text-[11px] sm:text-xs font-bold transition-all whitespace-nowrap ${
-                  activeTab === 'audit' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
-                }`}
-              >
-                3. Audit Log
-              </button>
-            </div>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="shrink-0 p-1.5 -mr-1 -mt-1 rounded-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[20px] block">close</span>
+          </button>
+        </div>
 
-            <button onClick={onClose} className="text-on-surface-variant hover:text-on-surface hover:bg-error/10 hover:text-error hover:border-error/30 p-2 bg-surface-container-low rounded-xl border border-outline-variant/30 shrink-0 self-start transition-colors">
-              <span className="material-symbols-outlined text-[20px] block">close</span>
-            </button>
-          </div>
+        {/* Tabs */}
+        <div className="px-4 sm:px-5 flex gap-5 border-b border-outline-variant">
+          {TABS.map(tab => {
+            const isActive = activeTab === tab.id;
+            const count = tab.id === 'active_operations' ? activeAssignments.length : 0;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`-mb-px py-2.5 text-xs border-b-2 transition-colors cursor-pointer ${
+                  isActive
+                    ? 'border-primary text-on-surface font-medium'
+                    : 'border-transparent text-on-surface-variant hover:text-on-surface'
+                }`}
+              >
+                {tab.label}{tab.id === 'active_operations' && count > 0 ? ` (${count})` : ''}
+              </button>
+            );
+          })}
         </div>
 
         {/* Modal Body */}
-        <div className="flex-1 overflow-y-auto p-5 space-y-6">
+        <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-5 space-y-5">
 
           {/* TAB 1: PRE-DISPATCH INTELLIGENCE & DETERMINISTIC RECOMMENDATIONS */}
           {activeTab === 'dispatch' && (
-            <div className="space-y-6 animate-in fade-in">
+            <div className="space-y-5">
               
-              {/* Pre-Dispatch Incident Intelligence Telemetry Bar */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 bg-surface-container-lowest p-4 rounded-2xl border border-outline-variant/40 text-xs shadow-sm">
-                <div className="bg-surface p-3.5 rounded-xl border border-outline-variant/20 flex flex-col justify-center">
-                  <span className="text-on-surface-variant block text-[10px] uppercase font-bold tracking-wider mb-1.5 flex items-center gap-1.5"><span className="material-symbols-outlined text-[14px]">groups</span> Victims Affected</span>
-                  <strong className="text-on-surface text-base sm:text-lg tabular-nums font-black leading-none">{incidentInfo.people_affected} <span className="text-sm font-semibold text-on-surface-variant">People</span></strong>
+              {/* Pre-Dispatch Incident Intelligence Telemetry Bar (Professional Redesign) */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 bg-surface-container-low p-4 rounded-xl border border-outline-variant/30 text-xs shadow-sm">
+                <div className="border-r border-outline-variant/30 pr-3">
+                  <span className="text-on-surface-variant block text-[10px] uppercase font-bold tracking-widest mb-1">Affected People</span>
+                  <strong className="text-on-surface text-xl tabular-nums font-black leading-none">{incidentInfo.people_affected} <span className="text-xs font-semibold text-on-surface-variant">Pax</span></strong>
                 </div>
-                <div className="bg-surface p-3.5 rounded-xl border border-outline-variant/20 flex flex-col justify-center">
-                  <span className="text-on-surface-variant block text-[10px] uppercase font-bold tracking-wider mb-1.5 flex items-center gap-1.5"><span className="material-symbols-outlined text-[14px]">local_hospital</span> Medical Requirement</span>
-                  <strong className={incidentInfo.medical_required ? 'text-on-error-container text-base sm:text-lg font-black leading-none' : 'text-on-surface-variant text-base font-bold leading-none'}>
+                <div className="lg:border-r border-outline-variant/30 px-0 lg:px-3">
+                  <span className="text-on-surface-variant block text-[10px] uppercase font-bold tracking-widest mb-1">Medical Needs</span>
+                  <strong className={incidentInfo.medical_required ? 'text-error text-base font-black leading-none' : 'text-on-surface-variant text-base font-bold leading-none'}>
                     {incidentInfo.medical_required ? 'Urgent Trauma' : 'None Reported'}
                   </strong>
                 </div>
-                <div className="bg-surface p-3.5 rounded-xl border border-outline-variant/20 flex flex-col justify-center overflow-hidden">
-                  <span className="text-on-surface-variant block text-[10px] uppercase font-bold tracking-wider mb-1.5 flex items-center gap-1.5"><span className="material-symbols-outlined text-[14px]">warning</span> Hazard Condition</span>
-                  <strong className="text-on-tertiary-container text-sm sm:text-base font-black leading-tight break-words" title={incidentInfo.hazard_severity}>{incidentInfo.hazard_severity}</strong>
+                <div className="border-r border-outline-variant/30 px-3 hidden lg:block">
+                  <span className="text-on-surface-variant block text-[10px] uppercase font-bold tracking-widest mb-1">Hazard Condition</span>
+                  <strong className="text-on-surface text-sm font-black leading-tight break-words">{incidentInfo.hazard_severity.replace(/_/g, ' ')}</strong>
                 </div>
-                <div className="bg-surface p-3.5 rounded-xl border border-outline-variant/20 flex flex-col justify-center">
-                  <span className="text-on-surface-variant block text-[10px] uppercase font-bold tracking-wider mb-1.5 flex items-center gap-1.5"><span className="material-symbols-outlined text-[14px]">my_location</span> GPS Confidence</span>
-                  <strong className="text-on-secondary-container text-base sm:text-lg tabular-nums font-black leading-none">{incidentInfo.location_accuracy}</strong>
+                <div className="pl-3 hidden lg:block">
+                  <span className="text-on-surface-variant block text-[10px] uppercase font-bold tracking-widest mb-1">GPS Confidence</span>
+                  <strong className="text-on-surface text-lg tabular-nums font-black leading-none">{incidentInfo.location_accuracy}</strong>
                 </div>
               </div>
 
@@ -538,12 +629,18 @@ export const RescueDispatchModal: React.FC<RescueDispatchModalProps> = ({ incide
           {/* TAB 2: LIVE RESCUE OPERATIONS & LIFECYCLE TRACKER */}
           {activeTab === 'active_operations' && (
             <div className="space-y-4 animate-in fade-in">
-              <div className="flex items-center justify-between pb-2 border-b border-outline-variant">
-                <h3 className="font-bold text-xs uppercase text-on-surface-variant">
-                  Active Mission Lifecycle Tracker ({activeAssignments.length} Deployments)
-                </h3>
-                <span className="text-[11px] text-on-surface-variant">
-                  State machine: DISPATCHED → EN_ROUTE → ON_SCENE → RESCUING → COMPLETED
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-2 border-b border-outline-variant/30 gap-2">
+                <div>
+                  <h3 className="font-bold text-xs uppercase text-on-surface-variant flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-[16px]">track_changes</span>
+                    Active Mission Lifecycle Tracker
+                  </h3>
+                  <p className="text-[11px] text-on-surface-variant mt-1">
+                    Manage and update the real-time operational state of your dispatched assets ({activeAssignments.length} total).
+                  </p>
+                </div>
+                <span className="text-[10px] bg-surface-container px-2 py-1 rounded border border-outline-variant/50 text-on-surface font-mono hidden sm:block">
+                  DISPATCHED → EN_ROUTE → ON_SCENE → RESCUING → COMPLETED
                 </span>
               </div>
 

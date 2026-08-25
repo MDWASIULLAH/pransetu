@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { supabase } from '../lib/supabase';
 import { useSound } from './SoundContext';
 import type { IncidentCluster, SafeVerifyRecord } from '../types/incident';
 import type { RescueResource } from '../types/resource';
@@ -158,108 +159,7 @@ export interface EOCContextType {
   };
 }
 
-const initialSignals: SOSSignal[] = [
-  {
-    id: 'OD-7A92',
-    timestamp: '14:32:05 IST',
-    status: 'Critical',
-    score: 98,
-    source: 'Android App',
-    sourceIcon: 'smartphone',
-    people: '12+ (Medical)',
-    peopleCount: 12,
-    relay: 'Mesh Relay',
-    hop: 3,
-    hopCount: 3,
-    loc: 'Puri Coast',
-    lat: 19.8135,
-    lng: 85.8312,
-    district: 'Puri',
-    details: 'Ground floor submerged by tidal surge. 2 elderly persons requiring immediate oxygen therapy.',
-    medicalRequired: true,
-    severity: 'CRITICAL',
-    color: 'border-error-container',
-    badgeBg: 'bg-error-container',
-    badgeText: 'text-on-error-container',
-    scoreColor: 'text-error',
-    relayPath: ['Node #042 (Puri Beach Road)', 'Repeater Alpha-9', 'Gateway EOC-Puri']
-  },
-  {
-    id: 'GN-2B14',
-    timestamp: '14:28:11 IST',
-    status: 'Urgent',
-    score: 75,
-    source: 'IVR System',
-    sourceIcon: 'dialpad',
-    people: '4 Persons',
-    peopleCount: 4,
-    relay: 'Direct Cell',
-    hop: 1,
-    hopCount: 1,
-    loc: 'Ganjam Sector 4',
-    lat: 19.3120,
-    lng: 84.7910,
-    district: 'Ganjam',
-    details: 'Water level rising rapidly near local primary school cyclone shelter.',
-    medicalRequired: false,
-    severity: 'HIGH',
-    color: 'border-tertiary',
-    badgeBg: 'bg-tertiary-container',
-    badgeText: 'text-on-tertiary-container',
-    scoreColor: 'text-tertiary',
-    relayPath: ['Direct Telco IVR Cell Tower G-1']
-  },
-  {
-    id: 'KH-9X55',
-    timestamp: '14:15:44 IST',
-    status: 'Pending',
-    score: 42,
-    source: 'SMS Gateway',
-    sourceIcon: 'sms',
-    people: 'Unknown',
-    peopleCount: 2,
-    relay: 'SMS Relay',
-    hop: 2,
-    hopCount: 2,
-    loc: 'Khordha Bypass',
-    lat: 20.1450,
-    lng: 85.6720,
-    district: 'Khordha',
-    details: 'Secondary access road blocked by fallen electric poles and high trees.',
-    medicalRequired: false,
-    severity: 'MEDIUM',
-    color: 'border-outline-variant',
-    badgeBg: 'bg-surface-container-high',
-    badgeText: 'text-on-surface-variant',
-    scoreColor: 'text-on-surface-variant',
-    relayPath: ['SMS Substation K-4', 'Khordha Central Hub']
-  },
-  {
-    id: 'EVT-9918-M',
-    timestamp: '14:02:19 IST',
-    status: 'Critical',
-    score: 94,
-    source: 'Mesh Relay',
-    sourceIcon: 'bluetooth',
-    people: '8 Trapped',
-    peopleCount: 8,
-    relay: 'Multi-Hop LoRa',
-    hop: 5,
-    hopCount: 5,
-    loc: 'Cuttack Medical Corridor',
-    lat: 20.5120,
-    lng: 85.9910,
-    district: 'Cuttack',
-    details: 'Power grid cut off at hospital auxiliary block. Generators running out of fuel.',
-    medicalRequired: true,
-    severity: 'CRITICAL',
-    color: 'border-error-container',
-    badgeBg: 'bg-error-container',
-    badgeText: 'text-on-error-container',
-    scoreColor: 'text-error',
-    relayPath: ['BLE Beacon #01', 'Volunteer Node #19', 'Pole Node #08', 'Hilltop Tower #3', 'Cuttack EOC']
-  }
-];
+
 
 const initialShelters: ShelterFacility[] = [
   {
@@ -404,9 +304,45 @@ const mockResources: RescueResource[] = [
 
 const EOCContext = createContext<EOCContextType | undefined>(undefined);
 
+const mapDatabaseToSOSSignal = (row: any): SOSSignal => {
+  const isCritical = row.severityCode >= 3 || row.medicalRequired;
+  const statusMap: Record<string, any> = {
+    'CLOSED': 'Resolved',
+    'DISPATCHED': 'Dispatched',
+    'ACKNOWLEDGED': 'Urgent'
+  };
+  const statusStr = statusMap[row.deliveryState] || (isCritical ? 'Critical' : 'Pending');
+
+  return {
+    id: row.sosId,
+    timestamp: new Date(row.createdAt || Date.now()).toLocaleTimeString('en-IN', { hour12: false }) + ' IST',
+    status: statusStr,
+    score: row.severityCode ? 60 + (row.severityCode * 10) : (isCritical ? 92 : 75),
+    source: row.source === 'android_app' ? 'Android App' : 'Mesh Relay',
+    sourceIcon: row.source === 'android_app' ? 'smartphone' : 'bluetooth',
+    people: `${row.peopleCount || 1} Persons`,
+    peopleCount: row.peopleCount || 1,
+    relay: row.hopCount > 0 ? 'Mesh Relay' : 'Direct API',
+    hop: row.hopCount || 1,
+    hopCount: row.hopCount || 1,
+    loc: `Lat: ${row.latitude?.toFixed(4)}, Lng: ${row.longitude?.toFixed(4)}`,
+    lat: row.latitude || 19.8,
+    lng: row.longitude || 85.8,
+    district: 'Puri',
+    details: row.message || (row.medicalRequired ? 'Medical emergency reported.' : 'Distress beacon received.'),
+    medicalRequired: row.medicalRequired,
+    severity: isCritical ? 'CRITICAL' : 'HIGH',
+    color: statusStr === 'Resolved' ? 'border-outline-variant' : (isCritical ? 'border-error-container' : 'border-tertiary'),
+    badgeBg: statusStr === 'Resolved' ? 'bg-surface-container-high' : (isCritical ? 'bg-error-container' : 'bg-tertiary-container'),
+    badgeText: statusStr === 'Resolved' ? 'text-on-surface-variant' : (isCritical ? 'text-on-error-container' : 'text-on-tertiary-container'),
+    scoreColor: statusStr === 'Resolved' ? 'text-on-surface-variant' : (isCritical ? 'text-error' : 'text-tertiary'),
+    relayPath: row.hopCount > 0 ? [`Node ${row.deviceIdentifier || 'Unknown'}`, 'Gateway'] : ['Direct API']
+  };
+};
+
 export const EOCProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [signals, setSignals] = useState<SOSSignal[]>(initialSignals);
-  const [selectedSignalId, setSelectedSignalId] = useState<string | null>('OD-7A92');
+  const [signals, setSignals] = useState<SOSSignal[]>([]);
+  const [selectedSignalId, setSelectedSignalId] = useState<string | null>(null);
   const [shelters, setShelters] = useState<ShelterFacility[]>(initialShelters);
   const [incidents] = useState<IncidentCluster[]>(mockIncidents);
   const [resources, setResources] = useState<RescueResource[]>(mockResources);
@@ -477,7 +413,48 @@ export const EOCProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }, 4500);
   }, []);
 
-  const dispatchTeamToSignal = (signalId: string, teamName = 'NDRF-Alpha (Battalion 03)') => {
+  useEffect(() => {
+    // Initial fetch of active SOS events
+    const fetchSignals = async () => {
+      const { data, error } = await supabase
+        .from('sos_events')
+        .select('*')
+        .order('createdAt', { ascending: false });
+
+      if (data && !error) {
+        setSignals(data.map(mapDatabaseToSOSSignal));
+      } else {
+        console.error('Error fetching signals:', error);
+      }
+    };
+    fetchSignals();
+
+    // Subscribe to realtime changes
+    const subscription = supabase
+      .channel('sos_events_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'sos_events' }, (payload) => {
+        if (payload.eventType === 'INSERT') {
+          const newSignal = mapDatabaseToSOSSignal(payload.new);
+          setSignals((prev) => [newSignal, ...prev]);
+          setSelectedSignalId(newSignal.id);
+          playAlert();
+          showToast(`Inbound SOS ${newSignal.id} — ${newSignal.loc}, ${newSignal.people}.`);
+        } else if (payload.eventType === 'UPDATE') {
+          const updatedSignal = mapDatabaseToSOSSignal(payload.new);
+          setSignals((prev) => prev.map((s) => (s.id === updatedSignal.id ? updatedSignal : s)));
+        } else if (payload.eventType === 'DELETE') {
+          setSignals((prev) => prev.filter((s) => s.id !== payload.old.sosId));
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(subscription);
+    };
+  }, [playAlert, showToast]);
+
+  const dispatchTeamToSignal = async (signalId: string, teamName = 'NDRF-Alpha (Battalion 03)') => {
+    // Update local state optimistically
     setSignals((prev) =>
       prev.map((s) =>
         s.id === signalId
@@ -506,9 +483,13 @@ export const EOCProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     playSuccess();
     showToast(`Rescue Unit ${teamName} dispatched to signal ${signalId}! ETA: 14 min.`);
+
+    // Persist to Supabase
+    await supabase.from('sos_events').update({ deliveryState: 'DISPATCHED' }).eq('sosId', signalId);
   };
 
-  const resolveSignal = (signalId: string) => {
+  const resolveSignal = async (signalId: string) => {
+    // Update local state optimistically
     setSignals((prev) =>
       prev.map((s) =>
         s.id === signalId
@@ -524,6 +505,9 @@ export const EOCProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       )
     );
     showToast(`Signal ${signalId} marked as Rescued & Verified Safe.`);
+
+    // Persist to Supabase
+    await supabase.from('sos_events').update({ deliveryState: 'CLOSED' }).eq('sosId', signalId);
   };
 
   const injectNewSignal = (customSignal?: Partial<SOSSignal>) => {

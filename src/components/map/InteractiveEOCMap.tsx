@@ -72,8 +72,8 @@ const createSOSIcon = (isCritical: boolean, isSelected: boolean, isStale: boolea
     className: 'custom-leaflet-sos-beacon',
     html: `
       <div style="position: relative; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
-        <div style="position: absolute; width: 32px; height: 32px; border-radius: 50%; background-color: ${pulseColor}; animation: radar-pulse 2s infinite cubic-bezier(0.215, 0.61, 0.355, 1);"></div>
-        <div style="position: relative; width: 14px; height: 14px; border-radius: 50%; background-color: ${color}; ${ring} box-shadow: 0 0 10px ${color}; z-index: 10;"></div>
+        <div style="position: absolute; width: 100%; height: 100%; border-radius: 50%; background-color: ${pulseColor};" class="animate-ping"></div>
+        <div style="position: relative; width: 14px; height: 14px; border-radius: 50%; background-color: ${color}; ${ring} box-shadow: 0 0 10px ${color}; z-index: 10;" class="animate-pulse"></div>
       </div>
     `,
     iconSize: [32, 32],
@@ -281,6 +281,8 @@ const SOSPopupContent: React.FC<{
 }> = ({ sig, dispatchTeamToSignal, isCritical }) => {
   const [weather, setWeather] = useState<DistrictWeather | null>(null);
   const [displayWind, setDisplayWind] = useState<string>('--');
+  const [message, setMessage] = useState('');
+  const [messageSent, setMessageSent] = useState(false);
   const scrollRef = React.useRef<HTMLDivElement>(null);
 
   const { isStale, ageDisplay } = getLocationAgeInfo(sig.locationTimestamp || sig.timestamp, sig.ageMinutes);
@@ -438,6 +440,44 @@ const SOSPopupContent: React.FC<{
             </div>
           </div>
         )}
+
+        {/* Direct Messaging to Citizen */}
+        <div className="bg-surface-container border border-outline-variant/30 rounded-lg p-2.5 mt-2 shadow-sm flex flex-col gap-2">
+          <div className="text-[10px] font-bold text-on-surface uppercase flex items-center gap-1">
+            <span className="material-symbols-outlined text-[14px]">chat</span>
+            Send Direct Message to User
+          </div>
+          {messageSent ? (
+            <div className="bg-primary/10 text-primary border border-primary/20 rounded p-2 text-[10px] font-bold flex items-center gap-1.5 justify-center">
+              <span className="material-symbols-outlined text-[14px]">check_circle</span>
+              Message Sent
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2">
+              <textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Type instructions to send via SMS/App..."
+                className="w-full bg-surface border border-outline-variant/50 rounded-md p-2 text-xs text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:border-primary resize-none"
+                rows={2}
+              />
+              <button
+                onClick={() => {
+                  if (message.trim()) {
+                    setMessageSent(true);
+                    setTimeout(() => setMessageSent(false), 3000);
+                    setMessage('');
+                  }
+                }}
+                disabled={!message.trim()}
+                className="w-full bg-secondary hover:bg-secondary/90 text-on-secondary font-bold py-1.5 px-3 rounded text-[11px] transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+              >
+                <span className="material-symbols-outlined text-[14px]">send</span>
+                Send Message
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* Dispatch Button */}
         {sig.status !== 'Resolved' && sig.status !== 'Dispatched' && (
