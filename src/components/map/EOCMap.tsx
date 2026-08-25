@@ -8,10 +8,14 @@ import { DeliveryPill, SeverityBadge } from '../common/Badges';
 
 // Custom icons
 const createIcon = (color: string) => L.divIcon({
-  className: 'custom-div-icon',
-  html: `<div style="background-color: ${color}; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></div>`,
-  iconSize: [14, 14],
-  iconAnchor: [7, 7]
+  className: 'custom-div-icon bg-transparent',
+  html: `<div style="position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; transform: translateY(-50%);">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${color}" width="32px" height="32px" style="filter: drop-shadow(0px 3px 4px rgba(0,0,0,0.5)); stroke: white; stroke-width: 1.5px; overflow: visible;">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+          </svg>
+         </div>`,
+  iconSize: [32, 32],
+  iconAnchor: [16, 32]
 });
 
 const icons = {
