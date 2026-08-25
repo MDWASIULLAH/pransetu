@@ -44,6 +44,7 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
 
   const {
     raiseStateAlert,
+    broadcastSystemAlert,
     toastMessage,
     metrics,
     signals,
@@ -90,6 +91,7 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
   const handleRaiseAlert = (e: React.FormEvent) => {
     e.preventDefault();
     raiseStateAlert(alertSeverity, alertMessage);
+    broadcastSystemAlert(alertSeverity, alertMessage);
     setAlertModalOpen(false);
   };
 

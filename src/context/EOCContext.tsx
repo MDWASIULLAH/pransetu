@@ -124,6 +124,7 @@ export interface EOCContextType {
   // Alerts & Notifications
   activeAlert: StateAlert | null;
   raiseStateAlert: (severity: 'RED_CRITICAL' | 'ORANGE_WARNING' | 'YELLOW_WATCH', message: string) => void;
+  broadcastSystemAlert: (severity: string, message: string) => Promise<void>;
   clearStateAlert: () => void;
   toastMessage: string | null;
   showToast: (msg: string) => void;
@@ -754,6 +755,32 @@ export const EOCProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast(`STATEWIDE EMERGENCY SIREN & IVR BROADCAST ACTIVE: ${message}`);
   };
 
+  const broadcastSystemAlert = async (severity: string, message: string) => {
+    const code = severity === 'RED_CRITICAL' ? 5 : (severity === 'ORANGE_WARNING' ? 4 : 3);
+    const sosId = crypto.randomUUID();
+    
+    const { error } = await supabase.from('sos_events').insert({
+      sosId,
+      createdAt: Date.now(),
+      source: 'SYSTEM_ALERT',
+      severityCode: code,
+      message,
+      peopleCount: 0,
+      medicalRequired: false,
+      hopCount: 0,
+      ttl: 64,
+      deliveryState: 'SERVER_RECEIVED',
+      deviceIdentifier: 'EOC_DASHBOARD'
+    });
+
+    if (error) {
+      console.error('Failed to broadcast alert:', error);
+      showToast('Failed to broadcast system alert to devices.');
+    } else {
+      showToast(`System Alert successfully pushed to all devices.`);
+    }
+  };
+
   const clearStateAlert = () => {
     setActiveAlert(null);
     showToast('State emergency alert cleared.');
@@ -836,6 +863,7 @@ export const EOCProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
         activeAlert,
         raiseStateAlert,
+        broadcastSystemAlert,
         clearStateAlert,
         toastMessage,
         showToast,
