@@ -33,6 +33,9 @@ export interface SOSSignal {
   badgeText: string;
   scoreColor: string;
   relayPath: string[];
+  userName?: string;
+  userPhone?: string;
+  contactPhone?: string;
 }
 
 export interface VoiceCampaign {

@@ -57,17 +57,9 @@ const readable = (value?: string) => {
   return text.charAt(0).toUpperCase() + text.slice(1);
 };
 
-// Times arrive either as an ISO string from the server or already formatted by
-// the offline path, so parse when we can and pass through when we can't.
-const timeOf = (value?: string) => {
-  if (!value) return '';
-  const parsed = new Date(value);
-  return isNaN(parsed.getTime())
-    ? value
-    : parsed.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-};
 
-const LIFECYCLE = ['EN_ROUTE', 'ON_SCENE', 'RESCUING', 'COMPLETED'];
+
+
 
 const STEP_LABEL: Record<string, string> = {
   EN_ROUTE: 'En route',
@@ -76,14 +68,7 @@ const STEP_LABEL: Record<string, string> = {
   COMPLETED: 'Done'
 };
 
-// One next step per unit, so each row offers a single button instead of three
-// differently coloured ones competing for the coordinator's attention.
-const NEXT_STEP: Record<string, { status: string; label: string }> = {
-  DISPATCHED: { status: 'ON_SCENE', label: 'Mark on scene' },
-  EN_ROUTE: { status: 'ON_SCENE', label: 'Mark on scene' },
-  ON_SCENE: { status: 'RESCUING', label: 'Start rescue' },
-  RESCUING: { status: 'COMPLETED', label: 'Mark complete' }
-};
+
 
 const FLEET_ROWS: { icon: string; label: string; key: 'ambulances' | 'rescue_teams' | 'boats' | 'medical_teams' }[] = [
   { icon: 'ambulance', label: 'Ambulances', key: 'ambulances' },
@@ -655,7 +640,7 @@ export const RescueDispatchModal: React.FC<RescueDispatchModalProps> = ({ incide
                           </div>
                           <span className="text-[10px] text-on-surface-variant">Assignment ID: {assign.assignment_id}</span>
                         </div>
-                        {getStatusBadge(assign.status)}
+                        {statusChip(assign.status)}
                       </div>
 
                       {/* Stepper Progress Bar */}

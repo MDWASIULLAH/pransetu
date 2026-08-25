@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { X, MapPin, Clock, Users, HeartPulse, ShieldAlert, Radio, Share2, User, Phone } from 'lucide-react';
-import type { SOSRecord } from '../../types/sos';
+import { useState, useEffect } from 'react';
+import { X, MapPin, User, Radio, Users, HeartPulse, Share2 } from 'lucide-react';
 import { SeverityBadge, DeliveryPill } from '../common/Badges';
+import type { SOSRecord } from '../../types/sos';
 
 interface SOSDetailDrawerProps {
   sos: SOSRecord;
