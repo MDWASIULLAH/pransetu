@@ -1,6 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from supabase import Client
+from pydantic import BaseModel
+from typing import Optional
 import uuid
+import datetime
 from app.core.db import get_supabase_client
 from app.services.exotel_provider import MockExotelProvider
 from app.core.security import require_permissions
@@ -9,6 +12,12 @@ import asyncio
 
 router = APIRouter()
 telephony = MockExotelProvider()
+
+class EmergencyBroadcastRequest(BaseModel):
+    disaster_text: str
+    severity: str = "RED_CRITICAL"
+    trigger_siren: bool = True
+    language: str = "en"
 
 @router.post("/test-call")
 async def trigger_test_call(
@@ -20,14 +29,9 @@ async def trigger_test_call(
     Initiates a test call for Phase 2 validation.
     """
     try:
-        # Generate dummy IDs
         campaign_id = f"CAMP-TEST-{uuid.uuid4().hex[:6].upper()}"
         recipient_id = str(uuid.uuid4())
         
-        # In a real scenario, this writes to Supabase DB.
-        # Since we might not have run the migration yet, we just print the flow.
-        
-        # 1. Initiate Call via Provider
         provider_call_id = await telephony.initiate_call(
             to_number=target_phone, 
             dialogue_flow_id="SAFE_VERIFY_V1",
@@ -47,15 +51,23 @@ async def trigger_test_call(
 
 @router.post("/broadcast-call")
 async def broadcast_call(
+    request: Optional[EmergencyBroadcastRequest] = None,
     language: str = "en",
     supabase: Client = Depends(get_supabase_client),
     user_info: dict = Depends(require_permissions([Permission.SOS_VIEW]))
 ):
     """
-    Broadcasts an IVR call to ALL registered citizens.
+    Broadcasts an IVR call and immediately emits an Emergency Disaster Broadcast event 
+    to trigger loud sirens across all connected dashboards and devices.
     """
     try:
-        # Fetch all registered citizens
+        # Default payload if no body was provided
+        disaster_text = request.disaster_text if request else "CRITICAL EMERGENCY BROADCAST. PLEASE SEEK SHELTER IMMEDIATELY."
+        severity = request.severity if request else "RED_CRITICAL"
+        trigger_siren = request.trigger_siren if request else True
+        lang = request.language if request else language
+
+        # 1. Fetch all registered citizens
         response = supabase.table('registered_citizens').select("phone_number, full_name").execute()
         citizens = response.data
         
@@ -65,20 +77,39 @@ async def broadcast_call(
         campaign_id = f"BROADCAST-{uuid.uuid4().hex[:6].upper()}"
         call_records = []
         
-        # Initiate calls
-        # Note: In a real production system, this should be sent to a task queue (e.g., Celery) to avoid blocking the HTTP response.
+        # 2. Emit Real-time Emergency Disaster Broadcast Event immediately
+        event_payload = {
+            "event_type": "EMERGENCY_DISASTER_BROADCAST",
+            "occurred_at": datetime.datetime.utcnow().isoformat() + "Z",
+            "source": "eoc_broadcast_manager",
+            "campaign_id": campaign_id,
+            "payload": {
+                "disaster_text": disaster_text,
+                "severity": severity,
+                "trigger_siren": trigger_siren,
+                "target_count": len(citizens)
+            }
+        }
+        
+        supabase.table('realtime_events').insert(event_payload).execute()
+        print(f"[EMERGENCY EVENT FIRED] Broadcast siren and alert sent to event bus for {len(citizens)} targets.")
+
+        # 3. Initiate IVR Calls
         for citizen in citizens:
             phone = citizen['phone_number']
             try:
                 provider_call_id = await telephony.initiate_call(
                     to_number=phone, 
                     dialogue_flow_id="SAFE_VERIFY_V1",
-                    metadata={"language": language, "citizen_name": citizen['full_name']}
+                    metadata={
+                        "language": lang, 
+                        "citizen_name": citizen['full_name'],
+                        "disaster_text": disaster_text
+                    }
                 )
                 
-                # Mocking the AI call flow logs for robust testing
                 print(f"[AI CALL AGENT] Call Dispatched to: {citizen['full_name']} ({phone})")
-                print(f"[AI CALL AGENT] Playing TTS: 'Attention. This is an emergency broadcast from PRANSETU. Please follow instructions...'")
+                print(f"[AI CALL AGENT] Playing TTS: '{disaster_text}'")
                 print(f"[AI CALL AGENT] Gathering DTMF for acknowledgment...")
                 
                 call_records.append({
@@ -91,7 +122,7 @@ async def broadcast_call(
                 
         return {
             "status": "success",
-            "message": "Broadcast calls initiated",
+            "message": "Emergency Broadcast & Calls initiated successfully.",
             "campaign_id": campaign_id,
             "dispatched_count": len(call_records),
             "calls": call_records

@@ -12,6 +12,8 @@ import { AuditLogsModule } from './components/modules/AuditLogsModule';
 import { Login } from './components/auth/Login';
 import { Register } from './components/auth/Register';
 import { CitizenRegistry } from './components/dashboard/CitizenRegistry';
+import { GlobalSirenManager } from './components/common/GlobalSirenManager';
+import { EmergencyBroadcast } from './components/modules/EmergencyBroadcast';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<'app' | 'login' | 'register'>('app');
@@ -73,6 +75,8 @@ export default function App() {
         return <DisasterAlertsManager />;
       case 'audit':
         return <AuditLogsModule />;
+      case 'broadcast':
+        return <EmergencyBroadcast />;
       case 'support':
         return <Support />;
       default:
@@ -87,6 +91,7 @@ export default function App() {
       onLogout={() => setCurrentView('login')}
       onNavigateToRegister={() => setCurrentView('register')}
     >
+      <GlobalSirenManager />
       {renderActiveModule()}
     </UnifiedLayout>
   );

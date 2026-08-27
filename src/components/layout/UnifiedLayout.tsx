@@ -84,6 +84,7 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
     { id: 'safeverify', label: 'SafeVerify Audit', icon: 'verified_user', badge: 'New' },
     { id: 'registry', label: 'Citizen Registry', icon: 'group', badge: 'Auth' },
     { id: 'resources', label: 'Shelters & Logistics', icon: 'inventory_2', badge: `${shelters.length}` },
+    { id: 'broadcast', label: 'Emergency Broadcast', icon: 'warning', badge: 'CRIT' },
     { id: 'alerts', label: 'Disaster Alerts', icon: 'campaign', badge: 'Alerts' },
     { id: 'audit', label: 'Security & Audit Logs', icon: 'security', badge: 'Audit' },
     { id: 'support', label: 'Field Incident Support', icon: 'support_agent', badge: 'Live' }

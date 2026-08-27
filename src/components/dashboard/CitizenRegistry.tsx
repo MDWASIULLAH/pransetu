@@ -13,9 +13,28 @@ export const CitizenRegistry: React.FC = () => {
   const [citizens, setCitizens] = useState<Citizen[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showPhoneNumbers, setShowPhoneNumbers] = useState(false);
 
   useEffect(() => {
     fetchCitizens();
+
+    // Real-time subscription: auto-update when a new citizen registers from the Android app
+    const channel = supabase
+      .channel('citizen-registry-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'registered_citizens' },
+        (payload) => {
+          console.log('[CitizenRegistry] Real-time event:', payload.eventType, payload);
+          // Re-fetch all citizens to keep the list accurate
+          fetchCitizens();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchCitizens = async () => {
@@ -41,6 +60,7 @@ export const CitizenRegistry: React.FC = () => {
   // Better masking: keep the country code if it exists.
   const formatSecurePhone = (phone: string) => {
     if (!phone) return 'N/A';
+    if (showPhoneNumbers) return phone;
     if (phone.startsWith('+')) {
       const parts = phone.split(' ');
       if (parts.length > 1) {
@@ -68,14 +88,25 @@ export const CitizenRegistry: React.FC = () => {
               Secure directory of verified citizens on the PRANSETU network.
             </p>
           </div>
-          <button
-            onClick={fetchCitizens}
-            disabled={loading}
-            className="flex items-center gap-2 px-3 py-1.5 bg-surface-container-high border border-outline-variant rounded text-on-surface hover:bg-surface-container-highest transition-colors disabled:opacity-50"
-          >
-            <span className="material-symbols-outlined text-[18px]">{loading ? 'sync' : 'refresh'}</span>
-            <span className="text-sm font-medium">Refresh</span>
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowPhoneNumbers(!showPhoneNumbers)}
+              className="flex items-center gap-2 px-3 py-1.5 bg-surface-container-high border border-outline-variant rounded text-on-surface hover:bg-surface-container-highest transition-colors"
+            >
+              <span className="material-symbols-outlined text-[18px]">
+                {showPhoneNumbers ? 'visibility_off' : 'visibility'}
+              </span>
+              <span className="text-sm font-medium">{showPhoneNumbers ? 'Hide' : 'Reveal'}</span>
+            </button>
+            <button
+              onClick={fetchCitizens}
+              disabled={loading}
+              className="flex items-center gap-2 px-3 py-1.5 bg-surface-container-high border border-outline-variant rounded text-on-surface hover:bg-surface-container-highest transition-colors disabled:opacity-50"
+            >
+              <span className="material-symbols-outlined text-[18px]">{loading ? 'sync' : 'refresh'}</span>
+              <span className="text-sm font-medium">Refresh</span>
+            </button>
+          </div>
         </header>
 
         {error && (

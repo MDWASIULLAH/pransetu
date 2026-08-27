@@ -144,6 +144,8 @@ export interface EOCContextType {
   raiseStateAlert: (severity: 'RED_CRITICAL' | 'ORANGE_WARNING' | 'YELLOW_WATCH', message: string) => void;
   broadcastSystemAlert: (severity: string, message: string) => Promise<void>;
   clearStateAlert: () => void;
+  activeDisasterAlert: { text: string; severity: string } | null;
+  clearDisasterAlert: () => void;
   toastMessage: string | null;
   showToast: (msg: string) => void;
 
@@ -388,6 +390,7 @@ export const EOCProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [safeVerifyRecords, setSafeVerifyRecords] = useState<SafeVerifyRecord[]>([]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [activeAlert, setActiveAlert] = useState<StateAlert | null>(null);
+  const [activeDisasterAlert, setActiveDisasterAlert] = useState<{ text: string; severity: string } | null>(null);
   const [autoSimulate, setAutoSimulate] = useState(false);
 
   const { playAlert, playSuccess } = useSound();
@@ -498,7 +501,14 @@ export const EOCProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const newEvent = payload.new as RealtimeEvent;
         setRealtimeEvents((prev) => [newEvent, ...prev.slice(0, 49)]);
         
-        if (newEvent.event_type === 'SOS_CREATED' || newEvent.event_type === 'SOS_BACKEND_RECEIVED') {
+        if (newEvent.event_type === 'EMERGENCY_DISASTER_BROADCAST') {
+          playAlert();
+          setActiveDisasterAlert({
+            text: newEvent.payload.disaster_text || 'Emergency Broadcast',
+            severity: newEvent.payload.severity || 'CRITICAL'
+          });
+          showToast(`🚨 CRITICAL BROADCAST INITIATED`);
+        } else if (newEvent.event_type === 'SOS_CREATED' || newEvent.event_type === 'SOS_BACKEND_RECEIVED') {
           playAlert();
           showToast(`⚡ Inbound SOS Alert: Citizen ${newEvent.user_id || newEvent.sos_id?.slice(0, 8) || 'N/A'}`);
           
@@ -902,6 +912,10 @@ export const EOCProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast('State emergency alert cleared.');
   };
 
+  const clearDisasterAlert = () => {
+    setActiveDisasterAlert(null);
+  };
+
   useEffect(() => {
     if (!autoSimulate) return;
     const interval = setInterval(() => {
@@ -983,6 +997,8 @@ export const EOCProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         raiseStateAlert,
         broadcastSystemAlert,
         clearStateAlert,
+        activeDisasterAlert,
+        clearDisasterAlert,
         toastMessage,
         showToast,
 
