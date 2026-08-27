@@ -552,8 +552,8 @@ export const InteractiveEOCMap: React.FC<InteractiveEOCMapProps> = ({
 
   // Tile Providers (Fixed Satellite URL to {x})
   const tileUrls = {
-    dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-    light: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+    dark: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+    light: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
     satellite: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
   };
 
@@ -641,7 +641,7 @@ export const InteractiveEOCMap: React.FC<InteractiveEOCMapProps> = ({
 
         <TileLayer
           url={tileUrls[activeMapType]}
-          attribution='&copy; <a href="https://carto.com/">CARTO</a> &copy; OpenStreetMap'
+          attribution='&copy; <a href="https://www.esri.com/">Esri</a> &copy; OpenStreetMap'
           maxZoom={19}
         />
 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useEOC } from '../context/EOCContext';
+import { VoiceLiveDashboard } from './voice/VoiceLiveDashboard';
 
 export const VoiceCampaigns: React.FC = () => {
   const {
@@ -275,6 +276,13 @@ export const VoiceCampaigns: React.FC = () => {
               </div>
             </div>
           </div>
+          
+          {/* Live Dashboard Integration */}
+          {activeCampaign.status === 'Running' && (
+            <div className="p-4 sm:p-5 border-t border-outline-variant/30">
+              <VoiceLiveDashboard campaignId={activeCampaign.id} />
+            </div>
+          )}
 
           <div className="bg-surface-container-lowest p-3 border-t border-outline-variant/30 flex justify-end gap-3">
             <button 

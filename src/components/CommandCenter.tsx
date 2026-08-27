@@ -5,6 +5,7 @@ import { AIRouteInspector } from './modules/AIRouteInspector';
 import { LiveWeatherWidget } from './modules/LiveWeatherWidget';
 import { DisasterDominoEffect } from './modules/DisasterDominoEffect';
 import { RescueDispatchModal } from './dispatch/RescueDispatchModal';
+import { RegisteredCitizensWidget } from './modules/RegisteredCitizensWidget';
 import { apiFetch, isBackendOffline } from '../services/api';
 
 interface CommandCenterKPIs {
@@ -36,6 +37,7 @@ interface CommandCenterProps {
 export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigate }) => {
   const {
     signals,
+    realtimeEvents,
     selectedSignalId,
     setSelectedSignalId,
     activeCampaign,
@@ -357,28 +359,81 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigate }) => {
                 </button>
               </div>
             ) : (
-              filteredSignals.map((item) => {
+              filteredSignals.map((item, index) => {
                 const isSelected = selectedSignalId === item.id;
-                const isCritical = item.status === 'Critical';
+                const isCritical = item.status === 'Critical' || item.severity === 'CRITICAL';
+                const isNewest = index === 0;
+
                 return (
                   <div
                     key={item.id}
                     onClick={() => setSelectedSignalId(item.id)}
-                    className={`p-3 rounded-md cursor-pointer transition-colors border ${
-                      isSelected ? 'bg-surface-container-lowest border-outline-variant' : 'bg-transparent border-transparent hover:bg-surface-container-low'
+                    className={`p-3 rounded-lg cursor-pointer transition-all border ${
+                      isSelected
+                        ? 'bg-surface-container-lowest border-primary shadow-md ring-1 ring-primary/40'
+                        : 'bg-surface-container-lowest/50 border-outline-variant/30 hover:border-outline-variant hover:bg-surface-container-low'
                     }`}
                   >
-                    <div className="flex justify-between items-start mb-1.5">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-on-surface">{item.id}</span>
-                        {isCritical && <span className="w-1.5 h-1.5 rounded-full bg-error"></span>}
+                    {/* Header: Citizen Name, Pulsing Live Badge, Priority Score */}
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="flex items-start gap-2 min-w-0">
+                        <span className="relative flex h-2.5 w-2.5 mt-1 shrink-0">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-error opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-error"></span>
+                        </span>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-bold text-sm text-on-surface truncate">
+                              {item.userName || `Distress Beacon`}
+                            </span>
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-error/15 text-error border border-error/30 uppercase tracking-wider">
+                              {item.timestamp === 'Just now' || isNewest ? 'LIVE SOS' : item.status}
+                            </span>
+                          </div>
+                          {item.userPhone && (
+                            <span className="text-xs text-primary font-mono font-medium block mt-0.5">
+                              📞 {item.userPhone}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <span className="text-[11px] text-on-surface-variant tabular-nums">Score {item.score}</span>
+
+                      <div className="text-right shrink-0">
+                        <span className={`text-xs font-bold tabular-nums block ${isCritical ? 'text-error' : 'text-tertiary'}`}>
+                          Score {item.score}
+                        </span>
+                        <span className="text-[10px] text-on-surface-variant font-medium">
+                          {item.timestamp}
+                        </span>
+                      </div>
                     </div>
 
-                    <div className="flex justify-between items-center mt-2 text-[11px] text-on-surface-variant">
-                      <span>{item.source} &middot; {item.people} pax</span>
-                      <span className="text-primary">{item.relay}</span>
+                    {/* Metadata: Channel, Pax, Medical Indicator */}
+                    <div className="flex justify-between items-center mt-2.5 pt-2 border-t border-outline-variant/20 text-[11px] text-on-surface-variant">
+                      <span className="flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[15px] text-primary">
+                          {item.sourceIcon || 'smartphone'}
+                        </span>
+                        <span>{item.source} · {item.people}</span>
+                        {item.medicalRequired && (
+                          <span className="ml-1 px-1.5 py-0.2 rounded text-[9px] font-bold bg-error text-on-error uppercase">
+                            MED
+                          </span>
+                        )}
+                      </span>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-primary/10 text-primary border border-primary/20">
+                        {item.relay}
+                      </span>
+                    </div>
+
+                    {/* Unique Tracking ID & Location */}
+                    <div className="mt-1.5 pt-1 text-[10px] font-mono text-on-surface-variant/80 flex items-center justify-between">
+                      <span className="truncate max-w-[190px]" title={item.id}>
+                        ID: <span className="text-on-surface font-semibold">{item.id.slice(0, 18)}...</span>
+                      </span>
+                      <span className="text-tertiary font-sans font-medium shrink-0">
+                        {item.district}
+                      </span>
                     </div>
                   </div>
                 );
@@ -489,6 +544,70 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigate }) => {
           <LiveWeatherWidget className="w-full h-full" />
         </div>
 
+        {/* 7. Real-Time Operational Event Bus Stream */}
+        <div className="col-span-12 bg-surface border border-outline-variant/30 rounded-xl p-5 shadow-sm">
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center gap-2.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-primary animate-ping"></span>
+              <h2 className="text-base font-semibold text-on-surface">PRANSETU Real-Time Operational Event Bus</h2>
+              <span className="text-[11px] bg-surface-container-high text-on-surface-variant px-2.5 py-0.5 rounded-full border border-outline-variant/30 font-mono">
+                {realtimeEvents.length} live events
+              </span>
+            </div>
+            <span className="text-xs text-primary font-mono font-semibold flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-[16px]">sensors</span>
+              Supabase Realtime Stream Connected
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 max-h-60 overflow-y-auto pr-1">
+            {realtimeEvents.length > 0 ? (
+              realtimeEvents.slice(0, 12).map((ev, idx) => {
+                const isSos = ev.event_type.startsWith('SOS_');
+                const isAck = ev.event_type === 'SOS_OPERATOR_ACKNOWLEDGED';
+                const isAlert = ev.event_type.startsWith('DISASTER_');
+                const timeStr = new Date(ev.occurred_at || ev.server_received_at || Date.now()).toLocaleTimeString('en-IN', { hour12: false });
+                
+                return (
+                  <div 
+                    key={ev.event_id || `ev-${idx}`}
+                    className="p-3 bg-surface-container-lowest border border-outline-variant/30 rounded-lg flex flex-col justify-between text-xs hover:border-outline-variant transition-colors"
+                  >
+                    <div className="flex justify-between items-center mb-2">
+                      <span className={`px-2 py-0.5 rounded font-mono font-bold text-[10px] ${
+                        isAck ? 'bg-primary-container text-on-primary-container' :
+                        isSos ? 'bg-error-container text-on-error-container' :
+                        isAlert ? 'bg-tertiary-container text-on-tertiary-container' :
+                        'bg-surface-container-high text-on-surface-variant'
+                      }`}>
+                        {ev.event_type}
+                      </span>
+                      <span className="text-[10px] text-on-surface-variant font-mono">{timeStr}</span>
+                    </div>
+                    <div className="text-[11px] text-on-surface font-sans line-clamp-2">
+                      {ev.sos_id ? `SOS #${ev.sos_id.slice(0, 8)}` : (ev.device_id || ev.source)}
+                      {ev.payload?.user_name ? ` • ${ev.payload.user_name}` : ''}
+                      {ev.payload?.message ? ` • "${ev.payload.message}"` : ''}
+                      {ev.payload?.severity ? ` • Severity: ${ev.payload.severity}` : ''}
+                    </div>
+                    <div className="mt-2 pt-1.5 border-t border-outline-variant/20 flex justify-between items-center text-[10px] text-on-surface-variant font-mono">
+                      <span>src: {ev.source}</span>
+                      {ev.sequence ? <span>seq: #{ev.sequence}</span> : null}
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="col-span-full py-8 text-center text-on-surface-variant text-sm font-sans">
+                Listening for real-time operational events across Android mesh nodes and web command centers...
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* 8. Registered Citizens & Emergency Broadcast */}
+        <RegisteredCitizensWidget />
+        
       </div>
     </div>
   );

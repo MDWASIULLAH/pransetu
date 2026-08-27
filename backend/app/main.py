@@ -23,7 +23,7 @@ app.add_middleware(
 def root():
     return {"message": "PRANSETU Backend Operational"}
 
-from app.api import sos, webhook, safeverify, incidents, resources, shelters, command_center, domino_ai, alerts, auth, audit
+from app.api import sos, webhook, safeverify, incidents, resources, shelters, command_center, domino_ai, alerts, auth, audit, voice_campaigns, voice_webhooks, citizens
 
 app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["auth"])
 app.include_router(audit.router, prefix=f"{settings.API_V1_STR}/audit", tags=["audit"])
@@ -36,3 +36,6 @@ app.include_router(shelters.router, prefix=f"{settings.API_V1_STR}/shelters", ta
 app.include_router(command_center.router, prefix=f"{settings.API_V1_STR}/command-center", tags=["command-center"])
 app.include_router(domino_ai.router, prefix=f"{settings.API_V1_STR}/domino-ai", tags=["domino-ai"])
 app.include_router(alerts.router, prefix=f"{settings.API_V1_STR}/alerts", tags=["alerts"])
+app.include_router(voice_campaigns.router, prefix=f"{settings.API_V1_STR}/voice-campaigns", tags=["voice-campaigns"])
+app.include_router(voice_webhooks.router, prefix=f"{settings.API_V1_STR}/voice-webhooks", tags=["voice-webhooks"])
+app.include_router(citizens.router, prefix=f"{settings.API_V1_STR}/citizens", tags=["citizens"])

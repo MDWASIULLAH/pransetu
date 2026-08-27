@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { X, MapPin, User, Radio, Users, HeartPulse, Share2 } from 'lucide-react';
+import { X, MapPin, User, Radio, Users, HeartPulse, Share2, CheckCheck } from 'lucide-react';
 import { SeverityBadge, DeliveryPill } from '../common/Badges';
 import type { SOSRecord } from '../../types/sos';
+import { useEOC } from '../../context/EOCContext';
 
 interface SOSDetailDrawerProps {
   sos: SOSRecord;
@@ -10,6 +11,8 @@ interface SOSDetailDrawerProps {
 }
 
 export const SOSDetailDrawer = ({ sos, onClose, canMask = false }: SOSDetailDrawerProps) => {
+  const { acknowledgeSignal } = useEOC();
+  const [acknowledged, setAcknowledged] = useState(sos.delivery_state === 'ACKNOWLEDGED');
   const ageMin = Math.round((Date.now() - new Date(sos.location_timestamp || sos.created_at).getTime()) / 60000);
   const isLive = ageMin <= 5;
   
@@ -31,6 +34,11 @@ export const SOSDetailDrawer = ({ sos, onClose, canMask = false }: SOSDetailDraw
 
     return () => clearInterval(interval);
   }, [sos.latitude, sos.longitude, isLive]);
+
+  const handleAcknowledge = async () => {
+    setAcknowledged(true);
+    await acknowledgeSignal(sos.sos_id);
+  };
 
   // Handle Identity
   const userName = (sos as any).userName || 'Unknown Citizen';
@@ -61,7 +69,7 @@ export const SOSDetailDrawer = ({ sos, onClose, canMask = false }: SOSDetailDraw
         
         <div className="flex justify-between items-center bg-surface-container-low p-3 rounded-lg border border-outline-variant/40">
           <SeverityBadge severity={sos.severity} />
-          <DeliveryPill state={sos.delivery_state} />
+          <DeliveryPill state={acknowledged ? 'ACKNOWLEDGED' : sos.delivery_state} />
         </div>
 
         {/* Identity Details */}
@@ -155,8 +163,16 @@ export const SOSDetailDrawer = ({ sos, onClose, canMask = false }: SOSDetailDraw
       
       {/* Footer Actions */}
       <div className="p-5 border-t border-outline-variant/30 bg-surface-container-low flex gap-3">
-        <button className="flex-1 bg-surface hover:bg-surface-container-high border border-outline-variant/50 text-on-surface py-2.5 rounded-xl font-bold transition-colors text-sm shadow-sm">
-          Acknowledge
+        <button 
+          onClick={handleAcknowledge}
+          disabled={acknowledged}
+          className={`flex-1 flex items-center justify-center gap-2 border py-2.5 rounded-xl font-bold transition-colors text-sm shadow-sm ${
+            acknowledged 
+              ? 'bg-primary/20 border-primary text-primary cursor-default' 
+              : 'bg-surface hover:bg-surface-container-high border-outline-variant/50 text-on-surface cursor-pointer'
+          }`}
+        >
+          {acknowledged ? <><CheckCheck size={16} /> Acknowledged</> : 'Acknowledge'}
         </button>
         <button className="flex-1 bg-error hover:bg-error/90 text-on-error py-2.5 rounded-xl font-bold transition-colors text-sm shadow-sm">
           ESCALATE PRIORITY

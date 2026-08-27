@@ -6,6 +6,7 @@ from app.core.security import require_permissions
 from app.core.rbac import has_permission, Permission
 from app.core.audit import log_audit_event, AuditAction, mask_citizen_privacy
 from typing import Dict, Any
+from datetime import datetime
 
 router = APIRouter()
 
@@ -89,10 +90,17 @@ def acknowledge_sos(
     user_info: dict = Depends(require_permissions([Permission.SOS_ACKNOWLEDGE]))
 ):
     """Acknowledge an SOS packet. Audits SOS_ACKNOWLEDGE event."""
-    response = supabase.table('sos_events').update({
-        "acknowledged_by": user_info["uid"],
-        "delivery_state": "CLOSED"
-    }).eq("sos_id", sos_id).execute()
+    try:
+        response = supabase.table('sos_events').update({
+            "acknowledgedBy": user_info["uid"],
+            "deliveryState": "ACKNOWLEDGED",
+            "acknowledgedAt": int(datetime.now().timestamp() * 1000)
+        }).eq("sosId", sos_id).execute()
+    except Exception:
+        response = supabase.table('sos_events').update({
+            "acknowledged_by": user_info["uid"],
+            "delivery_state": "ACKNOWLEDGED"
+        }).eq("sos_id", sos_id).execute()
     
     if not response.data:
         raise HTTPException(status_code=404, detail="SOS not found")
@@ -105,7 +113,7 @@ def acknowledge_sos(
         entity_type="SOS",
         entity_id=sos_id,
         before_state={"delivery_state": "OPEN"},
-        after_state={"delivery_state": "CLOSED", "acknowledged_by": user_info["uid"]},
+        after_state={"delivery_state": "ACKNOWLEDGED", "acknowledged_by": user_info["uid"]},
         request=request
     )
         

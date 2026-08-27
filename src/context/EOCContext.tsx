@@ -4,6 +4,22 @@ import { useSound } from './SoundContext';
 import type { IncidentCluster, SafeVerifyRecord } from '../types/incident';
 import type { RescueResource } from '../types/resource';
 
+export interface RealtimeEvent {
+  event_id: string;
+  event_type: string;
+  event_version: number;
+  occurred_at: string;
+  server_received_at?: string;
+  user_id?: string;
+  device_id?: string;
+  sos_id?: string;
+  incident_id?: string;
+  campaign_id?: string;
+  source: string;
+  sequence?: number;
+  payload: Record<string, any>;
+}
+
 export interface SOSSignal {
   id: string;
   deviceId?: string;
@@ -92,6 +108,7 @@ export interface StateAlert {
 export interface EOCContextType {
   // Signals & SOS
   signals: SOSSignal[];
+  realtimeEvents: RealtimeEvent[];
   sosList: any[];
   incidents: IncidentCluster[];
   resources: RescueResource[];
@@ -100,6 +117,7 @@ export interface EOCContextType {
   selectedSignalId: string | null;
   setSelectedSignalId: (id: string | null) => void;
   dispatchTeamToSignal: (signalId: string, teamName?: string) => void;
+  acknowledgeSignal: (signalId: string) => Promise<void>;
   resolveSignal: (signalId: string) => void;
   injectNewSignal: (customSignal?: Partial<SOSSignal>) => void;
   injectSOS: (sos: any) => void;
@@ -309,41 +327,55 @@ const mockResources: RescueResource[] = [
 const EOCContext = createContext<EOCContextType | undefined>(undefined);
 
 const mapDatabaseToSOSSignal = (row: any): SOSSignal => {
-  const isCritical = row.severityCode >= 3 || row.medicalRequired;
+  const isCritical = (row.severityCode || row.severity_code || 0) >= 3 || row.medicalRequired || row.medical_required || row.severity === 'CRITICAL';
+  const deliveryState = row.deliveryState || row.delivery_state || 'SERVER_RECEIVED';
   const statusMap: Record<string, any> = {
     'CLOSED': 'Resolved',
     'DISPATCHED': 'Dispatched',
     'ACKNOWLEDGED': 'Urgent'
   };
-  const statusStr = statusMap[row.deliveryState] || (isCritical ? 'Critical' : 'Pending');
+  const statusStr = statusMap[deliveryState] || (isCritical ? 'Critical' : 'Pending');
+  const rawId = row.sosId || row.sos_id || row.id || `SOS-${Math.random().toString(36).substr(2, 6)}`;
+  const rawCreatedAt = row.createdAt || row.created_at || row.payload?.createdAt || Date.now();
+  const createdDate = new Date(rawCreatedAt);
+  const now = Date.now();
+  const diffSec = Math.floor((now - createdDate.getTime()) / 1000);
+  const timeFormatted = diffSec < 60 ? 'Just now' : diffSec < 3600 ? `${Math.floor(diffSec / 60)}m ago` : createdDate.toLocaleTimeString('en-IN', { hour12: false }) + ' IST';
+
+  const rawUserName = row.userName || row.user_name || row.citizen_name || row.payload?.userName || row.payload?.user_name;
+  const rawUserPhone = row.userPhone || row.user_phone || row.citizen_phone || row.payload?.userPhone || row.payload?.user_phone;
+  const rawSource = (row.source || row.payload?.source || 'ANDROID').toUpperCase();
+  const sourceName = rawSource === 'ANDROID' || rawSource === 'ANDROID_APP' ? 'Android App' : (rawSource === 'IVR' ? 'IVR Automated' : 'Mesh Relay');
+  const sourceIcon = rawSource === 'ANDROID' || rawSource === 'ANDROID_APP' ? 'smartphone' : (rawSource === 'IVR' ? 'phone_in_talk' : 'bluetooth');
 
   return {
-    id: row.sosId,
-    timestamp: new Date(row.createdAt || Date.now()).toLocaleTimeString('en-IN', { hour12: false }) + ' IST',
+    id: rawId,
+    timestamp: timeFormatted,
+    createdAt: createdDate.toISOString(),
     status: statusStr,
-    score: row.severityCode ? 60 + (row.severityCode * 10) : (isCritical ? 92 : 75),
-    source: row.source === 'android_app' ? 'Android App' : 'Mesh Relay',
-    sourceIcon: row.source === 'android_app' ? 'smartphone' : 'bluetooth',
-    people: `${row.peopleCount || 1} Persons`,
-    peopleCount: row.peopleCount || 1,
-    relay: row.hopCount > 0 ? 'Mesh Relay' : 'Direct API',
-    hop: row.hopCount || 1,
-    hopCount: row.hopCount || 1,
-    loc: `Lat: ${row.latitude?.toFixed(4)}, Lng: ${row.longitude?.toFixed(4)}`,
-    lat: row.latitude || 19.8,
-    lng: row.longitude || 85.8,
-    district: 'Puri',
-    details: row.message || (row.medicalRequired ? 'Medical emergency reported.' : 'Distress beacon received.'),
-    medicalRequired: row.medicalRequired,
+    score: row.severityCode || row.severity_code ? 60 + ((row.severityCode || row.severity_code) * 10) : (isCritical ? 92 : 75),
+    source: sourceName as any,
+    sourceIcon: sourceIcon,
+    people: `${row.peopleCount || row.people_count || row.payload?.people_count || 1} Persons`,
+    peopleCount: row.peopleCount || row.people_count || row.payload?.people_count || 1,
+    relay: (row.hopCount || row.hop_count || 0) > 0 ? 'Mesh Relay' : 'Direct Uplink (Realtime)',
+    hop: row.hopCount || row.hop_count || 1,
+    hopCount: row.hopCount || row.hop_count || 1,
+    loc: `Lat: ${(row.latitude || row.lat || 19.8142)?.toFixed(4)}, Lng: ${(row.longitude || row.lng || 85.8315)?.toFixed(4)}`,
+    lat: row.latitude || row.lat || 19.8142,
+    lng: row.longitude || row.lng || 85.8315,
+    district: row.district || 'Puri Sector',
+    details: row.message || row.notes || row.payload?.message || (isCritical ? 'High-priority distress signal received from citizen device.' : 'Standard distress beacon broadcast.'),
+    medicalRequired: row.medicalRequired || row.medical_required || false,
     severity: isCritical ? 'CRITICAL' : 'HIGH',
     color: statusStr === 'Resolved' ? 'border-outline-variant' : (isCritical ? 'border-error-container' : 'border-tertiary'),
     badgeBg: statusStr === 'Resolved' ? 'bg-surface-container-high' : (isCritical ? 'bg-error-container' : 'bg-tertiary-container'),
     badgeText: statusStr === 'Resolved' ? 'text-on-surface-variant' : (isCritical ? 'text-on-error-container' : 'text-on-tertiary-container'),
     scoreColor: statusStr === 'Resolved' ? 'text-on-surface-variant' : (isCritical ? 'text-error' : 'text-tertiary'),
-    relayPath: row.hopCount > 0 ? [`Node ${row.deviceIdentifier || 'Unknown'}`, 'Gateway'] : ['Direct API'],
-    userName: row.userName,
-    userPhone: row.userPhone,
-    contactPhone: row.userPhone
+    relayPath: (row.hopCount || row.hop_count || 0) > 0 ? [`Node ${row.deviceIdentifier || row.device_id || 'Repeater-01'}`, 'Gateway'] : ['Direct API Uplink'],
+    userName: rawUserName || 'Citizen Alert',
+    userPhone: rawUserPhone || '',
+    contactPhone: rawUserPhone || ''
   };
 };
 
@@ -420,45 +452,129 @@ export const EOCProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }, 4500);
   }, []);
 
+  const [realtimeEvents, setRealtimeEvents] = useState<RealtimeEvent[]>([]);
+
   useEffect(() => {
     // Initial fetch of active SOS events
     const fetchSignals = async () => {
-      const { data, error } = await supabase
-        .from('sos_events')
-        .select('*')
-        .order('createdAt', { ascending: false });
+      try {
+        const { data, error } = await supabase
+          .from('sos_events')
+          .select('*');
 
-      if (data && !error) {
-        setSignals(data.map(mapDatabaseToSOSSignal));
-      } else {
-        console.error('Error fetching signals:', error);
+        if (data && !error && data.length > 0) {
+          setSignals(data.map(mapDatabaseToSOSSignal));
+        } else {
+          console.log('No remote signals or fetching from alternate order:', error?.message);
+        }
+      } catch (err) {
+        console.error('Error fetching signals:', err);
       }
     };
     fetchSignals();
 
-    // Subscribe to realtime changes
+    // Initial fetch of recent Realtime Events
+    const fetchRealtimeEvents = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('realtime_events')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(40);
+
+        if (data && !error) {
+          setRealtimeEvents(data);
+        }
+      } catch (err) {
+        console.error('Error fetching realtime events:', err);
+      }
+    };
+    fetchRealtimeEvents();
+
+    // Subscribe to realtime_events table for instant cross-platform operational feed
+    const eventSubscription = supabase
+      .channel('realtime_events_stream')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'realtime_events' }, (payload) => {
+        const newEvent = payload.new as RealtimeEvent;
+        setRealtimeEvents((prev) => [newEvent, ...prev.slice(0, 49)]);
+        
+        if (newEvent.event_type === 'SOS_CREATED' || newEvent.event_type === 'SOS_BACKEND_RECEIVED') {
+          playAlert();
+          showToast(`⚡ Inbound SOS Alert: Citizen ${newEvent.user_id || newEvent.sos_id?.slice(0, 8) || 'N/A'}`);
+          
+          // Ensure this signal is immediately added to signals list if not already present
+          setSignals((prev) => {
+            const exists = prev.some((s) => s.id === newEvent.sos_id);
+            if (exists) return prev;
+            const signalFromEvent = mapDatabaseToSOSSignal({
+              sosId: newEvent.sos_id,
+              createdAt: newEvent.occurred_at || newEvent.server_received_at,
+              source: 'ANDROID',
+              userName: newEvent.user_id || 'Citizen (App)',
+              payload: newEvent.payload,
+              ...newEvent.payload
+            });
+            return [signalFromEvent, ...prev];
+          });
+        }
+      })
+      .subscribe();
+
+    // Subscribe to sos_events changes
     const subscription = supabase
       .channel('sos_events_changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'sos_events' }, (payload) => {
         if (payload.eventType === 'INSERT') {
           const newSignal = mapDatabaseToSOSSignal(payload.new);
-          setSignals((prev) => [newSignal, ...prev]);
+          setSignals((prev) => [newSignal, ...prev.filter((s) => s.id !== newSignal.id)]);
           setSelectedSignalId(newSignal.id);
           playAlert();
-          showToast(`Inbound SOS ${newSignal.id} — ${newSignal.loc}, ${newSignal.people}.`);
+          showToast(`🔴 LIVE SOS Received: ${newSignal.userName} (${newSignal.id.slice(0, 8)})`);
         } else if (payload.eventType === 'UPDATE') {
           const updatedSignal = mapDatabaseToSOSSignal(payload.new);
           setSignals((prev) => prev.map((s) => (s.id === updatedSignal.id ? updatedSignal : s)));
         } else if (payload.eventType === 'DELETE') {
-          setSignals((prev) => prev.filter((s) => s.id !== payload.old.sosId));
+          const deletedId = payload.old?.sosId || payload.old?.sos_id || payload.old?.id;
+          setSignals((prev) => prev.filter((s) => s.id !== deletedId));
         }
       })
       .subscribe();
 
     return () => {
       supabase.removeChannel(subscription);
+      supabase.removeChannel(eventSubscription);
     };
   }, [playAlert, showToast]);
+
+  const acknowledgeSignal = async (signalId: string) => {
+    // Update local state optimistically
+    setSignals((prev) =>
+      prev.map((s) =>
+        s.id === signalId
+          ? {
+              ...s,
+              status: 'Urgent',
+              color: 'border-primary',
+              badgeBg: 'bg-primary-container',
+              badgeText: 'text-on-primary-container',
+              scoreColor: 'text-primary'
+            }
+          : s
+      )
+    );
+    playSuccess();
+    showToast(`Distress Signal #${signalId.slice(0, 8)} acknowledged by Operator.`);
+
+    try {
+      await supabase.from('sos_events').update({
+        deliveryState: 'ACKNOWLEDGED',
+        acknowledgedBy: 'OPERATOR-EOC-01',
+        acknowledgedAt: Date.now()
+      }).eq('sosId', signalId);
+    } catch (e) {
+      console.error('Error acknowledging signal:', e);
+    }
+  };
 
   const dispatchTeamToSignal = async (signalId: string, teamName = 'NDRF-Alpha (Battalion 03)') => {
     // Update local state optimistically
@@ -834,6 +950,7 @@ export const EOCProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     <EOCContext.Provider
       value={{
         signals,
+        realtimeEvents,
         sosList: signals,
         incidents,
         resources,
@@ -842,6 +959,7 @@ export const EOCProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         selectedSignalId,
         setSelectedSignalId,
         dispatchTeamToSignal,
+        acknowledgeSignal,
         resolveSignal,
         injectNewSignal,
         injectSOS,

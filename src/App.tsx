@@ -11,6 +11,7 @@ import { DisasterAlertsManager } from './components/alerts/DisasterAlertsManager
 import { AuditLogsModule } from './components/modules/AuditLogsModule';
 import { Login } from './components/auth/Login';
 import { Register } from './components/auth/Register';
+import { CitizenRegistry } from './components/dashboard/CitizenRegistry';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<'app' | 'login' | 'register'>('app');
@@ -64,6 +65,8 @@ export default function App() {
         return <VoiceCampaigns />;
       case 'safeverify':
         return <SafeVerifyDashboard />;
+      case 'registry':
+        return <CitizenRegistry />;
       case 'resources':
         return <Resources />;
       case 'alerts':

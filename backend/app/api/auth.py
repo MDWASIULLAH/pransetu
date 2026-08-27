@@ -12,6 +12,90 @@ from app.core.audit import log_audit_event, AuditAction
 
 router = APIRouter()
 
+# Temporary mock OTP storage (in memory for test mode)
+# In production, use Redis or Supabase table
+MOCK_OTP_STORE: Dict[str, str] = {}
+
+@router.post("/citizens/request-otp")
+def request_citizen_otp(
+    payload: dict = Body(...)
+):
+    """
+    Test Mode OTP Request.
+    Simulates sending an OTP to a phone number.
+    """
+    phone = payload.get("phone_number")
+    if not phone:
+        raise HTTPException(status_code=400, detail="phone_number is required")
+    
+    # Store a test OTP (always 123456 for this test mode)
+    MOCK_OTP_STORE[phone] = "123456"
+    
+    return {"status": "success", "message": f"Test OTP sent to {phone}"}
+
+@router.post("/citizens/verify-otp")
+def verify_citizen_otp(
+    request: Request,
+    payload: dict = Body(...),
+    supabase: Client = Depends(get_supabase_client)
+):
+    """
+    Test Mode OTP Verification.
+    Validates OTP, issues a JWT, and creates the profile.
+    """
+    phone = payload.get("phone_number")
+    code = payload.get("code")
+    
+    if not phone or not code:
+        raise HTTPException(status_code=400, detail="phone_number and code are required")
+        
+    if MOCK_OTP_STORE.get(phone) != code and code != "123456":
+        raise HTTPException(status_code=401, detail="Invalid OTP code")
+        
+    # Generate consistent UUID based on phone number for Supabase
+    citizen_id = f"{uuid.uuid5(uuid.NAMESPACE_URL, phone)}"
+    
+    # Issue secure JWT token for the citizen
+    now = datetime.now(timezone.utc)
+    token_payload = {
+        "sub": citizen_id,
+        "phone": phone,
+        "role": "authenticated", # Standard Supabase auth role
+        "app_metadata": {"role": "CITIZEN"},
+        "iat": int(now.timestamp()),
+        "exp": int((now + timedelta(days=365)).timestamp())
+    }
+    access_token = jwt.encode(token_payload, settings.legacy_supabase_secret, algorithm="HS256")
+    
+    # Clear OTP
+    if phone in MOCK_OTP_STORE:
+        del MOCK_OTP_STORE[phone]
+        
+    # Log audit event
+    log_audit_event(
+        supabase=supabase,
+        actor_id=citizen_id,
+        actor_role="CITIZEN",
+        action=AuditAction.LOGIN, # Approximate action
+        entity_type="CITIZEN",
+        entity_id=citizen_id,
+        before_state=None,
+        after_state={"phone_verified": True},
+        metadata={"phone": phone, "auth_method": "TEST_OTP"},
+        request=request
+    )
+    
+    return {
+        "status": "success",
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": {
+            "id": citizen_id,
+            "phone": phone,
+            "role": "CITIZEN"
+        }
+    }
+
 @router.post("/login")
 def login_user(
     request: Request,

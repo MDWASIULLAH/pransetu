@@ -7,6 +7,8 @@ export type DeliveryState =
   | 'RELAYED'
   | 'GATEWAY_RECEIVED'
   | 'SERVER_DELIVERED'
+  | 'ACKNOWLEDGED'
+  | 'DISPATCHED'
   | 'CLOSED';
 
 export type SOSSource = 'ANDROID' | 'IVR' | 'EXTERNAL';
