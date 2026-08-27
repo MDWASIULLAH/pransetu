@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   AlertOctagon, Radio, PhoneCall, ShieldAlert, Loader2, Users, Zap, 
-  CheckCircle2, Clock, Smartphone, Volume2, ShieldCheck, RefreshCw
+  CheckCircle2, Clock, Smartphone, Volume2, ShieldCheck, RefreshCw, StopCircle, Check
 } from 'lucide-react';
 import { API_BASE, authHeaders } from '../../services/api';
 import { useEOC } from '../../context/EOCContext';
@@ -21,6 +21,7 @@ export const EmergencyBroadcast: React.FC = () => {
   const [disasterText, setDisasterText] = useState('');
   const [severity, setSeverity] = useState('RED_CRITICAL');
   const [isDispatching, setIsDispatching] = useState(false);
+  const [isStopping, setIsStopping] = useState(false);
   const [activeCampaign, setActiveCampaign] = useState<any>(null);
   const [targets, setTargets] = useState<CitizenTarget[]>([]);
   const [loadingCitizens, setLoadingCitizens] = useState(true);
@@ -215,6 +216,52 @@ export const EmergencyBroadcast: React.FC = () => {
     }
   };
 
+  const handleStopBroadcast = async () => {
+    if (!window.confirm('CRITICAL ACTION: Are you sure you want to stop this active emergency broadcast and send an ALL-CLEAR stand-down signal to all devices?')) {
+      return;
+    }
+
+    setIsStopping(true);
+    try {
+      const campaignId = activeCampaign?.campaign_id || 'BROADCAST-ALL-CLEAR';
+
+      // 1. Transmit EMERGENCY_BROADCAST_CANCELLED event to stand down all mobile phones
+      await supabase
+        .from('realtime_events')
+        .insert({
+          event_type: 'EMERGENCY_BROADCAST_CANCELLED',
+          source: 'eoc_broadcast_manager',
+          campaign_id: campaignId,
+          occurred_at: new Date().toISOString(),
+          payload: {
+            status: 'ALL_CLEAR',
+            message: 'Emergency Broadcast Stand-Down / All-Clear ordered by State Authorities.'
+          }
+        });
+
+      // 2. Close active SYSTEM_ALERT rows in sos_events
+      await supabase
+        .from('sos_events')
+        .update({ deliveryState: 'CLOSED' })
+        .eq('source', 'SYSTEM_ALERT');
+
+      setActiveCampaign(null);
+      setTargets((prev) =>
+        prev.map((t) => ({
+          ...t,
+          status: t.status === 'ACKNOWLEDGED' ? 'ACKNOWLEDGED' : 'PENDING'
+        }))
+      );
+
+      showToast('🛑 Emergency Broadcast Terminated: ALL-CLEAR signal sent to all devices.');
+    } catch (e: any) {
+      console.error(e);
+      showToast(`Error stopping broadcast: ${e.message || e}`);
+    } finally {
+      setIsStopping(false);
+    }
+  };
+
   const acknowledgedCount = targets.filter((t) => t.status === 'ACKNOWLEDGED').length;
   const totalCount = targets.length;
   const ackPercent = totalCount > 0 ? Math.round((acknowledgedCount / totalCount) * 100) : 0;
@@ -232,13 +279,25 @@ export const EmergencyBroadcast: React.FC = () => {
             Dispatch high-frequency sirens & cell-broadcast warnings to citizen mobile phones with real-time acknowledgment telemetry.
           </p>
         </div>
-        <button
-          onClick={fetchCitizens}
-          className="flex items-center gap-2 px-3.5 py-2 bg-[#22272E] border border-gray-700 hover:border-gray-500 rounded-lg text-xs font-semibold text-gray-200 hover:bg-gray-800 transition-colors self-start sm:self-auto"
-        >
-          <RefreshCw className={`w-4 h-4 ${loadingCitizens ? 'animate-spin' : ''}`} />
-          Refresh Citizen Fleet
-        </button>
+        <div className="flex items-center gap-3 self-start sm:self-auto">
+          {activeCampaign && (
+            <button
+              onClick={handleStopBroadcast}
+              disabled={isStopping}
+              className="flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-bold transition-all shadow-lg animate-pulse"
+            >
+              <StopCircle className="w-4 h-4" />
+              {isStopping ? 'Standing Down...' : 'STOP BROADCAST (ALL-CLEAR)'}
+            </button>
+          )}
+          <button
+            onClick={fetchCitizens}
+            className="flex items-center gap-2 px-3.5 py-2 bg-[#22272E] border border-gray-700 hover:border-gray-500 rounded-lg text-xs font-semibold text-gray-200 hover:bg-gray-800 transition-colors"
+          >
+            <RefreshCw className={`w-4 h-4 ${loadingCitizens ? 'animate-spin' : ''}`} />
+            Refresh Fleet
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -298,28 +357,42 @@ export const EmergencyBroadcast: React.FC = () => {
                 />
               </div>
 
-              <button
-                type="button"
-                onClick={handleBroadcast}
-                disabled={isDispatching}
-                className={`w-full py-4 rounded-xl font-black text-lg uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all shadow-lg cursor-pointer ${
-                  isDispatching
-                    ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
-                    : 'bg-red-600 text-white hover:bg-red-500 hover:shadow-[0_0_25px_rgba(220,38,38,0.7)] active:scale-[0.99]'
-                }`}
-              >
-                {isDispatching ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Transmitting Alert...
-                  </>
-                ) : (
-                  <>
-                    <ShieldAlert className="w-5 h-5" />
-                    TRANSMIT EMERGENCY BROADCAST
-                  </>
+              <div className="space-y-2 pt-1">
+                <button
+                  type="button"
+                  onClick={handleBroadcast}
+                  disabled={isDispatching}
+                  className={`w-full py-4 rounded-xl font-black text-lg uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all shadow-lg cursor-pointer ${
+                    isDispatching
+                      ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                      : 'bg-red-600 text-white hover:bg-red-500 hover:shadow-[0_0_25px_rgba(220,38,38,0.7)] active:scale-[0.99]'
+                  }`}
+                >
+                  {isDispatching ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Transmitting Alert...
+                    </>
+                  ) : (
+                    <>
+                      <ShieldAlert className="w-5 h-5" />
+                      TRANSMIT EMERGENCY BROADCAST
+                    </>
+                  )}
+                </button>
+
+                {activeCampaign && (
+                  <button
+                    type="button"
+                    onClick={handleStopBroadcast}
+                    disabled={isStopping}
+                    className="w-full py-3 rounded-xl font-bold text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all bg-[#22272E] hover:bg-amber-950/60 text-amber-400 border border-amber-500/50 hover:border-amber-400"
+                  >
+                    <StopCircle className="w-4 h-4" />
+                    {isStopping ? 'Transmitting All-Clear...' : 'CANCEL BROADCAST / ALL-CLEAR'}
+                  </button>
                 )}
-              </button>
+              </div>
             </div>
           </div>
         </div>
@@ -354,14 +427,22 @@ export const EmergencyBroadcast: React.FC = () => {
           </div>
 
           {/* Live Progress Bar */}
-          {activeCampaign && (
+          {activeCampaign ? (
             <div className="bg-[#1C2128] border border-gray-800 p-4 rounded-xl space-y-2">
-              <div className="flex justify-between text-xs text-gray-300 font-semibold">
+              <div className="flex justify-between items-center text-xs text-gray-300 font-semibold">
                 <span className="flex items-center gap-1.5 text-red-400">
                   <span className="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
                   Active Broadcast: {activeCampaign.campaign_id}
                 </span>
-                <span className="text-green-400 font-bold">{ackPercent}% Acknowledged</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-green-400 font-bold">{ackPercent}% Acknowledged</span>
+                  <button 
+                    onClick={handleStopBroadcast} 
+                    className="text-[11px] px-2 py-0.5 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded hover:bg-amber-500/30 transition-colors"
+                  >
+                    Stand Down
+                  </button>
+                </div>
               </div>
               <div className="w-full h-3 bg-gray-800 rounded-full overflow-hidden">
                 <div 
@@ -369,6 +450,14 @@ export const EmergencyBroadcast: React.FC = () => {
                   style={{ width: `${ackPercent}%` }}
                 ></div>
               </div>
+            </div>
+          ) : (
+            <div className="bg-[#1C2128] border border-gray-800 p-3.5 rounded-xl flex items-center justify-between text-xs text-gray-400">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span>System Ready • All-Clear Nominal Standby</span>
+              </div>
+              <span className="text-gray-500 font-mono">0 Broadcasts Active</span>
             </div>
           )}
 
