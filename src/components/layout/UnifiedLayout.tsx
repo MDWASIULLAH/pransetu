@@ -196,11 +196,9 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
             className="flex items-center gap-1.5 sm:gap-2 cursor-pointer" 
             onClick={() => onNavigate('command')}
           >
-            <div className="w-5 h-5 sm:w-6 sm:h-6 rounded bg-on-surface flex items-center justify-center text-surface shrink-0">
-              <span className="material-symbols-outlined text-[14px] sm:text-[16px] icon-fill">shield</span>
-            </div>
+            <img src="/pransetu_logo.png" alt="PRANSETU Logo" className="w-6 h-6 sm:w-7 sm:h-7 object-contain shrink-0" />
             <div className="flex flex-col leading-none">
-              <span className="font-semibold text-on-surface text-xs sm:text-sm tracking-tight">PRANSETU</span>
+              <span className="font-bold text-on-surface text-sm sm:text-base tracking-tight">PRANSETU</span>
             </div>
           </div>
         </div>
@@ -334,9 +332,7 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
               <div>
                 <div className="flex items-center justify-between pb-4 border-b border-outline-variant mb-4">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded bg-on-surface flex items-center justify-center text-surface">
-                      <span className="material-symbols-outlined text-[20px] icon-fill">shield</span>
-                    </div>
+                    <img src="/pransetu_logo.png" alt="PRANSETU Logo" className="w-8 h-8 object-contain" />
                     <span className="font-bold text-sm text-on-surface">PRANSETU EOC</span>
                   </div>
                   <button onClick={() => setMobileMenuOpen(false)} className="text-on-surface-variant hover:text-on-surface">
