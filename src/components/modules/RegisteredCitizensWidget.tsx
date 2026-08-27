@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../services/api';
+import { supabase } from '../../lib/supabase';
 import { Phone, Users, ShieldAlert, CheckCircle2 } from 'lucide-react';
 
 interface Citizen {
@@ -17,13 +18,34 @@ export const RegisteredCitizensWidget: React.FC = () => {
 
   const fetchCitizens = async () => {
     try {
+      // First try Supabase direct client (works without local backend)
+      const { data, error } = await supabase
+        .from('registered_citizens')
+        .select('*')
+        .order('registered_at', { ascending: false });
+
+      if (data && !error) {
+        setCitizens(data);
+        return;
+      }
+
+      // Fallback to backend API
       const res = await apiFetch('/api/v1/citizens');
       if (res.ok) {
         const json = await res.json();
         setCitizens(json.data || []);
       }
     } catch (err) {
-      console.error('Failed to fetch registered citizens', err);
+      console.warn('Fallback: checking Supabase directly', err);
+      try {
+        const { data } = await supabase
+          .from('registered_citizens')
+          .select('*')
+          .order('registered_at', { ascending: false });
+        if (data) setCitizens(data);
+      } catch (e) {
+        console.error('Failed to fetch registered citizens', e);
+      }
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
-import { supabase } from '../../supabaseClient';
+import { supabase } from '../../lib/supabase';
 
 interface Citizen {
   id: string;
@@ -11,7 +10,6 @@ interface Citizen {
 }
 
 export const CitizenRegistry: React.FC = () => {
-  const { session } = useAuth();
   const [citizens, setCitizens] = useState<Citizen[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -24,9 +22,6 @@ export const CitizenRegistry: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      // In a real application, you might use the backend API: `/api/v1/citizens`
-      // Here we directly query Supabase since the Operator token is valid and Supabase Client is set up.
-      // EOC Operators typically have access via RLS or this could use the REST API through Axios.
       const { data, error } = await supabase
         .from('registered_citizens')
         .select('*')
@@ -41,15 +36,6 @@ export const CitizenRegistry: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const maskPhoneNumber = (phone: string) => {
-    if (!phone || phone.length < 4) return phone;
-    // Assuming format +91 9876543210
-    const visibleChars = 4;
-    const maskedLength = Math.max(0, phone.length - visibleChars);
-    const maskedStr = '*'.repeat(maskedLength);
-    return phone.substring(0, phone.length - visibleChars).replace(/./g, '*') + phone.substring(phone.length - visibleChars);
   };
 
   // Better masking: keep the country code if it exists.
