@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AlertOctagon, Radio, PhoneCall, ShieldAlert, Loader2, Users } from 'lucide-react';
+import { AlertOctagon, Radio, PhoneCall, ShieldAlert, Loader2, Users, Zap } from 'lucide-react';
 import { API_BASE, authHeaders } from '../../services/api';
 import { useEOC } from '../../context/EOCContext';
 import { supabase } from '../../lib/supabase';
@@ -11,13 +11,33 @@ export const EmergencyBroadcast: React.FC = () => {
   const [isDispatching, setIsDispatching] = useState(false);
   const [dispatchResult, setDispatchResult] = useState<any>(null);
 
-  const handleBroadcast = async () => {
-    if (!disasterText || disasterText.trim().length < 5) {
-      showToast('Error: Please enter a disaster description.');
-      return;
+  const presets = [
+    {
+      label: '🌪️ Cyclone Alert',
+      severity: 'RED_CRITICAL',
+      text: 'EMERGENCY: Category 5 Cyclone making landfall in 2 hours. Severe winds & storm surge. Evacuate to nearest shelter immediately.'
+    },
+    {
+      label: '🌊 Tsunami Warning',
+      severity: 'RED_CRITICAL',
+      text: 'TSUNAMI EVACUATION: Destructive waves imminent on coastal line. Move to high ground (30m+) immediately.'
+    },
+    {
+      label: '🌧️ Flash Flood',
+      severity: 'ORANGE_WARNING',
+      text: 'FLASH FLOOD WARNING: Rapidly rising waters in low-lying sectors. Avoid riverbanks and power lines. Seek safe shelter.'
+    },
+    {
+      label: '🔥 Industrial / Fire Hazard',
+      severity: 'RED_CRITICAL',
+      text: 'HAZMAT WARNING: Chemical / Fire emergency in district perimeter. Stay indoors, seal windows, and await rescue evacuation.'
     }
+  ];
 
-    if (!window.confirm('CRITICAL ACTION: Are you sure you want to trigger an Emergency Disaster Broadcast? This will activate sirens and full-screen alerts on all citizen mobile apps.')) {
+  const handleBroadcast = async () => {
+    const finalMessage = disasterText.trim() || 'CRITICAL EMERGENCY DISASTER ALERT: Immediate public evacuation and safety measures ordered by state authorities.';
+
+    if (!window.confirm(`CRITICAL ACTION: Are you sure you want to trigger this Emergency Disaster Broadcast?\n\n"${finalMessage}"\n\nThis will trigger high-frequency beeping sirens and system notifications on all citizen phones.`)) {
       return;
     }
 
@@ -42,7 +62,7 @@ export const EmergencyBroadcast: React.FC = () => {
           campaign_id: campaignId,
           occurred_at: new Date().toISOString(),
           payload: {
-            disaster_text: disasterText.trim(),
+            disaster_text: finalMessage,
             severity: severity,
             trigger_siren: true,
             target_count: targetCount
@@ -61,8 +81,8 @@ export const EmergencyBroadcast: React.FC = () => {
           createdAt: Date.now(),
           source: 'SYSTEM_ALERT',
           severityCode: severity === 'RED_CRITICAL' ? 5 : (severity === 'ORANGE_WARNING' ? 4 : 3),
-          message: disasterText.trim(),
-          notes: disasterText.trim(),
+          message: finalMessage,
+          notes: finalMessage,
           peopleCount: targetCount,
           medicalRequired: false,
           hopCount: 0,
@@ -78,7 +98,7 @@ export const EmergencyBroadcast: React.FC = () => {
       // 4. Also trigger local state alert in web dashboard
       raiseStateAlert(
         severity as any,
-        disasterText.trim()
+        finalMessage
       );
 
       // 5. Try calling Python IVR backend if running
@@ -90,7 +110,7 @@ export const EmergencyBroadcast: React.FC = () => {
             ...authHeaders()
           },
           body: JSON.stringify({
-            disaster_text: disasterText.trim(),
+            disaster_text: finalMessage,
             severity: severity,
             trigger_siren: true,
             language: 'en'
@@ -125,7 +145,7 @@ export const EmergencyBroadcast: React.FC = () => {
           Emergency Disaster Broadcast
         </h1>
         <p className="text-gray-400 mt-2 text-lg">
-          Trigger immediate, life-saving sirens and full-screen disaster alerts to all registered mobile app users.
+          Trigger immediate, life-saving sirens, high-frequency beeps, and heads-up disaster alerts to all registered mobile app users.
         </p>
       </div>
 
@@ -138,6 +158,28 @@ export const EmergencyBroadcast: React.FC = () => {
               <Radio className="w-6 h-6 text-red-500" />
               Configure Broadcast Message
             </h2>
+
+            {/* Quick Presets */}
+            <div className="mb-4">
+              <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+                <Zap className="w-3.5 h-3.5 text-yellow-400" /> Quick Templates:
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {presets.map((preset, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => {
+                      setSeverity(preset.severity);
+                      setDisasterText(preset.text);
+                    }}
+                    className="text-xs bg-[#22272E] hover:bg-red-950/60 border border-gray-700 hover:border-red-500 text-gray-200 px-3 py-1.5 rounded-lg transition-colors"
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+            </div>
 
             <div className="space-y-4">
               <div>
@@ -159,29 +201,30 @@ export const EmergencyBroadcast: React.FC = () => {
                   value={disasterText}
                   onChange={(e) => setDisasterText(e.target.value)}
                   placeholder="E.g., A Category 5 Cyclone is making landfall in 2 hours. Seek higher ground immediately. Do not stay near the coast."
-                  className="w-full h-40 bg-[#22272E] border border-gray-600 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-red-500 placeholder-gray-500 resize-none font-mono text-lg"
+                  className="w-full h-36 bg-[#22272E] border border-gray-600 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-red-500 placeholder-gray-500 resize-none font-mono text-base"
                 />
               </div>
 
-              <div className="pt-4">
+              <div className="pt-2">
                 <button
+                  type="button"
                   onClick={handleBroadcast}
-                  disabled={isDispatching || disasterText.trim().length < 5}
-                  className={`w-full py-5 rounded-xl font-black text-2xl uppercase tracking-widest flex items-center justify-center gap-3 transition-all ${
-                    isDispatching || disasterText.trim().length < 5
-                      ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                      : 'bg-red-600 text-white hover:bg-red-500 hover:shadow-[0_0_30px_rgba(220,38,38,0.6)] animate-pulse'
+                  disabled={isDispatching}
+                  className={`w-full py-5 rounded-xl font-black text-2xl uppercase tracking-widest flex items-center justify-center gap-3 transition-all cursor-pointer shadow-lg ${
+                    isDispatching
+                      ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                      : 'bg-red-600 text-white hover:bg-red-500 hover:shadow-[0_0_30px_rgba(220,38,38,0.7)] active:scale-[0.99]'
                   }`}
                 >
                   {isDispatching ? (
                     <>
                       <Loader2 className="w-8 h-8 animate-spin" />
-                      Dispatching to Citizens...
+                      Dispatching Alert...
                     </>
                   ) : (
                     <>
                       <ShieldAlert className="w-8 h-8" />
-                      Activate Emergency Broadcast
+                      ACTIVATE EMERGENCY BROADCAST
                     </>
                   )}
                 </button>
