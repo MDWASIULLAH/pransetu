@@ -8,6 +8,7 @@ import urllib.parse
 import urllib.request
 from typing import Any, Dict
 
+from app.core.config import settings
 from .telephony_provider import TelephonyProvider
 
 
@@ -19,12 +20,12 @@ class ExotelProvider(TelephonyProvider):
     """
 
     def __init__(self):
-        self.account_sid = os.getenv("EXOTEL_ACCOUNT_SID", "pransetu1")
-        self.api_key = os.getenv("EXOTEL_API_KEY", "")
-        self.api_token = os.getenv("EXOTEL_API_TOKEN", "")
-        self.subdomain = os.getenv("EXOTEL_SUBDOMAIN", "api.exotel.com")
-        self.caller_id = os.getenv("EXOTEL_EXOPHONE", "03348054234")
-        self.app_id = os.getenv("EXOTEL_APP_ID", "1328745")
+        self.account_sid = os.getenv("EXOTEL_ACCOUNT_SID", settings.EXOTEL_ACCOUNT_SID)
+        self.api_key = os.getenv("EXOTEL_API_KEY", settings.EXOTEL_API_KEY)
+        self.api_token = os.getenv("EXOTEL_API_TOKEN", settings.EXOTEL_API_TOKEN)
+        self.subdomain = os.getenv("EXOTEL_SUBDOMAIN", settings.EXOTEL_SUBDOMAIN)
+        self.caller_id = os.getenv("EXOTEL_EXOPHONE", settings.EXOTEL_EXOPHONE)
+        self.app_id = os.getenv("EXOTEL_APP_ID", settings.EXOTEL_APP_ID)
 
     def is_configured(self) -> bool:
         return bool(self.account_sid and self.api_key and self.api_token and self.caller_id and self.app_id)

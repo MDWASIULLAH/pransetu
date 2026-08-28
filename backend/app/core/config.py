@@ -80,6 +80,13 @@ class Settings(BaseSettings):
 
     TWILIO_AUTH_TOKEN: str = ""
 
+    EXOTEL_ACCOUNT_SID: str = ""
+    EXOTEL_API_KEY: str = ""
+    EXOTEL_API_TOKEN: str = ""
+    EXOTEL_SUBDOMAIN: str = "api.exotel.com"
+    EXOTEL_EXOPHONE: str = ""
+    EXOTEL_APP_ID: str = ""
+
     model_config = SettingsConfigDict(
         env_file=str(_ENV_FILE),
         env_file_encoding="utf-8",
@@ -150,6 +157,18 @@ def validate_runtime_config() -> List[str]:
         problems.append(
             "TWILIO_AUTH_TOKEN is not set — the IVR webhook cannot verify request "
             "signatures and will accept unsigned requests."
+        )
+    if not all([
+        settings.EXOTEL_ACCOUNT_SID,
+        settings.EXOTEL_API_KEY,
+        settings.EXOTEL_API_TOKEN,
+        settings.EXOTEL_EXOPHONE,
+        settings.EXOTEL_APP_ID,
+    ]):
+        problems.append(
+            "Exotel IVR configuration is incomplete — IVR Broadcast start will return "
+            "REQUIRES_EXOTEL_CONFIGURATION until EXOTEL_ACCOUNT_SID, EXOTEL_API_KEY, "
+            "EXOTEL_API_TOKEN, EXOTEL_EXOPHONE and EXOTEL_APP_ID are set."
         )
 
     return problems
