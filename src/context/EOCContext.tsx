@@ -390,6 +390,14 @@ const mapDatabaseToSOSSignal = (row: any): SOSSignal => {
   const rawSource = (row.source || row.payload?.source || 'ANDROID').toUpperCase();
   const sourceName = rawSource === 'ANDROID' || rawSource === 'ANDROID_APP' ? 'Android App' : (rawSource === 'IVR' ? 'IVR Automated' : 'Mesh Relay');
   const sourceIcon = rawSource === 'ANDROID' || rawSource === 'ANDROID_APP' ? 'smartphone' : (rawSource === 'IVR' ? 'phone_in_talk' : 'bluetooth');
+  const citizenMessage =
+    row.message ||
+    row.userMessage ||
+    row.user_message ||
+    row.payload?.message ||
+    row.payload?.userMessage ||
+    row.payload?.user_message ||
+    '';
 
   return {
     id: rawId,
@@ -408,7 +416,7 @@ const mapDatabaseToSOSSignal = (row: any): SOSSignal => {
     lat: row.latitude || row.lat || 19.8142,
     lng: row.longitude || row.lng || 85.8315,
     district: row.district || 'Puri Sector',
-    details: row.message || row.notes || row.payload?.message || (isCritical ? 'High-priority distress signal received from citizen device.' : 'Standard distress beacon broadcast.'),
+    details: citizenMessage || row.notes || (isCritical ? 'High-priority distress signal received from citizen device.' : 'Standard distress beacon broadcast.'),
     medicalRequired: row.medicalRequired || row.medical_required || false,
     severity: isCritical ? 'CRITICAL' : 'HIGH',
     color: statusStr === 'Resolved' ? 'border-outline-variant' : (isCritical ? 'border-error-container' : 'border-tertiary'),
@@ -420,7 +428,7 @@ const mapDatabaseToSOSSignal = (row: any): SOSSignal => {
     userPhone: rawUserPhone || '',
     contactPhone: rawUserPhone || '',
     audioUrl: row.audioUrl || row.audio_url || row.payload?.audioUrl || undefined,
-    rawText: row.rawText || row.raw_text || row.payload?.rawText || undefined
+    rawText: citizenMessage || undefined
   };
 };
 

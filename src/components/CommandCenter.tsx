@@ -126,7 +126,10 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigate }) => {
       return;
     }
 
-    const spokenText = signal.rawText || signal.details;
+    const spokenText = signal.rawText;
+    if (!spokenText) {
+      return;
+    }
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(spokenText);
     utterance.rate = 0.92;
@@ -395,7 +398,7 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigate }) => {
                 const isCritical = item.status === 'Critical' || item.severity === 'CRITICAL';
                 const isNewest = index === 0;
                 const isSpeaking = speakingSignalId === item.id;
-                const signalText = item.rawText || item.details;
+                const signalText = item.rawText;
 
                 return (
                   <div
