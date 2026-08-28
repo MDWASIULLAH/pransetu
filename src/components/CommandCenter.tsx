@@ -51,6 +51,7 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigate }) => {
   const [dominoModalOpen, setDominoModalOpen] = useState<boolean>(false);
   const [dispatchIncidentId, setDispatchIncidentId] = useState<string | null>(null);
   const [mapType, setMapType] = useState<'light' | 'dark' | 'satellite'>('dark');
+  const [speakingSignalId, setSpeakingSignalId] = useState<string | null>(null);
 
   // Live Database KPIs State
   const [kpis, setKpis] = useState<CommandCenterKPIs>({
@@ -105,6 +106,36 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigate }) => {
       clearTimeout(timer);
     };
   }, []);
+
+  useEffect(() => {
+    return () => {
+      window.speechSynthesis?.cancel();
+    };
+  }, []);
+
+  const playSignalText = (signal: typeof signals[number], event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+
+    if (!('speechSynthesis' in window)) {
+      return;
+    }
+
+    if (speakingSignalId === signal.id) {
+      window.speechSynthesis.cancel();
+      setSpeakingSignalId(null);
+      return;
+    }
+
+    const spokenText = signal.rawText || signal.details;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(spokenText);
+    utterance.rate = 0.92;
+    utterance.pitch = 1;
+    utterance.onend = () => setSpeakingSignalId((current) => (current === signal.id ? null : current));
+    utterance.onerror = () => setSpeakingSignalId((current) => (current === signal.id ? null : current));
+    setSpeakingSignalId(signal.id);
+    window.speechSynthesis.speak(utterance);
+  };
 
   const topCriticalSignal = signals.find((s) => s.status === 'Critical') || signals[0];
 
@@ -363,6 +394,8 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigate }) => {
                 const isSelected = selectedSignalId === item.id;
                 const isCritical = item.status === 'Critical' || item.severity === 'CRITICAL';
                 const isNewest = index === 0;
+                const isSpeaking = speakingSignalId === item.id;
+                const signalText = item.rawText || item.details;
 
                 return (
                   <div
@@ -435,6 +468,30 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigate }) => {
                         {item.district}
                       </span>
                     </div>
+
+                    {signalText && (
+                      <div className="mt-2 pt-2 border-t border-outline-variant/20">
+                        <p className="text-[11px] leading-snug text-on-surface-variant line-clamp-2">
+                          {signalText}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={(event) => playSignalText(item, event)}
+                          className={`mt-2 inline-flex items-center gap-1.5 rounded border px-2 py-1 text-[10px] font-semibold transition-colors ${
+                            isSpeaking
+                              ? 'border-error/40 bg-error/15 text-error'
+                              : 'border-primary/30 bg-primary/10 text-primary hover:bg-primary/15'
+                          }`}
+                          aria-label={isSpeaking ? 'Stop SOS voice playback' : 'Play SOS voice text'}
+                          title={isSpeaking ? 'Stop SOS voice playback' : 'Play SOS voice text'}
+                        >
+                          <span className="material-symbols-outlined text-[15px]">
+                            {isSpeaking ? 'stop_circle' : 'play_circle'}
+                          </span>
+                          {isSpeaking ? 'Stop voice' : 'Play spoken SOS'}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 );
               })
