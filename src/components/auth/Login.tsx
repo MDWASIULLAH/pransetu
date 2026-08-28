@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useSound } from '../../context/SoundContext';
 import type { Role } from '../../types/role';
+import { API_BASE } from '../../services/api';
 
 interface LoginProps {
   onLoginSuccess: () => void;
@@ -21,6 +22,7 @@ export const Login: React.FC<LoginProps> = ({
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const roleMapping: Record<string, Role> = {
     super_admin: 'SUPER_ADMIN',
@@ -30,18 +32,43 @@ export const Login: React.FC<LoginProps> = ({
     observer: 'OBSERVER'
   };
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsAuthenticating(true);
+    setAuthError(null);
 
     const targetRole = roleMapping[role] || 'DISASTER_MANAGEMENT_OFFICER';
+
+    try {
+      const response = await fetch(`${API_BASE}/api/v1/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: badgeId,
+          password,
+          role: targetRole
+        })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.access_token) {
+          localStorage.setItem('access_token', data.access_token);
+        }
+      } else {
+        localStorage.removeItem('access_token');
+        setAuthError('Backend login unavailable; local dashboard session only.');
+      }
+    } catch {
+      localStorage.removeItem('access_token');
+      setAuthError('Backend login unavailable; local dashboard session only.');
+    }
 
     setTimeout(() => {
       login(targetRole);
       playSuccess();
       setIsAuthenticating(false);
       onLoginSuccess();
-    }, 1000);
+    }, 300);
   };
 
   return (
@@ -104,6 +131,11 @@ export const Login: React.FC<LoginProps> = ({
 
             {/* Login Form */}
             <form onSubmit={handleLoginSubmit} className="flex flex-col gap-4">
+              {authError && (
+                <div className="rounded-md border border-tertiary/30 bg-tertiary/10 px-3 py-2 text-xs text-on-surface">
+                  {authError}
+                </div>
+              )}
               {/* Access Role Input */}
               <div className="flex flex-col gap-1">
                 <label

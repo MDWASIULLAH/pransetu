@@ -1,13 +1,21 @@
-import uuid
+from __future__ import annotations
+
+import base64
+import json
 import os
-import httpx
-from typing import Dict, Any, Optional
+import ssl
+import urllib.parse
+import urllib.request
+from typing import Any, Dict
+
 from .telephony_provider import TelephonyProvider
+
 
 class ExotelProvider(TelephonyProvider):
     """
-    Live Exotel Telephony Provider for PRANSETU IVR and Automated Voice Triage.
-    Integrates with Exotel App ID (1328745) and Exophones (03348054234 / 09513886363).
+    Live Exotel telephony provider for PRANSETU IVR broadcasts.
+    Missing credentials are reported as configuration errors; this class does
+    not fabricate provider call IDs.
     """
 
     def __init__(self):
@@ -18,86 +26,102 @@ class ExotelProvider(TelephonyProvider):
         self.caller_id = os.getenv("EXOTEL_EXOPHONE", "03348054234")
         self.app_id = os.getenv("EXOTEL_APP_ID", "1328745")
 
-    async def initiate_call(self, to_number: str, dialogue_flow_id: str = "1328745", metadata: Dict[str, Any] = None) -> str:
-        """
-        Initiates an outbound IVR call to a citizen's phone via Exotel Connect API.
-        Connects the call directly to the configured Exotel Voice App flow (App ID: 1328745).
-        """
-        # Clean phone number format for Indian telecom
-        clean_number = to_number.strip().replace(" ", "").replace("-", "")
+    def is_configured(self) -> bool:
+        return bool(self.account_sid and self.api_key and self.api_token and self.caller_id and self.app_id)
+
+    def configuration_status(self) -> Dict[str, bool]:
+        return {
+            "account_sid": bool(self.account_sid),
+            "api_key": bool(self.api_key),
+            "api_token": bool(self.api_token),
+            "caller_id": bool(self.caller_id),
+            "app_id": bool(self.app_id),
+        }
+
+    def normalize_indian_number(self, phone_number: str) -> str:
+        clean_number = (
+            str(phone_number or "")
+            .strip()
+            .replace(" ", "")
+            .replace("-", "")
+            .replace("(", "")
+            .replace(")", "")
+        )
         if clean_number.startswith("+91"):
             clean_number = clean_number[3:]
-        if not clean_number.startswith("0") and len(clean_number) == 10:
-            clean_number = f"0{clean_number}"
+        elif clean_number.startswith("91") and len(clean_number) == 12:
+            clean_number = clean_number[2:]
+        elif clean_number.startswith("0") and len(clean_number) == 11:
+            clean_number = clean_number[1:]
 
+        if not clean_number.isdigit() or len(clean_number) != 10:
+            raise ValueError("Invalid Indian phone number")
+
+        return f"0{clean_number}"
+
+    async def initiate_call(
+        self,
+        to_number: str,
+        dialogue_flow_id: str = "1328745",
+        metadata: Dict[str, Any] | None = None,
+    ) -> str:
+        """
+        Initiate an outbound IVR call through Exotel Connect API and return the
+        provider call SID. Raises when live configuration or provider response is
+        not valid.
+        """
+        if not self.is_configured():
+            raise RuntimeError("REQUIRES_EXOTEL_CONFIGURATION")
+
+        clean_number = self.normalize_indian_number(to_number)
         effective_app_id = dialogue_flow_id if dialogue_flow_id.isdigit() else self.app_id
+        url = f"https://{self.subdomain}/v1/Accounts/{self.account_sid}/Calls/connect.json"
+        app_url = f"http://my.exotel.com/{self.account_sid}/exoml/start_voice/{effective_app_id}"
 
-        # If live credentials exist, execute actual HTTP request to Exotel API
-        if self.api_key and self.api_token:
-            url = f"https://{self.subdomain}/v1/Accounts/{self.account_sid}/Calls/connect.json"
-            app_url = f"http://my.exotel.com/{self.account_sid}/exoml/start_voice/{effective_app_id}"
+        payload = {
+            "From": clean_number,
+            "CallerId": self.caller_id,
+            "Url": app_url,
+            "CallType": "trans",
+            "CustomField": (metadata or {}).get("disaster_text", "PRANSETU Emergency Broadcast"),
+        }
 
-            payload = {
-                "From": clean_number,
-                "CallerId": self.caller_id,
-                "Url": app_url,
-                "CallType": "trans",
-                "CustomField": metadata.get("disaster_text", "PRANSETU Emergency Broadcast") if metadata else ""
-            }
+        try:
+            encoded_data = urllib.parse.urlencode(payload).encode("utf-8")
+            request = urllib.request.Request(url, data=encoded_data, method="POST")
+            credentials = f"{self.api_key}:{self.api_token}"
+            basic_credentials = base64.b64encode(credentials.encode("ascii")).decode("ascii")
+            request.add_header("Authorization", f"Basic {basic_credentials}")
+            request.add_header("Content-Type", "application/x-www-form-urlencoded")
 
-            try:
-                import urllib.request
-                import urllib.parse
-                import base64
-                import json
-                import ssl
-
-                encoded_data = urllib.parse.urlencode(payload).encode("utf-8")
-                req = urllib.request.Request(url, data=encoded_data, method="POST")
-
-                credentials = f"{self.api_key}:{self.api_token}"
-                base64_credentials = base64.b64encode(credentials.encode("ascii")).decode("ascii")
-                req.add_header("Authorization", f"Basic {base64_credentials}")
-                req.add_header("Content-Type", "application/x-www-form-urlencoded")
-
-                ctx = ssl.create_default_context()
-                with urllib.request.urlopen(req, context=ctx, timeout=12) as response:
-                    body = response.read().decode("utf-8")
-                    data = json.loads(body)
-                    call_sid = data.get("Call", {}).get("Sid") or f"EXO-{uuid.uuid4().hex[:8].upper()}"
-                    print(f"✅ [Exotel Live API] Live IVR call connected to {clean_number} (App ID: {effective_app_id}), Call SID: {call_sid}")
-                    return call_sid
-            except Exception as e:
-                print(f"⚠️ [Exotel API Notice] Outbound live request for {clean_number}: {e}")
-
-        # Fallback / Simulated Exotel Call SID
-        call_id = f"EXO-{uuid.uuid4().hex[:8].upper()}"
-        print(f"📞 [Exotel Provider] Dispatched IVR call to {clean_number} (CallerId: {self.caller_id}, App ID: {effective_app_id}) -> Call SID: {call_id}")
-        return call_id
+            with urllib.request.urlopen(request, context=ssl.create_default_context(), timeout=12) as response:
+                body = response.read().decode("utf-8")
+                data = json.loads(body)
+                call_sid = data.get("Call", {}).get("Sid")
+                if not call_sid:
+                    raise RuntimeError("Exotel did not return a call reference")
+                return call_sid
+        except Exception as exc:
+            raise RuntimeError(f"EXOTEL_CALL_INITIATION_FAILED: {exc}") from exc
 
     async def get_call_status(self, provider_call_id: str) -> str:
         return "IN_PROGRESS"
 
     async def play_audio_prompt(self, provider_call_id: str, audio_url: str) -> bool:
-        print(f"[Exotel] Playing audio {audio_url} on call {provider_call_id}")
         return True
 
     async def play_tts_prompt(self, provider_call_id: str, text: str, language: str) -> bool:
-        print(f"[Exotel] Playing TTS '{text}' ({language}) on call {provider_call_id}")
         return True
 
     async def gather_dtmf(self, provider_call_id: str, max_digits: int = 1, timeout_seconds: int = 5) -> bool:
-        print(f"[Exotel] Gathering DTMF on call {provider_call_id}")
         return True
 
     async def record_speech(self, provider_call_id: str, max_duration_seconds: int = 15) -> bool:
-        print(f"[Exotel] Recording speech on call {provider_call_id}")
         return True
 
     async def hangup_call(self, provider_call_id: str) -> bool:
-        print(f"[Exotel] Hanging up call {provider_call_id}")
         return True
 
-# Default export instance
+
 telephony = ExotelProvider()
 MockExotelProvider = ExotelProvider

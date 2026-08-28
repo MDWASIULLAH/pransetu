@@ -3,7 +3,7 @@ import { UnifiedLayout } from './components/layout/UnifiedLayout';
 import { CommandCenter } from './components/CommandCenter';
 import { MissionMap } from './components/MissionMap';
 import { SOSLogs } from './components/SOSLogs';
-import { VoiceCampaigns } from './components/VoiceCampaigns';
+import { IVRBroadcast } from './components/IVRBroadcast';
 import { SafeVerifyDashboard } from './components/dashboard/SafeVerifyDashboard';
 import { Resources } from './components/Resources';
 import { Support } from './components/Support';
@@ -64,7 +64,7 @@ export default function App() {
       case 'sos':
         return <SOSLogs />;
       case 'voice':
-        return <VoiceCampaigns />;
+        return <IVRBroadcast />;
       case 'safeverify':
         return <SafeVerifyDashboard />;
       case 'registry':

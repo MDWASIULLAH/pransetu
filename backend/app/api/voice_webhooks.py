@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Request, HTTPException
 from supabase import Client
 from app.core.db import get_supabase_client
 import json
+from datetime import datetime, timezone
 
 router = APIRouter()
 
@@ -23,6 +24,7 @@ async def telephony_status_webhook(
         # Map provider status to our internal voice_call_state
         status_map = {
             "ringing": "RINGING",
+            "answered": "ANSWERED",
             "in-progress": "IN_PROGRESS",
             "completed": "COMPLETED",
             "failed": "FAILED",
@@ -31,12 +33,35 @@ async def telephony_status_webhook(
         }
         internal_status = status_map.get(status, "IN_PROGRESS")
         
-        # 1. Update voice_calls table
-        call_res = supabase.table("voice_calls").update({"current_state": internal_status}).eq("provider_call_id", provider_call_id).execute()
-        if not call_res.data:
+        existing_call_res = supabase.table("voice_calls").select("*").eq("provider_call_id", provider_call_id).execute()
+        if not existing_call_res.data:
             return {"status": "ignored", "reason": "Call not found"}
-            
-        call_id = call_res.data[0]["id"]
+
+        call = existing_call_res.data[0]
+        call_id = call["id"]
+        now = datetime.now(timezone.utc).isoformat()
+        event_key = f"{provider_call_id}:{status}:{payload.get('Timestamp') or payload.get('DateUpdated') or now}"
+
+        try:
+            supabase.table("ivr_broadcast_webhook_events").insert({
+                "provider_call_id": provider_call_id,
+                "event_type": f"STATUS_{internal_status}",
+                "payload": payload,
+                "idempotency_key": event_key
+            }).execute()
+        except Exception as exc:
+            if "duplicate" in str(exc).lower():
+                return {"status": "ignored", "reason": "Duplicate webhook"}
+
+        call_updates = {"current_state": internal_status, "webhook_updated_at": now}
+        if internal_status in ["ANSWERED", "IN_PROGRESS"]:
+            call_updates["started_at"] = call.get("started_at") or now
+        if internal_status in ["COMPLETED", "FAILED", "BUSY", "NO_ANSWER", "CANCELLED"]:
+            call_updates["ended_at"] = now
+            if payload.get("Duration"):
+                call_updates["duration_seconds"] = int(payload.get("Duration"))
+
+        supabase.table("voice_calls").update(call_updates).eq("provider_call_id", provider_call_id).execute()
         
         # 2. Insert into voice_call_events for audit and realtime dashboard
         supabase.table("voice_call_events").insert({
@@ -46,8 +71,23 @@ async def telephony_status_webhook(
         }).execute()
         
         # 3. Update recipient status
-        recipient_id = call_res.data[0]["recipient_id"]
-        supabase.table("voice_campaign_recipients").update({"status": internal_status}).eq("id", recipient_id).execute()
+        recipient_id = call["recipient_id"]
+        recipient_updates = {
+            "status": internal_status,
+            "final_call_status": status,
+            "webhook_updated_at": now,
+            "updated_at": now
+        }
+        if internal_status == "RINGING":
+            recipient_updates["ringing_at"] = now
+        if internal_status in ["ANSWERED", "IN_PROGRESS"]:
+            recipient_updates["answered_at"] = now
+        if internal_status in ["COMPLETED", "FAILED", "BUSY", "NO_ANSWER", "CANCELLED"]:
+            recipient_updates["ended_at"] = now
+            if payload.get("Duration"):
+                recipient_updates["duration_seconds"] = int(payload.get("Duration"))
+
+        supabase.table("voice_campaign_recipients").update(recipient_updates).eq("id", recipient_id).execute()
         
         return {"status": "success"}
     except Exception as e:

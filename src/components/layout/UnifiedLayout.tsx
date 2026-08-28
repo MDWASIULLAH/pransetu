@@ -80,7 +80,7 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
     { id: 'command', label: 'Command Center', icon: 'dashboard', badge: `${metrics.criticalCount} Crit` },
     { id: 'map', label: 'Mission Map', icon: 'map', badge: 'GIS' },
     { id: 'sos', label: 'SOS Canonical Logs', icon: 'list_alt', badge: `${signals.length}` },
-    { id: 'voice', label: 'Voice Campaigns', icon: 'record_voice_over', badge: 'IVR' },
+    { id: 'voice', label: 'IVR Broadcast', icon: 'settings_phone', badge: 'IVR' },
     { id: 'safeverify', label: 'SafeVerify Audit', icon: 'verified_user', badge: 'New' },
     { id: 'registry', label: 'Citizen Registry', icon: 'group', badge: 'Auth' },
     { id: 'resources', label: 'Shelters & Logistics', icon: 'inventory_2', badge: `${shelters.length}` },

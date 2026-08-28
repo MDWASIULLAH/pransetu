@@ -162,7 +162,7 @@ export interface EOCContextType {
   clearAllSOSLogs: () => Promise<void>;
   refetchSignals: () => Promise<void>;
 
-  // Voice Campaigns & AI Voice Triage
+  // IVR Broadcast & AI Voice Triage
   activeCampaign: VoiceCampaign;
   pastCampaigns: VoiceCampaign[];
   toggleCampaignPause: () => void;

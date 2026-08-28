@@ -4,7 +4,7 @@ import uuid
 
 class CampaignRunnerService:
     """
-    Handles the launch of Voice Campaigns.
+    Handles queued launch work for IVR broadcasts.
     Performs server-side geo-targeting using PostGIS to find eligible recipients.
     """
     def __init__(self, supabase: Client):
