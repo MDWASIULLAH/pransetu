@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useEOC } from '../../context/EOCContext';
 import { useSound } from '../../context/SoundContext';
 import { useAuth } from '../../context/AuthContext';
+import { ApkQrCode } from './ApkQrCode';
 
 interface UnifiedLayoutProps {
   activeNav: string;
@@ -335,7 +336,8 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
           </div>
 
           {sidebarOpen && (
-            <div className="p-3 border-t border-outline-variant">
+            <div className="p-3 border-t border-outline-variant space-y-2">
+              <ApkQrCode collapsed={false} />
               <a
                 href="https://github.com/nirmalya-ghosh/PRANSETU-sih-26"
                 target="_blank"
@@ -347,6 +349,11 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
                 </svg>
                 <span>GitHub Repository</span>
               </a>
+            </div>
+          )}
+          {!sidebarOpen && (
+            <div className="p-1 border-t border-outline-variant space-y-1">
+              <ApkQrCode collapsed={true} />
             </div>
           )}
         </aside>
@@ -398,6 +405,7 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
               </div>
 
               <div className="pt-4 border-t border-outline-variant space-y-2">
+                <ApkQrCode collapsed={false} />
                 <a
                   href="https://github.com/nirmalya-ghosh/PRANSETU-sih-26"
                   target="_blank"
