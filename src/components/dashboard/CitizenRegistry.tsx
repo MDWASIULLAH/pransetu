@@ -10,24 +10,58 @@ interface Citizen {
 }
 
 export const CitizenRegistry: React.FC = () => {
-  const [citizens, setCitizens] = useState<Citizen[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [citizens, setCitizens] = useState<Citizen[]>(() => {
+    try {
+      const cached = localStorage.getItem('pransetu_cached_citizens');
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [loading, setLoading] = useState(() => {
+    try {
+      return !localStorage.getItem('pransetu_cached_citizens');
+    } catch {
+      return true;
+    }
+  });
   const [error, setError] = useState<string | null>(null);
   const [showPhoneNumbers, setShowPhoneNumbers] = useState(false);
 
   useEffect(() => {
-    fetchCitizens();
+    fetchCitizens(false);
 
-    // Real-time subscription: auto-update when a new citizen registers from the Android app
+    // Real-time subscription: instant optimistic updates when citizen registers from Android
     const channel = supabase
-      .channel('citizen-registry-realtime')
+      .channel('citizen-registry-realtime-fast')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'registered_citizens' },
         (payload) => {
-          console.log('[CitizenRegistry] Real-time event:', payload.eventType, payload);
-          // Re-fetch all citizens to keep the list accurate
-          fetchCitizens();
+          console.log('[CitizenRegistry] Instant Real-time event:', payload.eventType, payload);
+          if (payload.eventType === 'INSERT' && payload.new) {
+            const newCitizen = payload.new as Citizen;
+            setCitizens((prev) => {
+              const updated = [newCitizen, ...prev.filter((c) => c.id !== newCitizen.id)];
+              try { localStorage.setItem('pransetu_cached_citizens', JSON.stringify(updated)); } catch {}
+              return updated;
+            });
+          } else if (payload.eventType === 'DELETE' && payload.old) {
+            setCitizens((prev) => {
+              const updated = prev.filter((c) => c.id !== payload.old.id);
+              try { localStorage.setItem('pransetu_cached_citizens', JSON.stringify(updated)); } catch {}
+              return updated;
+            });
+          } else if (payload.eventType === 'UPDATE' && payload.new) {
+            const updatedCitizen = payload.new as Citizen;
+            setCitizens((prev) => {
+              const updated = prev.map((c) => (c.id === updatedCitizen.id ? updatedCitizen : c));
+              try { localStorage.setItem('pransetu_cached_citizens', JSON.stringify(updated)); } catch {}
+              return updated;
+            });
+          } else {
+            fetchCitizens(true);
+          }
         }
       )
       .subscribe();
@@ -37,8 +71,8 @@ export const CitizenRegistry: React.FC = () => {
     };
   }, []);
 
-  const fetchCitizens = async () => {
-    setLoading(true);
+  const fetchCitizens = async (silent = false) => {
+    if (!silent && citizens.length === 0) setLoading(true);
     setError(null);
     try {
       const { data, error } = await supabase
@@ -49,9 +83,16 @@ export const CitizenRegistry: React.FC = () => {
       if (error) {
         throw error;
       }
-      setCitizens(data || []);
+      if (data) {
+        setCitizens(data);
+        try {
+          localStorage.setItem('pransetu_cached_citizens', JSON.stringify(data));
+        } catch {}
+      }
     } catch (err: any) {
-      setError(err.message || 'Failed to fetch citizen registry.');
+      if (citizens.length === 0) {
+        setError(err.message || 'Failed to fetch citizen registry.');
+      }
     } finally {
       setLoading(false);
     }
@@ -99,7 +140,7 @@ export const CitizenRegistry: React.FC = () => {
               <span className="text-sm font-medium">{showPhoneNumbers ? 'Hide' : 'Reveal'}</span>
             </button>
             <button
-              onClick={fetchCitizens}
+              onClick={() => fetchCitizens(false)}
               disabled={loading}
               className="flex items-center gap-2 px-3 py-1.5 bg-surface-container-high border border-outline-variant rounded text-on-surface hover:bg-surface-container-highest transition-colors disabled:opacity-50"
             >

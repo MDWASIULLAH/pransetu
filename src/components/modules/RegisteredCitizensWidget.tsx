@@ -11,14 +11,26 @@ interface Citizen {
 }
 
 export const RegisteredCitizensWidget: React.FC = () => {
-  const [citizens, setCitizens] = useState<Citizen[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [citizens, setCitizens] = useState<Citizen[]>(() => {
+    try {
+      const cached = localStorage.getItem('pransetu_cached_citizens');
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [loading, setLoading] = useState(() => {
+    try {
+      return !localStorage.getItem('pransetu_cached_citizens');
+    } catch {
+      return true;
+    }
+  });
   const [broadcasting, setBroadcasting] = useState(false);
   const [broadcastResult, setBroadcastResult] = useState<{success: boolean; count: number} | null>(null);
 
   const fetchCitizens = async () => {
     try {
-      // First try Supabase direct client (works without local backend)
       const { data, error } = await supabase
         .from('registered_citizens')
         .select('*')
@@ -26,26 +38,10 @@ export const RegisteredCitizensWidget: React.FC = () => {
 
       if (data && !error) {
         setCitizens(data);
-        return;
+        try { localStorage.setItem('pransetu_cached_citizens', JSON.stringify(data)); } catch {}
       }
-
-      // Fallback to backend API
-      const res = await apiFetch('/api/v1/citizens');
-      if (res.ok) {
-        const json = await res.json();
-        setCitizens(json.data || []);
-      }
-    } catch (err) {
-      console.warn('Fallback: checking Supabase directly', err);
-      try {
-        const { data } = await supabase
-          .from('registered_citizens')
-          .select('*')
-          .order('registered_at', { ascending: false });
-        if (data) setCitizens(data);
-      } catch (e) {
-        console.error('Failed to fetch registered citizens', e);
-      }
+    } catch (e) {
+      console.error('Failed to fetch registered citizens', e);
     } finally {
       setLoading(false);
     }
@@ -53,9 +49,28 @@ export const RegisteredCitizensWidget: React.FC = () => {
 
   useEffect(() => {
     fetchCitizens();
-    // Poll every 10 seconds for new registrations
-    const interval = setInterval(fetchCitizens, 10000);
-    return () => clearInterval(interval);
+
+    const channel = supabase
+      .channel('registered-citizens-widget-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'registered_citizens' },
+        (payload) => {
+          if (payload.eventType === 'INSERT' && payload.new) {
+            const newCitizen = payload.new as Citizen;
+            setCitizens((prev) => [newCitizen, ...prev.filter(c => c.id !== newCitizen.id)]);
+          } else if (payload.eventType === 'DELETE' && payload.old) {
+            setCitizens((prev) => prev.filter(c => c.id !== payload.old.id));
+          } else {
+            fetchCitizens();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const handleBroadcast = async () => {
