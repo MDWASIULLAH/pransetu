@@ -11,7 +11,7 @@ class ExotelProvider(TelephonyProvider):
     """
 
     def __init__(self):
-        self.account_sid = os.getenv("EXOTEL_ACCOUNT_SID", "my")
+        self.account_sid = os.getenv("EXOTEL_ACCOUNT_SID", "pransetu1")
         self.api_key = os.getenv("EXOTEL_API_KEY", "")
         self.api_token = os.getenv("EXOTEL_API_TOKEN", "")
         self.subdomain = os.getenv("EXOTEL_SUBDOMAIN", "api.exotel.com")
