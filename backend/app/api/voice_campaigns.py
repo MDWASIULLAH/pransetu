@@ -100,7 +100,7 @@ async def broadcast_call(
             try:
                 provider_call_id = await telephony.initiate_call(
                     to_number=phone, 
-                    dialogue_flow_id="SAFE_VERIFY_V1",
+                    dialogue_flow_id="1328745",
                     metadata={
                         "language": lang, 
                         "citizen_name": citizen['full_name'],
