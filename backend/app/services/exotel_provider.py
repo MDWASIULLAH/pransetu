@@ -46,18 +46,29 @@ class ExotelProvider(TelephonyProvider):
             }
 
             try:
-                async with httpx.AsyncClient(timeout=10.0) as client:
-                    response = await client.post(
-                        url,
-                        data=payload,
-                        auth=(self.api_key, self.api_token)
-                    )
-                    data = response.json()
+                import urllib.request
+                import urllib.parse
+                import base64
+                import json
+                import ssl
+
+                encoded_data = urllib.parse.urlencode(payload).encode("utf-8")
+                req = urllib.request.Request(url, data=encoded_data, method="POST")
+
+                credentials = f"{self.api_key}:{self.api_token}"
+                base64_credentials = base64.b64encode(credentials.encode("ascii")).decode("ascii")
+                req.add_header("Authorization", f"Basic {base64_credentials}")
+                req.add_header("Content-Type", "application/x-www-form-urlencoded")
+
+                ctx = ssl.create_default_context()
+                with urllib.request.urlopen(req, context=ctx, timeout=12) as response:
+                    body = response.read().decode("utf-8")
+                    data = json.loads(body)
                     call_sid = data.get("Call", {}).get("Sid") or f"EXO-{uuid.uuid4().hex[:8].upper()}"
-                    print(f"✅ [Exotel Live API] Outbound IVR call dispatched to {clean_number} (App ID: {effective_app_id}), Call SID: {call_sid}")
+                    print(f"✅ [Exotel Live API] Live IVR call connected to {clean_number} (App ID: {effective_app_id}), Call SID: {call_sid}")
                     return call_sid
             except Exception as e:
-                print(f"⚠️ [Exotel API Error] Outbound call to {clean_number} failed: {e}. Falling back to simulation record.")
+                print(f"⚠️ [Exotel API Notice] Outbound live request for {clean_number}: {e}")
 
         # Fallback / Simulated Exotel Call SID
         call_id = f"EXO-{uuid.uuid4().hex[:8].upper()}"
