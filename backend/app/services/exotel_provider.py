@@ -33,7 +33,7 @@ class ExotelProvider(TelephonyProvider):
         effective_app_id = dialogue_flow_id if dialogue_flow_id.isdigit() else self.app_id
 
         # If live credentials exist, execute actual HTTP request to Exotel API
-        if self.api_key and self.api_token and self.account_sid != "my":
+        if self.api_key and self.api_token:
             url = f"https://{self.subdomain}/v1/Accounts/{self.account_sid}/Calls/connect.json"
             app_url = f"http://my.exotel.com/{self.account_sid}/exoml/start_voice/{effective_app_id}"
 
