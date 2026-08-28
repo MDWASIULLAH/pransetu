@@ -532,7 +532,7 @@ export const InteractiveEOCMap: React.FC<InteractiveEOCMapProps> = ({
   onInspectRoute,
   height = '100%'
 }) => {
-  const { signals, selectedSignalId, setSelectedSignalId, dispatchTeamToSignal, shelters } = useEOC();
+  const { signals, selectedSignalId, setSelectedSignalId, dispatchTeamToSignal, shelters, incidents = [], resources = [] } = useEOC();
 
   const [activeMapType, setActiveMapType] = useState<'light' | 'dark' | 'satellite'>(mapType);
   const [liveCoords, setLiveCoords] = useState<{ lat: number; lng: number }>({ lat: 19.8135, lng: 85.8312 });
@@ -557,57 +557,67 @@ export const InteractiveEOCMap: React.FC<InteractiveEOCMapProps> = ({
     satellite: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
   };
 
-  // Mock PostGIS Incident Clusters
-  const incidentClusters = [
-    {
-      id: 'INC-2026-PURI-01',
-      district: 'Puri',
-      lat: 19.814,
-      lng: 85.832,
-      radiusM: 1200,
-      sosCount: 6,
-      affectedPeople: 24,
-      criticalCount: 3,
-      priorityScore: 94,
-      status: 'ACTIVE'
-    },
-    {
-      id: 'INC-2026-BHAD-02',
-      district: 'Bhadrak',
-      lat: 20.902,
-      lng: 86.512,
-      radiusM: 1800,
-      sosCount: 4,
-      affectedPeople: 18,
-      criticalCount: 1,
-      priorityScore: 78,
-      status: 'ACTIVE'
-    }
-  ];
+  // Real PostGIS Incident Clusters from Context
+  const incidentClusters = (incidents || []).map((inc: any) => ({
+    id: inc.id,
+    district: inc.district || 'Incident Zone',
+    lat: inc.lat,
+    lng: inc.lng,
+    radiusM: (inc.radiusKm || 1) * 1000,
+    sosCount: inc.sosCount || 0,
+    affectedPeople: inc.affectedPeople || 0,
+    criticalCount: inc.criticalCount || 0,
+    priorityScore: inc.priorityScore || 50,
+    status: inc.status || 'ACTIVE'
+  }));
 
-  // Mock Polymorphic Fleet Units
+  // Real Polymorphic Fleet Units from Context
   const fleetUnits = {
-    ambulances: [
-      { id: 'AMB-01', name: 'ALS Trauma Amb #01', status: 'AVAILABLE', lat: 19.825, lng: 85.845, incidentId: 'None (Standby)', district: 'Puri' },
-      { id: 'AMB-02', name: 'BLS Rapid Amb #04', status: 'DISPATCHED', lat: 19.808, lng: 85.820, incidentId: 'INC-2026-PURI-01', district: 'Puri' }
-    ],
-    rescueTeams: [
-      { id: 'NDRF-03', name: 'NDRF Battalion 03 Alpha', status: 'ON_SCENE', lat: 19.819, lng: 85.836, incidentId: 'INC-2026-PURI-01', size: 25 },
-      { id: 'ODRAF-07', name: 'ODRAF Unit 07 Bravo', status: 'AVAILABLE', lat: 19.795, lng: 85.815, incidentId: 'None (Standby)', size: 18 }
-    ],
-    boats: [
-      { id: 'BOAT-01', name: 'Zodiac IRB Flood Boat #1', status: 'ASSIGNED', lat: 19.805, lng: 85.828, incidentId: 'INC-2026-PURI-01', capacity: 12 },
-      { id: 'BOAT-02', name: 'Inflatable Rescue Boat #4', status: 'AVAILABLE', lat: 19.832, lng: 85.850, incidentId: 'None', capacity: 8 }
-    ],
-    medicalTeams: [
-      { id: 'MED-01', name: 'AIIMS Mobile Trauma Team 1', status: 'AVAILABLE', lat: 19.821, lng: 85.840, incidentId: 'None', doctors: 3 }
-    ],
-    vehicles: [
-      { id: 'VEH-01', name: 'Amphibious All-Terrain 02', status: 'ON_SCENE', lat: 19.812, lng: 85.826, incidentId: 'INC-2026-PURI-01' }
-    ],
-    depots: [
-      { id: 'DEPOT-01', name: 'OSDMA Central Ration Depot', lat: 19.829, lng: 85.835, stock: '8500 Packets' }
-    ]
+    ambulances: (resources || []).filter((r: any) => r.type === 'AMBULANCE').map((r: any) => ({
+      id: r.id,
+      name: r.name,
+      status: r.status,
+      lat: r.lat || 19.825,
+      lng: r.lng || 85.845,
+      incidentId: r.assignedIncidentId || 'Standby',
+      district: r.district || 'Puri'
+    })),
+    rescueTeams: (resources || []).filter((r: any) => r.type === 'RESCUE_TEAM').map((r: any) => ({
+      id: r.id,
+      name: r.name,
+      status: r.status,
+      lat: r.lat || 19.819,
+      lng: r.lng || 85.836,
+      incidentId: r.assignedIncidentId || 'Standby',
+      size: r.members || 10
+    })),
+    boats: (resources || []).filter((r: any) => r.type === 'BOAT').map((r: any) => ({
+      id: r.id,
+      name: r.name,
+      status: r.status,
+      lat: r.lat || 19.805,
+      lng: r.lng || 85.828,
+      incidentId: r.assignedIncidentId || 'Standby',
+      capacity: r.capacity || 8
+    })),
+    medicalTeams: (resources || []).filter((r: any) => r.type === 'MEDICAL_TEAM').map((r: any) => ({
+      id: r.id,
+      name: r.name,
+      status: r.status,
+      lat: r.lat || 19.821,
+      lng: r.lng || 85.840,
+      incidentId: r.assignedIncidentId || 'Standby',
+      doctors: 2
+    })),
+    vehicles: (resources || []).filter((r: any) => r.type === 'VEHICLE').map((r: any) => ({
+      id: r.id,
+      name: r.name,
+      status: r.status,
+      lat: r.lat || 19.812,
+      lng: r.lng || 85.826,
+      incidentId: r.assignedIncidentId || 'Standby'
+    })),
+    depots: [] as any[]
   };
 
   // Coastal Flood Surge & Disaster Inundation Polygons

@@ -174,91 +174,13 @@ export const Resources: React.FC = () => {
           }
           clearTimeout(timeoutId);
       } catch {
-          // Seed fleet used when the API is unreachable, so the console still
-          // has something to drive. Mirrors the OSDMA sample register.
-          setResources([
-              { 
-                id: "RES-AMB-01", name: "ALS Advanced Cardiac Ambulance", type: "AMBULANCE", 
-                status: "AVAILABLE", verification_status: "VERIFIED", agency_type: "HOSPITAL",
-                organization: "AIIMS Bhubaneswar", registration_number: "OD-02-AX-8910", district: "Khordha",
-                contact_person: "Dr. R. Mishra", contact_phone: "+91 94370 12345",
-                attributes: { oxygen_available: true, ventilator_available: true, paramedic_onboard: true }, 
-                is_multi_capacity: false 
-              },
-              { 
-                id: "RES-NDRF-01", name: "NDRF 03 Battalion Team Alpha", type: "RESCUE_TEAM", 
-                status: "AVAILABLE", verification_status: "VERIFIED", agency_type: "GOVERNMENT",
-                organization: "National Disaster Response Force", registration_number: "NDRF-OD-3BN", district: "Bhadrak",
-                contact_person: "Cmdt. A. K. Singh", contact_phone: "+91 94371 99887",
-                attributes: { team_size: 25, equipment: ["Zodiac Boats (4)", "Hydraulic Cutters", "Deep Diver Gear"] }, 
-                is_multi_capacity: false 
-              },
-              { 
-                id: "RES-BOAT-02", name: "ODRAF Coastal Flood Boat #4", type: "BOAT", 
-                status: "AVAILABLE", verification_status: "VERIFIED", agency_type: "GOVERNMENT",
-                organization: "ODRAF Unit 5", registration_number: "ODRAF-BT-04", district: "Puri",
-                contact_person: "Inspector D. Nayak", contact_phone: "+91 94372 44556",
-                attributes: { capacity: 12, engine_hp: 40, operator_available: true }, 
-                is_multi_capacity: false 
-              },
-              { 
-                id: "RES-FOOD-01", name: "OSDMA Central Ration Depot", type: "FOOD_SUPPLY", 
-                status: "AVAILABLE", verification_status: "VERIFIED", agency_type: "GOVERNMENT",
-                organization: "OSDMA Civil Supplies", district: "Puri",
-                contact_person: "Officer P. Panda", contact_phone: "+91 94373 88112",
-                attributes: { quantity: 8500, unit: "Dry Ration Packets", min_threshold: 1000 }, 
-                is_multi_capacity: true 
-              }
-          ]);
-
-          setPendingResources([
-              {
-                id: "RES-NGO-AMB-09", name: "Red Cross Mobile Trauma Unit", type: "AMBULANCE",
-                status: "UNAVAILABLE", verification_status: "PENDING", agency_type: "NGO",
-                organization: "Indian Red Cross Society", registration_number: "OD-05-RC-1004", district: "Cuttack",
-                contact_person: "Dr. S. Mohapatra", contact_phone: "+91 98610 55443", contact_email: "redcross.odisha@rescue.org",
-                attributes: { oxygen_available: true, ventilator_available: true, stretcher_count: 2 },
-                is_multi_capacity: false, created_at: new Date().toISOString()
-              }
-          ]);
-
-          setShelterList([
-              {
-                id: "SH-PURI-01", name: "Puri Multipurpose Cyclone Shelter", organization: "OSDMA", district: "Puri",
-                capacity: 1200, current_occupancy: 840, available_capacity: 360, occupancy_percentage: 70.0,
-                status: "PARTIALLY_OCCUPIED", medical_capability: true, food_available: true, water_available: true,
-                toilets: 24, power: "DUAL_GENERATOR_SOLAR", accessibility: "WHEELCHAIR_RAMP", contact_reference: "+91 94370 11223"
-              },
-              {
-                id: "SH-BHAD-02", name: "Dhamra Coastal Evacuation Centre", organization: "OSDMA / Port Auth", district: "Bhadrak",
-                capacity: 800, current_occupancy: 760, available_capacity: 40, occupancy_percentage: 95.0,
-                status: "PARTIALLY_OCCUPIED", medical_capability: true, food_available: true, water_available: true,
-                toilets: 16, power: "GENERATOR_ACTIVE", accessibility: "STANDARD", contact_reference: "+91 94371 44556"
-              },
-              {
-                id: "SH-BAL-03", name: "Chandipur Coastal Relief Camp", organization: "State Disaster Management", district: "Balasore",
-                capacity: 600, current_occupancy: 600, available_capacity: 0, occupancy_percentage: 100.0,
-                status: "FULL", medical_capability: false, food_available: true, water_available: true,
-                toilets: 12, power: "GRID_BACKUP", accessibility: "STANDARD", contact_reference: "+91 94372 77889"
-              },
-              {
-                id: "SH-GANJ-04", name: "Gopalpur High School Shelter Unit", organization: "School Authority", district: "Ganjam",
-                capacity: 500, current_occupancy: 0, available_capacity: 500, occupancy_percentage: 0.0,
-                status: "OPEN", medical_capability: false, food_available: true, water_available: true,
-                toilets: 10, power: "SOLAR_PANELS", accessibility: "STANDARD", contact_reference: "+91 94373 99001"
-              },
-              {
-                id: "SH-ASTR-05", name: "Astaranga Coastal Jetty Shelter", organization: "Fisheries Dept", district: "Puri",
-                capacity: 400, current_occupancy: 0, available_capacity: 0, occupancy_percentage: 0.0,
-                status: "DAMAGED", medical_capability: false, food_available: false, water_available: false,
-                toilets: 4, power: "OFFLINE", accessibility: "INACCESSIBLE", contact_reference: "+91 94374 22334"
-              }
-          ]);
-
+          setResources([]);
+          setPendingResources([]);
+          setShelterList([]);
           setMetrics({
-              available_ambulances: 42, dispatched_ambulances: 14,
-              available_rescue_teams: 18, active_rescue_teams: 6,
-              available_boats: 30, available_medical_teams: 16
+              available_ambulances: 0, dispatched_ambulances: 0,
+              available_rescue_teams: 0, active_rescue_teams: 0,
+              available_boats: 0, available_medical_teams: 0
           });
       }
   };

@@ -58,76 +58,8 @@ export const AuditLogsModule: React.FC = () => {
   };
 
   const loadFallbackLogs = () => {
-    const fallback: UnifiedAuditLog[] = [
-      {
-        audit_id: 'AUD-9F41-001',
-        actor_id: 'USR-DMO-PURI-01',
-        actor_role: 'DISASTER_MANAGEMENT_OFFICER',
-        action: 'ALERT_PUBLISH',
-        entity_type: 'ALERT',
-        entity_id: 'ALT-CYC-20260821-001',
-        timestamp: new Date(Date.now() - 600000).toISOString(),
-        ip_or_device_metadata: { ip_address: '10.244.18.42', user_agent: 'PRANSETU-EOC-Workstation-4', origin: 'Puri District Collectorate' },
-        before_state: { status: 'DRAFT' },
-        after_state: { status: 'ACTIVE', severity: 'RED_CRITICAL' },
-        metadata: { source: 'IMD_OSDMA_OFFICIAL', broadcast_channels: ['LORA_MESH', 'IVR', 'SMS'] }
-      },
-      {
-        audit_id: 'AUD-8A12-002',
-        actor_id: 'USR-COORD-04',
-        actor_role: 'RESCUE_COORDINATOR',
-        action: 'RESOURCE_DISPATCH',
-        entity_type: 'RESOURCE',
-        entity_id: 'RES-AMB-01',
-        timestamp: new Date(Date.now() - 1800000).toISOString(),
-        ip_or_device_metadata: { ip_address: '10.244.18.19', user_agent: 'PRANSETU-Mobile-Tablet-App', origin: 'ODRAF Sector Alpha Post' },
-        before_state: { status: 'AVAILABLE' },
-        after_state: { status: 'EN_ROUTE', assigned_incident_id: 'INC-2026-PURI-01' },
-        metadata: { note: 'ALS Cardiac unit dispatched to flooded clinic' }
-      },
-      {
-        audit_id: 'AUD-7C33-003',
-        actor_id: 'USR-OPERATOR-02',
-        actor_role: 'EOC_OPERATOR',
-        action: 'SOS_ACKNOWLEDGE',
-        entity_type: 'SOS',
-        entity_id: 'OD-7A92',
-        timestamp: new Date(Date.now() - 3600000).toISOString(),
-        ip_or_device_metadata: { ip_address: '10.244.18.08', user_agent: 'Chrome/124.0 (Windows NT 10.0)', origin: 'State Emergency Operations Center' },
-        before_state: { delivery_state: 'OPEN' },
-        after_state: { delivery_state: 'CLOSED', acknowledged_by: 'USR-OPERATOR-02' },
-        metadata: { hop_count: 3, relay_path: ['Node A', 'Node B', 'Gateway C'] }
-      },
-      {
-        audit_id: 'AUD-6E99-004',
-        actor_id: 'USR-ADMIN-SUPER',
-        actor_role: 'SUPER_ADMIN',
-        action: 'ROLE_CHANGE',
-        entity_type: 'USER',
-        entity_id: 'USR-COORD-07',
-        timestamp: new Date(Date.now() - 7200000).toISOString(),
-        ip_or_device_metadata: { ip_address: '10.0.1.5', user_agent: 'PRANSETU-Admin-CLI', origin: 'Secretariat Secure Gateway' },
-        before_state: { role: 'OBSERVER' },
-        after_state: { role: 'RESCUE_COORDINATOR' },
-        metadata: { clearance_verified_by: 'Special Relief Commissioner' }
-      },
-      {
-        audit_id: 'AUD-5B20-005',
-        actor_id: 'USR-ADMIN-SUPER',
-        actor_role: 'SUPER_ADMIN',
-        action: 'LOGIN',
-        entity_type: 'USER',
-        entity_id: 'USR-ADMIN-SUPER',
-        timestamp: new Date(Date.now() - 14400000).toISOString(),
-        ip_or_device_metadata: { ip_address: '10.0.1.5', user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)', origin: 'Secure Terminal' },
-        before_state: { status: 'AUTHENTICATING' },
-        after_state: { status: 'AUTHENTICATED', role: 'SUPER_ADMIN' },
-        metadata: { auth_method: 'PASSWORD_JWT', mfa_verified: true }
-      }
-    ];
-
-    setLogs(fallback);
-    setSelectedLog(fallback[0]);
+    setLogs([]);
+    setSelectedLog(null);
   };
 
   useEffect(() => {

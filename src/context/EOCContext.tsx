@@ -222,147 +222,6 @@ export interface EOCContextType {
 
 
 
-const initialShelters: ShelterFacility[] = [
-  {
-    id: 'SH-01',
-    name: 'Cuttack Municipal High School',
-    zone: 'Zone Alpha',
-    district: 'Cuttack',
-    lat: 20.4625,
-    lng: 85.8830,
-    tier: 'Tier 2 - Urgent',
-    tierColor: 'bg-error-container text-on-error-container',
-    tierText: 'Tier 2 - Urgent',
-    borderColor: 'bg-error-container',
-    occupancyColor: 'bg-error',
-    capacity: 850,
-    occupied: 782,
-    drinkingWaterLiters: 4200,
-    generatorStatus: 'Online (84% Tank)',
-    medicalStaff: '2 Doctors, 6 Paramedics',
-    medicalCapability: true,
-    facilities: ['Water Rig', 'Food Depot', 'Ambulance Bay'],
-    status: 'Active'
-  },
-  {
-    id: 'SH-02',
-    name: 'Bhubaneswar Indoor Stadium',
-    zone: 'Zone Beta',
-    district: 'Khordha',
-    lat: 20.2961,
-    lng: 85.8245,
-    tier: 'Tier 1 - Basic',
-    tierColor: 'bg-surface-container-high text-on-surface-variant border border-outline-variant',
-    tierText: 'Tier 1 - Basic',
-    borderColor: 'bg-on-surface-variant',
-    occupancyColor: 'bg-primary',
-    capacity: 3200,
-    occupied: 1440,
-    drinkingWaterLiters: 16000,
-    generatorStatus: 'Online (100% Grid & Diesel)',
-    medicalStaff: '4 Doctors, 12 Nurses',
-    medicalCapability: true,
-    facilities: ['Helipad', 'Water Filtration', 'Full Kitchen'],
-    status: 'Active'
-  },
-  {
-    id: 'SH-03',
-    name: 'Puri District Hospital Annexe',
-    zone: 'Zone Delta',
-    district: 'Puri',
-    lat: 19.8135,
-    lng: 85.8312,
-    tier: 'Tier 3 - Critical',
-    tierColor: 'bg-error text-on-error',
-    tierText: 'Tier 3 - Critical',
-    borderColor: 'bg-error',
-    occupancyColor: 'bg-error',
-    capacity: 450,
-    occupied: 441,
-    drinkingWaterLiters: 1800,
-    generatorStatus: 'Warning (Low Fuel 22%)',
-    medicalStaff: '6 Trauma Specialists, 14 Nurses',
-    medicalCapability: true,
-    facilities: ['ICU Backup', 'Trauma Unit', 'Oxygen Cylinders'],
-    status: 'Critical'
-  },
-  {
-    id: 'SH-04',
-    name: 'Khurda Community Center',
-    zone: 'Zone Gamma',
-    district: 'Khordha',
-    lat: 20.1824,
-    lng: 85.6200,
-    tier: 'Tier 1 - Basic',
-    tierColor: 'bg-surface-container-high text-on-surface',
-    tierText: 'Tier 1 - Basic',
-    borderColor: 'bg-on-surface-variant',
-    occupancyColor: 'bg-outline',
-    capacity: 600,
-    occupied: 72,
-    drinkingWaterLiters: 3500,
-    generatorStatus: 'Standby (Full Tank)',
-    medicalStaff: '1 Doctor, 2 Nurses',
-    medicalCapability: false,
-    facilities: ['Dry Ration', 'Hand Pumps'],
-    status: 'Standby'
-  }
-];
-
-const mockIncidents: IncidentCluster[] = [
-  {
-    id: 'INC-018',
-    district: 'Puri',
-    lat: 19.8135,
-    lng: 85.8312,
-    radiusKm: 2.2,
-    sosCount: 12,
-    affectedPeople: 124,
-    criticalCount: 4,
-    medicalCount: 3,
-    latestActivity: new Date().toISOString(),
-    priorityScore: 94,
-    priorityFactors: {
-      medicalUrgency: 40,
-      peopleAffected: 30,
-      trapped: 20,
-      hazardSeverity: 20,
-      sosAge: 14,
-      accessibility: 8
-    },
-    status: 'ACTIVE'
-  },
-  {
-    id: 'INC-011',
-    district: 'Cuttack',
-    lat: 20.4625,
-    lng: 85.8830,
-    radiusKm: 1.8,
-    sosCount: 6,
-    affectedPeople: 48,
-    criticalCount: 2,
-    medicalCount: 2,
-    latestActivity: new Date(Date.now() - 300000).toISOString(),
-    priorityScore: 78,
-    priorityFactors: {
-      medicalUrgency: 25,
-      peopleAffected: 20,
-      trapped: 15,
-      hazardSeverity: 15,
-      sosAge: 10,
-      accessibility: 5
-    },
-    status: 'ACTIVE'
-  }
-];
-
-const mockResources: RescueResource[] = [
-  { id: 'RES-T1', name: 'NDRF-Alpha (Battalion 03)', type: 'RESCUE_TEAM', status: 'AVAILABLE', members: 24, lat: 19.80, lng: 85.85 },
-  { id: 'RES-T2', name: 'ODRAF-Bravo (Unit 07)', type: 'RESCUE_TEAM', status: 'EN_ROUTE', members: 16, lat: 19.81, lng: 85.84, assignedIncidentId: 'INC-018', etaMinutes: 14 },
-  { id: 'RES-A1', name: 'ALS Ambulance Unit 12', type: 'AMBULANCE', status: 'AVAILABLE', medicalCapability: 'Advanced', lat: 19.84, lng: 85.81 },
-  { id: 'RES-B1', name: 'Rescue Boat Flotilla 07', type: 'BOAT', status: 'AVAILABLE', capacity: 18, lat: 19.82, lng: 85.82 }
-];
-
 const EOCContext = createContext<EOCContextType | undefined>(undefined);
 
 const mapDatabaseToSOSSignal = (row: any): SOSSignal => {
@@ -421,9 +280,9 @@ const mapDatabaseToSOSSignal = (row: any): SOSSignal => {
 export const EOCProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [signals, setSignals] = useState<SOSSignal[]>([]);
   const [selectedSignalId, setSelectedSignalId] = useState<string | null>(null);
-  const [shelters, setShelters] = useState<ShelterFacility[]>(initialShelters);
-  const [incidents] = useState<IncidentCluster[]>(mockIncidents);
-  const [resources, setResources] = useState<RescueResource[]>(mockResources);
+  const [shelters, setShelters] = useState<ShelterFacility[]>([]);
+  const [incidents] = useState<IncidentCluster[]>([]);
+  const [resources, setResources] = useState<RescueResource[]>([]);
   const [safeVerifyRecords, setSafeVerifyRecords] = useState<SafeVerifyRecord[]>([]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [activeAlert, setActiveAlert] = useState<StateAlert | null>(null);
@@ -433,178 +292,35 @@ export const EOCProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const { playAlert, playSuccess } = useSound();
 
   const [fleet, setFleet] = useState<FleetStock>({
-    boats: { total: 120, deployed: 90, ready: 24, maintenance: 6 },
-    ambulances: { total: 85, deployed: 75, ready: 10, maintenance: 0 },
-    foodPallets: { total: 5000, deployed: 2000, ready: 3000 },
-    teams: { total: 24, deployed: 18, ready: 6 }
+    boats: { total: 0, deployed: 0, ready: 0, maintenance: 0 },
+    ambulances: { total: 0, deployed: 0, ready: 0, maintenance: 0 },
+    foodPallets: { total: 0, deployed: 0, ready: 0 },
+    teams: { total: 0, deployed: 0, ready: 0 }
   });
 
   const [activeCampaign, setActiveCampaign] = useState<VoiceCampaign>({
-    id: 'CAMPAIGN-202608-A',
-    title: 'AI Conversational Triage - Puri & Balasore Sector',
-    status: 'Running',
+    id: 'CAMPAIGN-NONE',
+    title: 'No Active Campaign',
+    status: 'Completed',
     mode: 'AI_TRIAGE',
-    audience: 'Coastal Districts (Puri, Ganjam, Balasore)',
-    script: 'AI Multilingual Conversational Triage (Whisper + NER v3.2)',
+    audience: 'None',
+    script: 'None',
     scheduledTime: new Date().toISOString(),
-    totalReach: 45200,
-    answeredCount: 30736,
-    safeCount: 26140,
-    trappedCount: 2481,
-    medicalCount: 682,
-    foodWaterCount: 1433,
-    aiTranscribedCount: 30736,
-    p1CriticalCount: 682,
-    p2UrgentCount: 1799,
-    p3ModerateCount: 2115,
-    p4SafeCount: 26140
+    totalReach: 0,
+    answeredCount: 0,
+    safeCount: 0,
+    trappedCount: 0,
+    medicalCount: 0,
+    foodWaterCount: 0,
+    aiTranscribedCount: 0,
+    p1CriticalCount: 0,
+    p2UrgentCount: 0,
+    p3ModerateCount: 0,
+    p4SafeCount: 0
   });
 
-  const [voiceTriageResults, setVoiceTriageResults] = useState<VoiceTriageResult[]>([
-    {
-      id: 'VT-9821',
-      callId: 'CALL-EXO-7721',
-      citizenName: 'Rabindra Jena',
-      phone: '+91 94372-88192',
-      district: 'Balasore',
-      locationName: 'Chandipur Sea Beach Rd, Near Mahadev Mandir',
-      language: 'Sambalpuri / North Odia',
-      rawTranscript: 'ଆମ ଘର ଭିତରେ ୩ ଫୁଟ ପାଣି ପଶିଗଲାଣି, ଛାତ ଉପରେ ୪ ଜଣ ଲୋକ ଅଛନ୍ତି, ବୁଢ଼ା ବାପାଙ୍କୁ ଅକ୍ସିଜେନ ଦରକାର!',
-      translatedTranscript: '3 feet water has entered our house, 4 people on the roof, elderly father needs oxygen immediately!',
-      priority: 'P1_CRITICAL',
-      sentiment: 'PANIC',
-      extractedEntities: {
-        peopleCount: 4,
-        landmark: 'Mahadev Mandir, Chandipur Sea Beach Rd',
-        threatType: 'FLOOD_INUNDATION',
-        medicalNeed: true,
-        evacuationUrgency: 'IMMEDIATE',
-        coordinates: { lat: 21.4682, lng: 87.0163 }
-      },
-      confidenceScore: 0.96,
-      audioDurationSeconds: 18,
-      status: 'ANALYZED',
-      timestamp: new Date(Date.now() - 2 * 60000).toISOString()
-    },
-    {
-      id: 'VT-9820',
-      callId: 'CALL-EXO-7720',
-      citizenName: 'Manoj Kumar Sharma',
-      phone: '+91 98310-44912',
-      district: 'Bhadrak',
-      locationName: 'Dhamra Port Approach, Ward 7',
-      language: 'Bhojpuri / Hindi',
-      rawTranscript: 'भैया हमारे घर के पास पुल टूट गया है, 6 लोग फंसे हुए हैं, पीने का पानी खत्म हो गया है।',
-      translatedTranscript: 'Brother, bridge near our house is broken, 6 people trapped, drinking water exhausted.',
-      priority: 'P2_URGENT',
-      sentiment: 'DISTRESSED',
-      extractedEntities: {
-        peopleCount: 6,
-        landmark: 'Broken Bridge, Dhamra Port Approach Ward 7',
-        threatType: 'ISOLATED_WITHOUT_FOOD',
-        medicalNeed: false,
-        evacuationUrgency: 'HIGH',
-        coordinates: { lat: 20.8015, lng: 86.9538 }
-      },
-      confidenceScore: 0.94,
-      audioDurationSeconds: 14,
-      status: 'ANALYZED',
-      timestamp: new Date(Date.now() - 5 * 60000).toISOString()
-    },
-    {
-      id: 'VT-9819',
-      callId: 'CALL-EXO-7719',
-      citizenName: 'Sasmita Sahoo',
-      phone: '+91 70081-33291',
-      district: 'Puri',
-      locationName: 'Brahmagiri Block, Near Cyclone Shelter #4',
-      language: 'Standard Odia',
-      rawTranscript: 'ଆମେ ସମସ୍ତେ ସାଇକ୍ଲୋନ ସେଲ୍ଟର ୪ ରେ ପହଞ୍ଚିଗଲୁ, ସମସ୍ତେ ସୁରକ୍ଷିତ ଅଛୁ। କୌଣସି ବିପଦ ନାହିଁ।',
-      translatedTranscript: 'We have all safely reached Cyclone Shelter #4, everyone is safe. No danger.',
-      priority: 'P4_SAFE',
-      sentiment: 'CALM',
-      extractedEntities: {
-        peopleCount: 5,
-        landmark: 'Cyclone Shelter #4, Brahmagiri Block',
-        threatType: 'SAFE_IN_SHELTER',
-        medicalNeed: false,
-        evacuationUrgency: 'NONE',
-        coordinates: { lat: 19.8055, lng: 85.6789 }
-      },
-      confidenceScore: 0.98,
-      audioDurationSeconds: 11,
-      status: 'RESOLVED',
-      timestamp: new Date(Date.now() - 9 * 60000).toISOString()
-    },
-    {
-      id: 'VT-9818',
-      callId: 'CALL-EXO-7718',
-      citizenName: 'Debabrata Mukherjee',
-      phone: '+91 94330-19283',
-      district: 'Ganjam',
-      locationName: 'Gopalpur Fisherman Colony',
-      language: 'Bengali / Odia',
-      rawTranscript: 'সমুদ্রের ঢেউ বাঁধ ভেঙে ঘরে ঢুকে গেছে, চালের টিন উড়ে গেছে, ৩ জন বাচ্চা সহ সাহায্য চাই!',
-      translatedTranscript: 'Sea waves broke the embankment and entered homes, tin roof blown away, need rescue for 3 children!',
-      priority: 'P1_CRITICAL',
-      sentiment: 'PANIC',
-      extractedEntities: {
-        peopleCount: 5,
-        landmark: 'Sea Embankment Breach, Gopalpur Fisherman Colony',
-        threatType: 'ROOF_COLLAPSE',
-        medicalNeed: true,
-        evacuationUrgency: 'IMMEDIATE',
-        coordinates: { lat: 19.2612, lng: 84.9084 }
-      },
-      confidenceScore: 0.95,
-      audioDurationSeconds: 22,
-      status: 'DISPATCHED',
-      timestamp: new Date(Date.now() - 14 * 60000).toISOString()
-    }
-  ]);
-
-  const [pastCampaigns, setPastCampaigns] = useState<VoiceCampaign[]>([
-    {
-      id: 'CMP-202309-X',
-      title: 'Flash Flood Advisory - Mahanadi Basin',
-      status: 'Completed',
-      mode: 'AI_TRIAGE',
-      audience: 'Cuttack & Kendrapara Lowlands',
-      script: 'AI Multilingual Flood Inundation Triage v2',
-      scheduledTime: '2023-09-12 08:00',
-      totalReach: 12400,
-      answeredCount: 10416,
-      safeCount: 10207,
-      trappedCount: 209,
-      medicalCount: 45,
-      foodWaterCount: 164,
-      aiTranscribedCount: 10416,
-      p1CriticalCount: 45,
-      p2UrgentCount: 164,
-      p3ModerateCount: 0,
-      p4SafeCount: 10207
-    },
-    {
-      id: 'CMP-202308-A',
-      title: 'Pre-Monsoon Preparedness Drill',
-      status: 'Completed',
-      mode: 'DTMF_LEGACY',
-      audience: 'All Registered EWS Users',
-      script: 'Early Check-in Survey',
-      scheduledTime: '2023-08-04 18:30',
-      totalReach: 8100,
-      answeredCount: 5751,
-      safeCount: 5751,
-      trappedCount: 0,
-      medicalCount: 0,
-      foodWaterCount: 12,
-      aiTranscribedCount: 0,
-      p1CriticalCount: 0,
-      p2UrgentCount: 0,
-      p3ModerateCount: 0,
-      p4SafeCount: 5751
-    }
-  ]);
+  const [voiceTriageResults, setVoiceTriageResults] = useState<VoiceTriageResult[]>([]);
+  const [pastCampaigns, setPastCampaigns] = useState<VoiceCampaign[]>([]);
 
   const showToast = useCallback((msg: string) => {
     setToastMessage(msg);
@@ -1261,19 +977,19 @@ export const EOCProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const activeSOSCount = signals.filter((s) => s.status !== 'Resolved').length;
   const criticalCount = signals.filter((s) => s.status === 'Critical').length;
-  const totalAffectedCount = signals.reduce((acc, curr) => acc + curr.peopleCount, 1240);
+  const totalAffectedCount = signals.reduce((acc, curr) => acc + (curr.peopleCount || 1), 0);
   const totalCapacity = shelters.reduce((acc, curr) => acc + curr.capacity, 0);
   const totalOccupied = shelters.reduce((acc, curr) => acc + curr.occupied, 0);
-  const sheltersOccupancyPercent = totalCapacity > 0 ? Math.round((totalOccupied / totalCapacity) * 100) : 68;
+  const sheltersOccupancyPercent = totalCapacity > 0 ? Math.round((totalOccupied / totalCapacity) * 100) : 0;
 
   const stats = {
     activeSOS: activeSOSCount,
     criticalSOS: criticalCount,
-    assistanceSOS: 14,
-    trapped: 9,
-    medical: 6,
+    assistanceSOS: signals.filter((s) => s.status === 'Urgent' || s.status === 'Pending').length,
+    trapped: signals.filter((s) => s.details?.toLowerCase().includes('trapped')).length,
+    medical: signals.filter((s) => s.medicalRequired).length,
     safe: activeCampaign.safeCount,
-    unaccounted: 61,
+    unaccounted: 0,
     totalAffected: totalAffectedCount,
     activeIncidents: incidents.length,
     sheltersCount: shelters.length,
@@ -1282,8 +998,8 @@ export const EOCProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     availableTeams: fleet.teams.ready,
     ambulances: fleet.ambulances.total,
     availableBoats: fleet.boats.ready,
-    pendingSync: 23,
-    avgDeliveryTime: '2m 14s'
+    pendingSync: 0,
+    avgDeliveryTime: signals.length > 0 ? '12s' : '0s'
   };
 
   return (

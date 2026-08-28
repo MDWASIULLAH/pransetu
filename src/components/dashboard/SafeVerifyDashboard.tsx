@@ -35,17 +35,14 @@ export const SafeVerifyDashboard: React.FC = () => {
   const [campaignFilter, setCampaignFilter] = useState('');
   const [districtFilter, setDistrictFilter] = useState('');
 
-  // Seed figures so the dashboard is readable when the backend is unreachable.
+  // Clear figures when backend is unreachable or empty
   const loadFallbackData = () => {
     setStats({
-      total_contacted: 1250, answered: 850, no_answer: 400,
-      safe_count: 600, assistance_count: 150, trapped_count: 20,
-      medical_count: 80, unaccounted_count: 400
+      total_contacted: 0, answered: 0, no_answer: 0,
+      safe_count: 0, assistance_count: 0, trapped_count: 0,
+      medical_count: 0, unaccounted_count: 0
     });
-    setRecords([
-      { id: '1', citizen_phone: '+919876****', campaign_id: 'CMP-001', state: 'SAFE', timestamp: new Date().toISOString(), call_status: 'ANSWERED', retry_count: 0, source: 'IVR', district: 'Puri' },
-      { id: '2', citizen_phone: '+919123****', campaign_id: 'CMP-001', state: 'MEDICAL', timestamp: new Date().toISOString(), call_status: 'ANSWERED', retry_count: 1, source: 'IVR', district: 'Cuttack' }
-    ]);
+    setRecords([]);
   };
 
   // Fetch logic

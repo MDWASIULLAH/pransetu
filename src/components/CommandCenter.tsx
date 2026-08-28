@@ -54,25 +54,25 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigate }) => {
 
   // Live Database KPIs State
   const [kpis, setKpis] = useState<CommandCenterKPIs>({
-    active_sos: 14,
-    critical_sos: 6,
-    assistance_required: 12,
-    safe_confirmed: 8420,
-    unaccounted: 138,
-    total_affected_people: 1840,
-    active_incidents: 4,
-    open_shelters: 38,
-    shelter_occupancy_percent: 68.4,
-    total_shelter_capacity: 45000,
-    total_shelter_occupancy: 30780,
-    available_ambulances: 42,
-    dispatched_ambulances: 14,
-    available_rescue_teams: 18,
-    active_rescue_teams: 6,
-    available_boats: 30,
-    available_medical_teams: 16,
-    pending_synchronization: 3,
-    average_sos_delivery_time: '24s'
+    active_sos: 0,
+    critical_sos: 0,
+    assistance_required: 0,
+    safe_confirmed: 0,
+    unaccounted: 0,
+    total_affected_people: 0,
+    active_incidents: 0,
+    open_shelters: 0,
+    shelter_occupancy_percent: 0,
+    total_shelter_capacity: 0,
+    total_shelter_occupancy: 0,
+    available_ambulances: 0,
+    dispatched_ambulances: 0,
+    available_rescue_teams: 0,
+    active_rescue_teams: 0,
+    available_boats: 0,
+    available_medical_teams: 0,
+    pending_synchronization: 0,
+    average_sos_delivery_time: '0s'
   });
 
   const [feedLive, setFeedLive] = useState(false);

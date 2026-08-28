@@ -91,52 +91,7 @@ export const DisasterAlertsManager: React.FC = () => {
   };
 
   const loadFallbackAlerts = () => {
-    const fallback: DisasterAlert[] = [
-      {
-        alert_id: 'ALT-CYC-20260821-001',
-        alert_type: 'CYCLONE',
-        severity: 'RED_CRITICAL',
-        title: 'IMD Super Cyclone Landfall Alert - Immediate 5km Evacuation',
-        message: 'Category 4 cyclonic eye making landfall near Puri. Sustained winds 140km/h with +3.2m tidal surge. Move to nearest designated cyclone shelter immediately.',
-        affected_area: 'Puri Coastal Belt, Astaranga, Paradeep',
-        created_at: new Date(Date.now() - 3600000).toISOString(),
-        expires_at: new Date(Date.now() + 86400000).toISOString(),
-        status: 'ACTIVE',
-        source: 'IMD & OSDMA State Disaster Authority',
-        is_official_govt_source: true,
-        source_verification_ref: 'SRC-ODISHA-BULLETIN-44A'
-      },
-      {
-        alert_id: 'ALT-FLD-20260821-002',
-        alert_type: 'FLOOD',
-        severity: 'ORANGE_WARNING',
-        title: 'Mahanadi & Daya River Embankment High Water Advisory',
-        message: 'River discharge reached 950,000 cusecs. Low-lying agricultural bunds in Delang & Kakatpur at risk of breach. Avoid low causeways.',
-        affected_area: 'Delang, Kakatpur, Nimapada Blocks',
-        created_at: new Date(Date.now() - 7200000).toISOString(),
-        expires_at: new Date(Date.now() + 43200000).toISOString(),
-        status: 'ACTIVE',
-        source: 'Water Resources Dept & ODRAF State EOC',
-        is_official_govt_source: true,
-        source_verification_ref: 'WRD-HYDRO-REPORT-102'
-      },
-      {
-        alert_id: 'ALT-ROA-20260821-003',
-        alert_type: 'ROAD_BLOCKAGE',
-        severity: 'YELLOW_WATCH',
-        title: 'NH-316 & Marine Drive Highway Inundation Watch',
-        message: 'Water overtopping Marine Drive at +0.8m. Heavy trucks and rescue convoys instructed to divert via Gop-Balipatna inland arterial corridor.',
-        affected_area: 'NH-316 Pipili & Puri-Konark Marine Drive',
-        created_at: new Date(Date.now() - 10800000).toISOString(),
-        expires_at: new Date(Date.now() + 21600000).toISOString(),
-        status: 'ACTIVE',
-        source: 'PRANSETU Authorized Tactical Telemetry',
-        is_official_govt_source: false,
-        source_verification_ref: undefined
-      }
-    ];
-
-    setAlerts(fallback);
+    setAlerts([]);
   };
 
   useEffect(() => {
