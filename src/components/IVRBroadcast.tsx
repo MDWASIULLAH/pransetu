@@ -158,8 +158,7 @@ const fallbackStats = (campaign: IvrBroadcastRecord): BroadcastStats => ({
 });
 
 export const IVRBroadcast: React.FC = () => {
-  const { user, hasPermission } = useAuth();
-  const canCreate = hasPermission('campaign.create');
+  const { user } = useAuth();
   const [campaigns, setCampaigns] = useState<IvrBroadcastRecord[]>([]);
   const [recipients, setRecipients] = useState<RecipientRecord[]>([]);
   const [selectedBroadcastId, setSelectedBroadcastId] = useState<string | null>(null);

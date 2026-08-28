@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { apiFetch } from '../../services/api';
 import { supabase } from '../../lib/supabase';
 import { Phone, Users, ShieldAlert, CheckCircle2 } from 'lucide-react';
 
