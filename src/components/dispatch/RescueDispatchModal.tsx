@@ -148,9 +148,41 @@ export const RescueDispatchModal: React.FC<RescueDispatchModalProps> = ({ incide
   };
 
   const setDefaultMockData = () => {
-    setRecommendations([]);
-    setAvailableAssets([]);
-    setSelectedAssetIds([]);
+    const mockRecs: DispatchRecommendation[] = [
+      {
+        resource_type: 'AMBULANCE',
+        recommended_asset_id: 'RES-AMB-01',
+        recommended_asset_name: 'ALS Advanced Cardiac Ambulance #01',
+        rationale: 'Critical respiratory & trauma care required on-scene',
+        priority_weight: '+35 pts'
+      },
+      {
+        resource_type: 'BOAT',
+        recommended_asset_id: 'RES-BOAT-01',
+        recommended_asset_name: 'Zodiac IRB Flood Rescue Boat #1',
+        rationale: 'Inundated coastal approach requires shallow-draft boat',
+        priority_weight: '+30 pts'
+      },
+      {
+        resource_type: 'RESCUE_TEAM',
+        recommended_asset_id: 'RES-NDRF-01',
+        recommended_asset_name: 'NDRF 03 Battalion Team Alpha',
+        rationale: 'Large group extraction (14 affected victims) requires full squad',
+        priority_weight: '+25 pts'
+      }
+    ];
+
+    const mockAssets: AvailableAsset[] = [
+      { id: 'RES-AMB-01', name: 'ALS Advanced Cardiac Ambulance #01', type: 'AMBULANCE', organization: 'AIIMS Bhubaneswar', status: 'AVAILABLE', distance_km: 3.2, eta_minutes: 6 },
+      { id: 'RES-BOAT-01', name: 'Zodiac IRB Flood Rescue Boat #1', type: 'BOAT', organization: 'ODRAF Unit 5', status: 'AVAILABLE', distance_km: 2.1, eta_minutes: 4 },
+      { id: 'RES-NDRF-01', name: 'NDRF 03 Battalion Team Alpha', type: 'RESCUE_TEAM', organization: 'NDRF 03 Battalion', status: 'AVAILABLE', distance_km: 4.8, eta_minutes: 8 },
+      { id: 'RES-MED-01', name: 'AIIMS Mobile Trauma Team 1', type: 'MEDICAL_TEAM', organization: 'AIIMS Emergency', status: 'AVAILABLE', distance_km: 3.5, eta_minutes: 7 },
+      { id: 'RES-AMB-04', name: 'BLS Rapid Response Ambulance #04', type: 'AMBULANCE', organization: 'District Red Cross', status: 'AVAILABLE', distance_km: 5.0, eta_minutes: 9 }
+    ];
+
+    setRecommendations(mockRecs);
+    setAvailableAssets(mockAssets);
+    setSelectedAssetIds(['RES-AMB-01', 'RES-BOAT-01', 'RES-NDRF-01']);
   };
 
   const fetchActiveAssignmentsAndAudit = async () => {
