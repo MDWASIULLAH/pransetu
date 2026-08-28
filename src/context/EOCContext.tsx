@@ -157,6 +157,8 @@ export interface EOCContextType {
   updateSOSState: (id: string, updates: any) => void;
   updateResourceState: (id: string, updates: any) => void;
   addSafeVerify: (record: any) => void;
+  clearAllSOSLogs: () => Promise<void>;
+  refetchSignals: () => Promise<void>;
 
   // Voice Campaigns & AI Voice Triage
   activeCampaign: VoiceCampaign;
@@ -331,23 +333,53 @@ export const EOCProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [realtimeEvents, setRealtimeEvents] = useState<RealtimeEvent[]>([]);
 
-  useEffect(() => {
-    // Initial fetch of active SOS events
-    const fetchSignals = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('sos_events')
-          .select('*');
+  const fetchSignals = useCallback(async () => {
+    try {
+      // Fetch latest active SOS signals ordered by newest first
+      const { data, error } = await supabase
+        .from('sos_events')
+        .select('*')
+        .order('createdAt', { ascending: false });
 
-        if (data && !error && data.length > 0) {
-          setSignals(data.map(mapDatabaseToSOSSignal));
-        } else {
-          console.log('No remote signals or fetching from alternate order:', error?.message);
+      if (data && !error) {
+        setSignals(data.map(mapDatabaseToSOSSignal));
+      } else {
+        // Fallback try created_at lowercase column
+        const { data: dataAlt } = await supabase
+          .from('sos_events')
+          .select('*')
+          .order('created_at', { ascending: false });
+        if (dataAlt) {
+          setSignals(dataAlt.map(mapDatabaseToSOSSignal));
         }
-      } catch (err) {
-        console.error('Error fetching signals:', err);
       }
-    };
+    } catch (err) {
+      console.error('Error fetching signals:', err);
+    }
+  }, []);
+
+  const refetchSignals = useCallback(async () => {
+    await fetchSignals();
+    showToast('🔄 Synchronized live SOS canonical logs with server.');
+  }, [fetchSignals, showToast]);
+
+  const clearAllSOSLogs = useCallback(async () => {
+    try {
+      setSignals([]);
+      // Purge from Supabase sos_events table
+      await supabase
+        .from('sos_events')
+        .delete()
+        .neq('sosId', '00000000-0000-0000-0000-000000000000');
+      showToast('🧹 Successfully purged all test / demo SOS telemetry records from database.');
+    } catch (err: any) {
+      console.warn('Cleared local SOS cache', err);
+      setSignals([]);
+      showToast('🧹 Local SOS cache reset.');
+    }
+  }, [showToast]);
+
+  useEffect(() => {
     fetchSignals();
 
     // Initial fetch of recent Realtime Events
@@ -376,12 +408,8 @@ export const EOCProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setRealtimeEvents((prev) => [newEvent, ...prev.slice(0, 49)]);
         
         if (newEvent.event_type === 'EMERGENCY_DISASTER_BROADCAST') {
-          playAlert();
-          setActiveDisasterAlert({
-            text: newEvent.payload.disaster_text || 'Emergency Broadcast',
-            severity: newEvent.payload.severity || 'CRITICAL'
-          });
-          showToast(`🚨 CRITICAL BROADCAST INITIATED`);
+          // Broadcast is targeted strictly for mobile citizen phones - do not interrupt EOC operator console
+          console.log(`[EOC Broadcast Relay] Dispatched to mobile citizen devices: ${newEvent.payload.disaster_text}`);
         } else if (newEvent.event_type === 'SOS_CREATED' || newEvent.event_type === 'SOS_BACKEND_RECEIVED') {
           playAlert();
           showToast(`⚡ Inbound SOS Alert: Citizen ${newEvent.user_id || newEvent.sos_id?.slice(0, 8) || 'N/A'}`);
@@ -1022,6 +1050,8 @@ export const EOCProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateSOSState,
         updateResourceState,
         addSafeVerify,
+        clearAllSOSLogs,
+        refetchSignals,
 
         activeCampaign,
         pastCampaigns,

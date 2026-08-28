@@ -3,13 +3,25 @@ import { useEOC } from '../context/EOCContext';
 import type { SOSSignal } from '../context/EOCContext';
 
 export const SOSLogs: React.FC = () => {
-  const { signals, dispatchTeamToSignal, resolveSignal, showToast } = useEOC();
+  const { signals, dispatchTeamToSignal, resolveSignal, showToast, clearAllSOSLogs, refetchSignals } = useEOC();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [districtFilter, setDistrictFilter] = useState('');
   const [severityFilter, setSeverityFilter] = useState('');
   const [selectedLog, setSelectedLog] = useState<SOSSignal | null>(null);
   const [activeTab, setActiveTab] = useState<'canonical' | 'hops' | 'raw_json'>('canonical');
+  const [isClearing, setIsClearing] = useState(false);
+
+  const handleResetLogs = async () => {
+    if (window.confirm('Are you sure you want to reset and clear all stored SOS event logs from the database?')) {
+      setIsClearing(true);
+      try {
+        await clearAllSOSLogs();
+      } finally {
+        setIsClearing(false);
+      }
+    }
+  };
 
   const filteredLogs = signals.filter((log) => {
     const matchesSearch =
@@ -378,6 +390,23 @@ export const SOSLogs: React.FC = () => {
           </select>
 
           <button 
+            onClick={() => refetchSignals()}
+            title="Refresh Live SOS Telemetry from Server"
+            className="bg-surface hover:bg-surface-container-low border border-outline-variant/30 text-on-surface px-3 py-1.5 rounded-lg text-sm flex items-center gap-1.5 cursor-pointer font-semibold shadow-sm transition-colors"
+          >
+            <span className="material-symbols-outlined text-[16px]">sync</span> Refresh
+          </button>
+
+          <button 
+            onClick={handleResetLogs}
+            disabled={isClearing || signals.length === 0}
+            title="Purge all old/test SOS events and reset to clean state"
+            className="bg-error/10 hover:bg-error/20 border border-error/30 text-error px-3 py-1.5 rounded-lg text-sm flex items-center gap-1.5 cursor-pointer font-semibold shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span className="material-symbols-outlined text-[16px]">delete_sweep</span> {isClearing ? 'Resetting...' : 'Reset Logs'}
+          </button>
+
+          <button 
             onClick={handleExportCSV}
             className="bg-surface hover:bg-surface-container-low border border-outline-variant/30 text-on-surface px-3 py-1.5 rounded-lg text-sm flex items-center gap-1.5 cursor-pointer font-semibold shadow-sm transition-colors"
           >
@@ -402,49 +431,63 @@ export const SOSLogs: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-outline-variant/60 text-sm">
-              {filteredLogs.map((log) => {
-                let badgeClass = "bg-surface-container text-on-surface border border-outline-variant/30";
-                if (log.status.toLowerCase() === 'critical') badgeClass = "bg-error/10 text-on-error-container border border-error/20";
-                if (log.status.toLowerCase() === 'urgent') badgeClass = "bg-primary/10 text-on-primary-container border border-primary/20";
-                if (log.status.toLowerCase() === 'pending') badgeClass = "bg-surface-container-high text-on-surface-variant border border-outline-variant/30";
-
-                return (
-                <tr key={log.id} className="hover:bg-surface transition-colors group cursor-default">
-                  <td className="p-3.5 font-sans font-medium text-on-surface">
-                    {log.id}
-                  </td>
-                  <td className="p-3.5 text-on-surface-variant font-sans text-[11px]">
-                    {log.timestamp}
-                  </td>
-                  <td className="p-3.5">
-                    <span className="font-medium text-on-surface block text-[13px]">{log.loc}</span>
-                    <span className="text-[10px] text-on-surface-variant font-sans">
-                      GPS: {log.lat.toFixed(4)}° N, {log.lng.toFixed(4)}° E
-                    </span>
-                  </td>
-                  <td className="p-3.5 font-sans text-[11px] text-on-surface-variant flex items-center gap-1.5 pt-4">
-                    <span className="material-symbols-outlined text-[14px]">{log.sourceIcon}</span>
-                    {log.source}
-                  </td>
-                  <td className="p-3.5">
-                    <span className={`px-2 py-0.5 rounded font-sans font-medium text-[10px] uppercase ${badgeClass}`}>
-                      {log.status} ({log.score} pts)
-                    </span>
-                  </td>
-                  <td className="p-3.5 font-sans text-[11px] text-on-surface-variant">
-                    <span className="font-medium text-on-surface">{log.hop} Hops</span> (TTL: {8 - log.hop})
-                  </td>
-                  <td className="p-3.5 text-right">
-                    <button
-                      onClick={() => setSelectedLog(log)}
-                      className="px-3 py-1 bg-surface border border-outline-variant/30 text-on-surface hover:bg-surface-container-high rounded text-[11px] font-medium transition-colors cursor-pointer inline-flex items-center gap-1.5 opacity-0 group-hover:opacity-100 focus:opacity-100"
-                    >
-                      <span className="material-symbols-outlined text-[14px]">visibility</span>
-                      Inspect
-                    </button>
+              {filteredLogs.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="p-8 text-center text-on-surface-variant">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <span className="material-symbols-outlined text-4xl text-on-surface-variant/40">signal_cellular_nodata</span>
+                      <p className="font-semibold text-sm text-on-surface">No Live SOS Distress Beacons</p>
+                      <p className="text-xs text-on-surface-variant max-w-md">
+                        The canonical log table is clean. Inbound distress packets from mobile devices or mesh relay will appear here live with cryptographic verification.
+                      </p>
+                    </div>
                   </td>
                 </tr>
-              )})}
+              ) : (
+                filteredLogs.map((log) => {
+                  let badgeClass = "bg-surface-container text-on-surface border border-outline-variant/30";
+                  if (log.status.toLowerCase() === 'critical') badgeClass = "bg-error/10 text-on-error-container border border-error/20";
+                  if (log.status.toLowerCase() === 'urgent') badgeClass = "bg-primary/10 text-on-primary-container border border-primary/20";
+                  if (log.status.toLowerCase() === 'pending') badgeClass = "bg-surface-container-high text-on-surface-variant border border-outline-variant/30";
+
+                  return (
+                  <tr key={log.id} className="hover:bg-surface transition-colors group cursor-default">
+                    <td className="p-3.5 font-sans font-medium text-on-surface">
+                      {log.id}
+                    </td>
+                    <td className="p-3.5 text-on-surface-variant font-sans text-[11px]">
+                      {log.timestamp}
+                    </td>
+                    <td className="p-3.5">
+                      <span className="font-medium text-on-surface block text-[13px]">{log.loc}</span>
+                      <span className="text-[10px] text-on-surface-variant font-sans">
+                        GPS: {log.lat.toFixed(4)}° N, {log.lng.toFixed(4)}° E
+                      </span>
+                    </td>
+                    <td className="p-3.5 font-sans text-[11px] text-on-surface-variant flex items-center gap-1.5 pt-4">
+                      <span className="material-symbols-outlined text-[14px]">{log.sourceIcon}</span>
+                      {log.source}
+                    </td>
+                    <td className="p-3.5">
+                      <span className={`px-2 py-0.5 rounded font-sans font-medium text-[10px] uppercase ${badgeClass}`}>
+                        {log.status} ({log.score} pts)
+                      </span>
+                    </td>
+                    <td className="p-3.5 font-sans text-[11px] text-on-surface-variant">
+                      <span className="font-medium text-on-surface">{log.hop} Hops</span> (TTL: {8 - log.hop})
+                    </td>
+                    <td className="p-3.5 text-right">
+                      <button
+                        onClick={() => setSelectedLog(log)}
+                        className="px-3 py-1 bg-surface border border-outline-variant/30 text-on-surface hover:bg-surface-container-high rounded text-[11px] font-medium transition-colors cursor-pointer inline-flex items-center gap-1.5 opacity-0 group-hover:opacity-100 focus:opacity-100"
+                      >
+                        <span className="material-symbols-outlined text-[14px]">visibility</span>
+                        Inspect
+                      </button>
+                    </td>
+                  </tr>
+                );
+              }))}
             </tbody>
           </table>
         </div>
