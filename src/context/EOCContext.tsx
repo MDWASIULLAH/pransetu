@@ -58,6 +58,7 @@ export interface VoiceCampaign {
   id: string;
   title: string;
   status: 'Running' | 'Paused' | 'Completed' | 'Aborted';
+  mode: 'AI_TRIAGE' | 'DTMF_LEGACY';
   audience: string;
   script: string;
   scheduledTime: string;
@@ -67,6 +68,38 @@ export interface VoiceCampaign {
   trappedCount: number;
   medicalCount: number;
   foodWaterCount: number;
+  // AI Voice Triage metrics
+  aiTranscribedCount: number;
+  p1CriticalCount: number;
+  p2UrgentCount: number;
+  p3ModerateCount: number;
+  p4SafeCount: number;
+}
+
+export interface VoiceTriageResult {
+  id: string;
+  callId: string;
+  citizenName: string;
+  phone: string;
+  district: string;
+  locationName: string;
+  language: string;
+  rawTranscript: string;
+  translatedTranscript: string;
+  priority: 'P1_CRITICAL' | 'P2_URGENT' | 'P3_MODERATE' | 'P4_SAFE';
+  sentiment: 'PANIC' | 'DISTRESSED' | 'CALM' | 'STABLE';
+  extractedEntities: {
+    peopleCount: number;
+    landmark: string;
+    threatType: 'FLOOD_INUNDATION' | 'ROOF_COLLAPSE' | 'MEDICAL_EMERGENCY' | 'ISOLATED_WITHOUT_FOOD' | 'SAFE_IN_SHELTER';
+    medicalNeed: boolean;
+    evacuationUrgency: 'IMMEDIATE' | 'HIGH' | 'ROUTINE' | 'NONE';
+    coordinates: { lat: number; lng: number };
+  };
+  confidenceScore: number;
+  audioDurationSeconds: number;
+  status: 'ANALYZED' | 'DISPATCHED' | 'ACKNOWLEDGED' | 'RESOLVED';
+  timestamp: string;
 }
 
 export interface ShelterFacility {
@@ -125,13 +158,17 @@ export interface EOCContextType {
   updateResourceState: (id: string, updates: any) => void;
   addSafeVerify: (record: any) => void;
 
-  // Voice Campaigns
+  // Voice Campaigns & AI Voice Triage
   activeCampaign: VoiceCampaign;
   pastCampaigns: VoiceCampaign[];
   toggleCampaignPause: () => void;
   abortCampaign: () => void;
-  createCampaign: (data: { title: string; audience: string; script: string; scheduledTime: string }) => void;
+  createCampaign: (data: { title: string; audience: string; script: string; scheduledTime: string; mode?: 'AI_TRIAGE' | 'DTMF_LEGACY' }) => void;
   recordDTMF: (key: '1' | '2' | '3' | '4') => void;
+  voiceTriageResults: VoiceTriageResult[];
+  addVoiceTriageResult: (result: VoiceTriageResult) => void;
+  dispatchRescueFromTriage: (triageId: string, teamName?: string) => void;
+  simulateIncomingAITriageCall: () => void;
 
   // Shelters & Resources
   fleet: FleetStock;
@@ -404,38 +441,154 @@ export const EOCProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [activeCampaign, setActiveCampaign] = useState<VoiceCampaign>({
     id: 'CAMPAIGN-202608-A',
-    title: 'Cyclone Alert - Puri District (Phase 1)',
+    title: 'AI Conversational Triage - Puri & Balasore Sector',
     status: 'Running',
+    mode: 'AI_TRIAGE',
     audience: 'Coastal Districts (Puri, Ganjam, Balasore)',
-    script: 'Cyclone Evacuation Notice v2',
+    script: 'AI Multilingual Conversational Triage (Whisper + NER v3.2)',
     scheduledTime: new Date().toISOString(),
     totalReach: 45200,
     answeredCount: 30736,
-    safeCount: 28450,
+    safeCount: 26140,
     trappedCount: 2481,
-    medicalCount: 112,
-    foodWaterCount: 620
+    medicalCount: 682,
+    foodWaterCount: 1433,
+    aiTranscribedCount: 30736,
+    p1CriticalCount: 682,
+    p2UrgentCount: 1799,
+    p3ModerateCount: 2115,
+    p4SafeCount: 26140
   });
+
+  const [voiceTriageResults, setVoiceTriageResults] = useState<VoiceTriageResult[]>([
+    {
+      id: 'VT-9821',
+      callId: 'CALL-EXO-7721',
+      citizenName: 'Rabindra Jena',
+      phone: '+91 94372-88192',
+      district: 'Balasore',
+      locationName: 'Chandipur Sea Beach Rd, Near Mahadev Mandir',
+      language: 'Sambalpuri / North Odia',
+      rawTranscript: 'ଆମ ଘର ଭିତରେ ୩ ଫୁଟ ପାଣି ପଶିଗଲାଣି, ଛାତ ଉପରେ ୪ ଜଣ ଲୋକ ଅଛନ୍ତି, ବୁଢ଼ା ବାପାଙ୍କୁ ଅକ୍ସିଜେନ ଦରକାର!',
+      translatedTranscript: '3 feet water has entered our house, 4 people on the roof, elderly father needs oxygen immediately!',
+      priority: 'P1_CRITICAL',
+      sentiment: 'PANIC',
+      extractedEntities: {
+        peopleCount: 4,
+        landmark: 'Mahadev Mandir, Chandipur Sea Beach Rd',
+        threatType: 'FLOOD_INUNDATION',
+        medicalNeed: true,
+        evacuationUrgency: 'IMMEDIATE',
+        coordinates: { lat: 21.4682, lng: 87.0163 }
+      },
+      confidenceScore: 0.96,
+      audioDurationSeconds: 18,
+      status: 'ANALYZED',
+      timestamp: new Date(Date.now() - 2 * 60000).toISOString()
+    },
+    {
+      id: 'VT-9820',
+      callId: 'CALL-EXO-7720',
+      citizenName: 'Manoj Kumar Sharma',
+      phone: '+91 98310-44912',
+      district: 'Bhadrak',
+      locationName: 'Dhamra Port Approach, Ward 7',
+      language: 'Bhojpuri / Hindi',
+      rawTranscript: 'भैया हमारे घर के पास पुल टूट गया है, 6 लोग फंसे हुए हैं, पीने का पानी खत्म हो गया है।',
+      translatedTranscript: 'Brother, bridge near our house is broken, 6 people trapped, drinking water exhausted.',
+      priority: 'P2_URGENT',
+      sentiment: 'DISTRESSED',
+      extractedEntities: {
+        peopleCount: 6,
+        landmark: 'Broken Bridge, Dhamra Port Approach Ward 7',
+        threatType: 'ISOLATED_WITHOUT_FOOD',
+        medicalNeed: false,
+        evacuationUrgency: 'HIGH',
+        coordinates: { lat: 20.8015, lng: 86.9538 }
+      },
+      confidenceScore: 0.94,
+      audioDurationSeconds: 14,
+      status: 'ANALYZED',
+      timestamp: new Date(Date.now() - 5 * 60000).toISOString()
+    },
+    {
+      id: 'VT-9819',
+      callId: 'CALL-EXO-7719',
+      citizenName: 'Sasmita Sahoo',
+      phone: '+91 70081-33291',
+      district: 'Puri',
+      locationName: 'Brahmagiri Block, Near Cyclone Shelter #4',
+      language: 'Standard Odia',
+      rawTranscript: 'ଆମେ ସମସ୍ତେ ସାଇକ୍ଲୋନ ସେଲ୍ଟର ୪ ରେ ପହଞ୍ଚିଗଲୁ, ସମସ୍ତେ ସୁରକ୍ଷିତ ଅଛୁ। କୌଣସି ବିପଦ ନାହିଁ।',
+      translatedTranscript: 'We have all safely reached Cyclone Shelter #4, everyone is safe. No danger.',
+      priority: 'P4_SAFE',
+      sentiment: 'CALM',
+      extractedEntities: {
+        peopleCount: 5,
+        landmark: 'Cyclone Shelter #4, Brahmagiri Block',
+        threatType: 'SAFE_IN_SHELTER',
+        medicalNeed: false,
+        evacuationUrgency: 'NONE',
+        coordinates: { lat: 19.8055, lng: 85.6789 }
+      },
+      confidenceScore: 0.98,
+      audioDurationSeconds: 11,
+      status: 'RESOLVED',
+      timestamp: new Date(Date.now() - 9 * 60000).toISOString()
+    },
+    {
+      id: 'VT-9818',
+      callId: 'CALL-EXO-7718',
+      citizenName: 'Debabrata Mukherjee',
+      phone: '+91 94330-19283',
+      district: 'Ganjam',
+      locationName: 'Gopalpur Fisherman Colony',
+      language: 'Bengali / Odia',
+      rawTranscript: 'সমুদ্রের ঢেউ বাঁধ ভেঙে ঘরে ঢুকে গেছে, চালের টিন উড়ে গেছে, ৩ জন বাচ্চা সহ সাহায্য চাই!',
+      translatedTranscript: 'Sea waves broke the embankment and entered homes, tin roof blown away, need rescue for 3 children!',
+      priority: 'P1_CRITICAL',
+      sentiment: 'PANIC',
+      extractedEntities: {
+        peopleCount: 5,
+        landmark: 'Sea Embankment Breach, Gopalpur Fisherman Colony',
+        threatType: 'ROOF_COLLAPSE',
+        medicalNeed: true,
+        evacuationUrgency: 'IMMEDIATE',
+        coordinates: { lat: 19.2612, lng: 84.9084 }
+      },
+      confidenceScore: 0.95,
+      audioDurationSeconds: 22,
+      status: 'DISPATCHED',
+      timestamp: new Date(Date.now() - 14 * 60000).toISOString()
+    }
+  ]);
 
   const [pastCampaigns, setPastCampaigns] = useState<VoiceCampaign[]>([
     {
       id: 'CMP-202309-X',
       title: 'Flash Flood Advisory - Mahanadi Basin',
       status: 'Completed',
+      mode: 'AI_TRIAGE',
       audience: 'Cuttack & Kendrapara Lowlands',
-      script: 'Flood Inundation Warning v1',
+      script: 'AI Multilingual Flood Inundation Triage v2',
       scheduledTime: '2023-09-12 08:00',
       totalReach: 12400,
       answeredCount: 10416,
       safeCount: 10207,
       trappedCount: 209,
       medicalCount: 45,
-      foodWaterCount: 164
+      foodWaterCount: 164,
+      aiTranscribedCount: 10416,
+      p1CriticalCount: 45,
+      p2UrgentCount: 164,
+      p3ModerateCount: 0,
+      p4SafeCount: 10207
     },
     {
       id: 'CMP-202308-A',
       title: 'Pre-Monsoon Preparedness Drill',
       status: 'Completed',
+      mode: 'DTMF_LEGACY',
       audience: 'All Registered EWS Users',
       script: 'Early Check-in Survey',
       scheduledTime: '2023-08-04 18:30',
@@ -444,7 +597,12 @@ export const EOCProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       safeCount: 5751,
       trappedCount: 0,
       medicalCount: 0,
-      foodWaterCount: 12
+      foodWaterCount: 12,
+      aiTranscribedCount: 0,
+      p1CriticalCount: 0,
+      p2UrgentCount: 0,
+      p3ModerateCount: 0,
+      p4SafeCount: 5751
     }
   ]);
 
@@ -721,16 +879,184 @@ export const EOCProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast(`Campaign ${activeCampaign.id} aborted.`);
   };
 
+  const addVoiceTriageResult = (result: VoiceTriageResult) => {
+    setVoiceTriageResults((prev) => [result, ...prev]);
+    setActiveCampaign((prev) => {
+      const updated = { ...prev };
+      updated.answeredCount += 1;
+      updated.aiTranscribedCount += 1;
+      if (result.priority === 'P1_CRITICAL') {
+        updated.p1CriticalCount += 1;
+        updated.trappedCount += 1;
+        if (result.extractedEntities.medicalNeed) updated.medicalCount += 1;
+      } else if (result.priority === 'P2_URGENT') {
+        updated.p2UrgentCount += 1;
+        updated.foodWaterCount += 1;
+      } else if (result.priority === 'P3_MODERATE') {
+        updated.p3ModerateCount += 1;
+      } else {
+        updated.p4SafeCount += 1;
+        updated.safeCount += 1;
+      }
+      return updated;
+    });
+
+    if (result.priority === 'P1_CRITICAL' || result.priority === 'P2_URGENT') {
+      playAlert();
+    } else {
+      playSuccess();
+    }
+  };
+
+  const dispatchRescueFromTriage = (triageId: string, teamName?: string) => {
+    const triage = voiceTriageResults.find((r) => r.id === triageId);
+    if (!triage) return;
+
+    // Update status of the triage result
+    setVoiceTriageResults((prev) =>
+      prev.map((r) => (r.id === triageId ? { ...r, status: 'DISPATCHED' } : r))
+    );
+
+    // Inject as live high-priority SOSSignal into the GIS Mission Map
+    const coords = triage.extractedEntities.coordinates || { lat: 20.9517, lng: 85.0985 };
+    const effectiveTeam = teamName || 'ODRAF Team 4 (Quick Response)';
+
+    injectNewSignal({
+      id: `SOS-VT-${triage.id}`,
+      status: triage.priority === 'P1_CRITICAL' ? 'Critical' : 'Urgent',
+      score: triage.priority === 'P1_CRITICAL' ? 98 : 88,
+      source: 'IVR System',
+      sourceIcon: 'record_voice_over',
+      people: `${triage.extractedEntities.peopleCount} Persons (${triage.citizenName})`,
+      peopleCount: triage.extractedEntities.peopleCount,
+      loc: triage.locationName,
+      lat: coords.lat,
+      lng: coords.lng,
+      district: triage.district,
+      details: `[AI Voice Triage - ${triage.language}] "${triage.translatedTranscript}" | Landmark: ${triage.extractedEntities.landmark}`,
+      medicalRequired: triage.extractedEntities.medicalNeed,
+      severity: triage.priority === 'P1_CRITICAL' ? 'CRITICAL' : 'HIGH',
+      assignedTeam: effectiveTeam,
+      etaMinutes: 12,
+      userName: triage.citizenName,
+      userPhone: triage.phone,
+      contactPhone: triage.phone
+    });
+
+    playSuccess();
+    showToast(`Rescue Unit Dispatched to ${triage.citizenName} (${triage.locationName}) via AI Voice Triage.`);
+  };
+
+  const simulateIncomingAITriageCall = () => {
+    const simulatedPool: Partial<VoiceTriageResult>[] = [
+      {
+        citizenName: 'Birendra Pradhan',
+        phone: '+91 97761-55823',
+        district: 'Kendrapara',
+        locationName: 'Pattamundai Block, Near High School',
+        language: 'Standard Odia',
+        rawTranscript: 'ସ୍କୁଲ ଛାତ ଉପରେ ୭ ଜଣ ବୟସ୍କ ଲୋକ ଫସିଛନ୍ତି, ତଳେ ୪ ଫୁଟ ବନ୍ୟା ଜଳ ଚାଲୁଛି, ଶୀଘ୍ର ଡଙ୍ଗା ପଠାନ୍ତୁ!',
+        translatedTranscript: '7 elderly people trapped on school roof, 4 feet floodwater running below, please send rescue boat immediately!',
+        priority: 'P1_CRITICAL',
+        sentiment: 'PANIC',
+        extractedEntities: {
+          peopleCount: 7,
+          landmark: 'High School Roof, Pattamundai Block',
+          threatType: 'FLOOD_INUNDATION',
+          medicalNeed: true,
+          evacuationUrgency: 'IMMEDIATE',
+          coordinates: { lat: 20.5732, lng: 86.5641 }
+        },
+        confidenceScore: 0.97,
+        audioDurationSeconds: 16
+      },
+      {
+        citizenName: 'Radheshyam Gupta',
+        phone: '+91 88950-12847',
+        district: 'Ganjam',
+        locationName: 'Chhatrapur Town Market',
+        language: 'Hindi',
+        rawTranscript: 'दुकान की छत पर हम 3 लोग हैं, चारों तरफ पानी भर गया है पर अभी कोई घायल नहीं है।',
+        translatedTranscript: 'We 3 are on shop roof, surrounded by water but no one is injured right now.',
+        priority: 'P2_URGENT',
+        sentiment: 'DISTRESSED',
+        extractedEntities: {
+          peopleCount: 3,
+          landmark: 'Town Market Roof, Chhatrapur',
+          threatType: 'ISOLATED_WITHOUT_FOOD',
+          medicalNeed: false,
+          evacuationUrgency: 'HIGH',
+          coordinates: { lat: 19.3548, lng: 84.9892 }
+        },
+        confidenceScore: 0.93,
+        audioDurationSeconds: 12
+      },
+      {
+        citizenName: 'Laxmipriya Das',
+        phone: '+91 79782-90114',
+        district: 'Puri',
+        locationName: 'Astaranga Coastal Belt',
+        language: 'Sambalpuri Odia',
+        rawTranscript: 'ଝଡ଼ ବର୍ଷା ବଢ଼ୁଛି, ଆମେ ୫ ଜଣ ପକ୍କା ଘରେ ସୁରକ୍ଷିତ ଅଛୁ, ଲାଇଟ୍ ନାହିଁ ବାସ୍।',
+        translatedTranscript: 'Storm and rain is increasing, we 5 are safe in concrete house, only electricity is out.',
+        priority: 'P4_SAFE',
+        sentiment: 'CALM',
+        extractedEntities: {
+          peopleCount: 5,
+          landmark: 'Concrete House, Astaranga Coastal Belt',
+          threatType: 'SAFE_IN_SHELTER',
+          medicalNeed: false,
+          evacuationUrgency: 'NONE',
+          coordinates: { lat: 19.9821, lng: 86.2713 }
+        },
+        confidenceScore: 0.96,
+        audioDurationSeconds: 10
+      }
+    ];
+
+    const randomPick = simulatedPool[Math.floor(Math.random() * simulatedPool.length)];
+    const newResult: VoiceTriageResult = {
+      id: `VT-${Math.floor(1000 + Math.random() * 9000)}`,
+      callId: `CALL-EXO-${Math.floor(1000 + Math.random() * 9000)}`,
+      citizenName: randomPick.citizenName || 'Citizen',
+      phone: randomPick.phone || '+91 94370-00000',
+      district: randomPick.district || 'Balasore',
+      locationName: randomPick.locationName || 'Coastal Area',
+      language: randomPick.language || 'Standard Odia',
+      rawTranscript: randomPick.rawTranscript || 'Help needed',
+      translatedTranscript: randomPick.translatedTranscript || 'Help needed',
+      priority: randomPick.priority || 'P2_URGENT',
+      sentiment: randomPick.sentiment || 'DISTRESSED',
+      extractedEntities: randomPick.extractedEntities || {
+        peopleCount: 3,
+        landmark: 'Village Square',
+        threatType: 'FLOOD_INUNDATION',
+        medicalNeed: false,
+        evacuationUrgency: 'HIGH',
+        coordinates: { lat: 20.9517, lng: 85.0985 }
+      },
+      confidenceScore: randomPick.confidenceScore || 0.95,
+      audioDurationSeconds: randomPick.audioDurationSeconds || 14,
+      status: 'ANALYZED',
+      timestamp: new Date().toISOString()
+    };
+
+    addVoiceTriageResult(newResult);
+    showToast(`🎙️ AI Voice Triage: Transcribed call from ${newResult.citizenName} (${newResult.language}) - ${newResult.priority}`);
+  };
+
   const createCampaign = ({
     title,
     audience,
     script,
-    scheduledTime
+    scheduledTime,
+    mode = 'AI_TRIAGE'
   }: {
     title: string;
     audience: string;
     script: string;
     scheduledTime: string;
+    mode?: 'AI_TRIAGE' | 'DTMF_LEGACY';
   }) => {
     const newCamp: VoiceCampaign = {
       id: `CAMPAIGN-${Date.now().toString().slice(-6)}`,
@@ -739,24 +1065,26 @@ export const EOCProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       script,
       scheduledTime,
       status: 'Running',
+      mode,
       totalReach: 15000,
       answeredCount: 0,
       safeCount: 0,
       trappedCount: 0,
       medicalCount: 0,
-      foodWaterCount: 0
+      foodWaterCount: 0,
+      aiTranscribedCount: 0,
+      p1CriticalCount: 0,
+      p2UrgentCount: 0,
+      p3ModerateCount: 0,
+      p4SafeCount: 0
     };
 
     setPastCampaigns((prev) => [activeCampaign, ...prev]);
     setActiveCampaign(newCamp);
     playSuccess();
-    showToast(`Campaign "${title}" live across ${audience}.`);
+    showToast(`Campaign "${title}" live across ${audience} (${mode === 'AI_TRIAGE' ? 'AI Conversational Mode' : 'DTMF Mode'}).`);
   };
 
-  // Keypad mapping is fixed by the IVR script the backend reads out
-  // (backend/app/api/webhook.py): 1 safe, 2 assistance, 3 trapped, 4 medical.
-  // One key, one counter — key 2 used to increment trappedCount as well, which
-  // inflated the rescue-needed figure by every supply request.
   const recordDTMF = (key: '1' | '2' | '3' | '4') => {
     setActiveCampaign((prev) => {
       const updated = { ...prev };
@@ -768,8 +1096,6 @@ export const EOCProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return updated;
     });
 
-    // Keys 3 and 4 are the two the script treats as critical, so both raise a
-    // signal in the incoming stream rather than just a toast.
     if (key === '3' || key === '4') {
       injectNewSignal({
         status: 'Critical',
@@ -987,6 +1313,10 @@ export const EOCProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         abortCampaign,
         createCampaign,
         recordDTMF,
+        voiceTriageResults,
+        addVoiceTriageResult,
+        dispatchRescueFromTriage,
+        simulateIncomingAITriageCall,
 
         fleet,
         dispatchFleetToShelter,

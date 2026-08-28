@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  AlertOctagon, Radio, PhoneCall, ShieldAlert, Loader2, Users, Zap, 
-  CheckCircle2, Clock, Smartphone, Volume2, ShieldCheck, RefreshCw, StopCircle, Check
+  AlertOctagon, Radio, ShieldAlert, Loader2, Users, Zap, 
+  CheckCircle2, Clock, Smartphone, Volume2, ShieldCheck, RefreshCw, StopCircle
 } from 'lucide-react';
 import { API_BASE, authHeaders } from '../../services/api';
 import { useEOC } from '../../context/EOCContext';

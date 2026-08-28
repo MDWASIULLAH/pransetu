@@ -130,3 +130,46 @@ async def broadcast_call(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+class AITriageParseRequest(BaseModel):
+    transcript_text: str
+    dialect: Optional[str] = "Auto-Detect"
+    citizen_phone: Optional[str] = None
+    district: Optional[str] = "Balasore"
+
+@router.post("/ai-triage-parse")
+async def parse_ai_voice_triage(
+    request: AITriageParseRequest,
+    supabase: Client = Depends(get_supabase_client)
+):
+    """
+    Parses natural speech text using the AI Extractor Service (Whisper + NER).
+    Extracts headcount, landmark, medical need, threat type, and priority score.
+    """
+    from app.services.ai_extractor import AIExtractorService
+    extractor = AIExtractorService()
+    
+    analysis = extractor.extract_intent(request.transcript_text, request.dialect or "Auto-Detect")
+    
+    # Emit Realtime Event for dashboard
+    try:
+        supabase.table('realtime_events').insert({
+            "event_type": "AI_VOICE_TRIAGE_PROCESSED",
+            "occurred_at": datetime.datetime.utcnow().isoformat() + "Z",
+            "source": "ai_triage_engine",
+            "payload": {
+                "district": request.district,
+                "phone": request.citizen_phone,
+                "priority": analysis["priority"],
+                "entities": analysis["extracted_entities"],
+                "confidence": analysis["confidence_score"]
+            }
+        }).execute()
+    except Exception as e:
+        print(f"[Realtime Event Warning] {e}")
+        
+    return {
+        "status": "success",
+        "triage_result": analysis
+    }
+
+
