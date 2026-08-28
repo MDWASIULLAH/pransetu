@@ -826,7 +826,40 @@ export const EOCProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setPastCampaigns((prev) => [activeCampaign, ...prev]);
     setActiveCampaign(newCamp);
     playSuccess();
-    showToast(`Campaign "${title}" live across ${audience} (${mode === 'AI_TRIAGE' ? 'AI Conversational Mode' : 'DTMF Mode'}).`);
+
+    // Query registered citizens to transfer IVR calls to all phone numbers
+    (async () => {
+      try {
+        const { data: citizens } = await supabase.from('registered_citizens').select('*');
+        if (citizens && citizens.length > 0) {
+          console.log(`[IVR Dispatch] Placing automated IVR calls to all ${citizens.length} registered citizen numbers:`, citizens.map((c: any) => `${c.full_name}: ${c.phone_number}`));
+          
+          citizens.forEach((c: any) => {
+            supabase.from('realtime_events').insert({
+              event_type: 'IVR_CALL_DISPATCHED',
+              source: 'eoc_ivr_dialer',
+              campaign_id: newCamp.id,
+              user_id: c.phone_number,
+              occurred_at: new Date().toISOString(),
+              payload: {
+                citizen_name: c.full_name,
+                phone_number: c.phone_number,
+                device_id: c.device_id,
+                mode: mode,
+                campaign_title: title
+              }
+            });
+          });
+
+          showToast(`📞 IVR call transfer initiated for all ${citizens.length} registered numbers (${citizens.map((c: any) => c.phone_number).join(', ')}).`);
+        } else {
+          showToast(`Campaign "${title}" live across ${audience} (${mode === 'AI_TRIAGE' ? 'AI Conversational Mode' : 'DTMF Mode'}).`);
+        }
+      } catch (err) {
+        console.warn('Could not query registered citizens for IVR dispatch:', err);
+        showToast(`Campaign "${title}" live across ${audience}.`);
+      }
+    })();
   };
 
   const recordDTMF = (key: '1' | '2' | '3' | '4') => {
