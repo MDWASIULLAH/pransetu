@@ -242,12 +242,32 @@ export const SOSLogs: React.FC = () => {
 
                   <div className="p-3 bg-surface-container rounded-xl border border-outline-variant/60">
                     <span className="text-[10px] font-sans text-on-surface-variant uppercase block mb-1">
-                      CITIZEN SITUATION DESCRIPTOR &amp; RELAY PAYLOAD
+                      CITIZEN SITUATION DESCRIPTOR &amp; RELAY PAYLOAD (AI SUMMARY)
                     </span>
                     <p className="text-xs text-on-surface text-sm leading-relaxed">
                       "{selectedLog.details}"
                     </p>
                   </div>
+
+                  {selectedLog.audioUrl && (
+                    <div className="p-3 bg-surface-container rounded-xl border border-outline-variant/60">
+                      <span className="text-[10px] font-sans text-on-surface-variant uppercase block mb-1">
+                        VOICE MESSAGE (ORIGINAL AUDIO)
+                      </span>
+                      <audio controls src={selectedLog.audioUrl} className="w-full h-8 mt-2" />
+                    </div>
+                  )}
+
+                  {selectedLog.rawText && (
+                    <div className="p-3 bg-surface-container rounded-xl border border-outline-variant/60">
+                      <span className="text-[10px] font-sans text-on-surface-variant uppercase block mb-1">
+                        ORIGINAL TEXT (TRANSCRIPT)
+                      </span>
+                      <p className="text-xs text-on-surface leading-relaxed">
+                        "{selectedLog.rawText}"
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -298,6 +318,8 @@ export const SOSLogs: React.FC = () => {
   medical_required: true,
   hop_count: selectedLog.hop,
   ttl: 8 - selectedLog.hop,
+  audio_url: selectedLog.audioUrl,
+  raw_text: selectedLog.rawText,
   relay_path: selectedLog.relayPath,
   delivery_state: "SERVER_RECEIVED",
   acknowledgement_state: "CRYPTOGRAPHIC_CONFIRMED"

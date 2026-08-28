@@ -52,6 +52,8 @@ export interface SOSSignal {
   userName?: string;
   userPhone?: string;
   contactPhone?: string;
+  audioUrl?: string;
+  rawText?: string;
 }
 
 export interface VoiceCampaign {
@@ -416,7 +418,9 @@ const mapDatabaseToSOSSignal = (row: any): SOSSignal => {
     relayPath: (row.hopCount || row.hop_count || 0) > 0 ? [`Node ${row.deviceIdentifier || row.device_id || 'Repeater-01'}`, 'Gateway'] : ['Direct API Uplink'],
     userName: rawUserName || 'Citizen Alert',
     userPhone: rawUserPhone || '',
-    contactPhone: rawUserPhone || ''
+    contactPhone: rawUserPhone || '',
+    audioUrl: row.audioUrl || row.audio_url || row.payload?.audioUrl || undefined,
+    rawText: row.rawText || row.raw_text || row.payload?.rawText || undefined
   };
 };
 
