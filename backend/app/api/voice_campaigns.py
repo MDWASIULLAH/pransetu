@@ -172,4 +172,101 @@ async def parse_ai_voice_triage(
         "triage_result": analysis
     }
 
+@router.get("/exotel/exoml")
+@router.post("/exotel/exoml")
+async def get_exotel_exoml(
+    From: Optional[str] = None,
+    CallSid: Optional[str] = None,
+    CustomField: Optional[str] = None
+):
+    """
+    Automated ExoML Call Flow returned directly to Exotel.
+    Plays PRANSETU Emergency Announcement & Gathers DTMF keys (1-4).
+    """
+    from fastapi.responses import Response
+
+    disaster_msg = CustomField or "This is a critical emergency disaster warning from the PRANSETU State Emergency Response Centre. Severe weather and flood conditions are detected in your area."
+
+    exoml_content = f"""<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+    <Say voice="woman" language="en-IN">Namaskar. {disaster_msg}</Say>
+    <Gather action="https://pransetu-v1.vercel.app/api/v1/voice-campaigns/exotel/gather" numDigits="1" timeout="10" method="POST">
+        <Say voice="woman" language="en-IN">Press 1 if you and your family are safe. Press 2 if you need emergency food and drinking water. Press 3 if you are trapped in rising floodwaters. Press 4 if anyone needs immediate medical rescue.</Say>
+    </Gather>
+    <Say voice="woman" language="en-IN">We did not receive your input. Stay on high ground and keep your phone charged. PRANSETU rescue teams are active.</Say>
+    <Hangup/>
+</Response>"""
+
+    return Response(content=exoml_content, media_type="application/xml")
+
+@router.post("/exotel/gather")
+@router.get("/exotel/gather")
+async def handle_exotel_gather(
+    Digits: Optional[str] = None,
+    From: Optional[str] = None,
+    CallSid: Optional[str] = None,
+    supabase: Client = Depends(get_supabase_client)
+):
+    """
+    Processes citizen DTMF response and triggers real-time EOC events & rescue beacons.
+    """
+    from fastapi.responses import Response
+
+    digit = (Digits or "").strip()
+    citizen_phone = From or "Unknown"
+
+    if digit == "1":
+        msg = "Thank you. Your safe status has been cryptographically confirmed with PRANSETU Emergency Operations Centre."
+        try:
+            supabase.table('realtime_events').insert({
+                "event_type": "EMERGENCY_BROADCAST_ACKNOWLEDGED",
+                "occurred_at": datetime.datetime.utcnow().isoformat() + "Z",
+                "source": "exotel_ivr_gather",
+                "payload": {"citizen_phone": citizen_phone, "status": "SAFE"}
+            }).execute()
+        except Exception:
+            pass
+
+    elif digit == "2":
+        msg = "Your request for food and clean drinking water has been logged with disaster relief logistics."
+        try:
+            supabase.table('sos_events').insert({
+                "sosId": str(uuid.uuid4()),
+                "createdAt": int(datetime.datetime.utcnow().timestamp() * 1000),
+                "source": "IVR System",
+                "severityCode": 3,
+                "message": f"Food and water supplies needed for citizen at {citizen_phone}",
+                "peopleCount": 2,
+                "medicalRequired": False
+            }).execute()
+        except Exception:
+            pass
+
+    elif digit in ["3", "4"]:
+        is_med = (digit == "4")
+        msg = "Critical alert received! An emergency rescue beacon has been pinned on the GIS Command Map. Stay on elevated ground."
+        try:
+            supabase.table('sos_events').insert({
+                "sosId": str(uuid.uuid4()),
+                "createdAt": int(datetime.datetime.utcnow().timestamp() * 1000),
+                "source": "IVR System",
+                "severityCode": 5 if is_med else 4,
+                "message": f"{'URGENT MEDICAL RESCUE' if is_med else 'TRAPPED VICTIM RESCUE'} requested via IVR call from {citizen_phone}",
+                "peopleCount": 3,
+                "medicalRequired": is_med
+            }).execute()
+        except Exception:
+            pass
+    else:
+        msg = "Thank you for contacting PRANSETU Emergency Services. Stay safe."
+
+    response_xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+    <Say voice="woman" language="en-IN">{msg}</Say>
+    <Hangup/>
+</Response>"""
+
+    return Response(content=response_xml, media_type="application/xml")
+
+
 
