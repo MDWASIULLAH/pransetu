@@ -18,7 +18,8 @@ export interface IncidentCluster {
     sosAge: number;
     accessibility: number;
   };
-  status: 'ACTIVE' | 'RESCUE_DISPATCHED' | 'RESOLVED';
+  status: 'ACTIVE' | 'RESCUE_DISPATCHED' | 'RESOLVED' | 'MONITORING' | 'DISPATCH RECOMMENDED';
+  threshold_reached?: boolean;
 }
 
 export type SafeVerifyState = 'SAFE' | 'ASSISTANCE' | 'TRAPPED' | 'MEDICAL' | 'UNACCOUNTED';

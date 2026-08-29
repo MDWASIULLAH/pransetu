@@ -1,5 +1,5 @@
 import * as turf from '@turf/turf';
-import { DistrictWeather } from './weatherService';
+import type { DistrictWeather } from './weatherService';
 
 // Types from database schema
 export type SOSPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
@@ -162,7 +162,7 @@ export function calculateEmergencyPriority(
 // ---------------------------------------------------------
 export const THRESHOLD_COUNT = 50;
 
-export function analyzeClusters(sosList: SOSEvent[]): ClusterInfo[] {
+export function analyzeClusters(sosList: SOSEvent[], existingIncidents: any[] = []): ClusterInfo[] {
   const clusters: ClusterInfo[] = [];
   const processed = new Set<string>();
 
@@ -214,7 +214,12 @@ export function analyzeClusters(sosList: SOSEvent[]): ClusterInfo[] {
       }
     }
 
-    cluster.thresholdReached = cluster.uniqueCount >= THRESHOLD_COUNT;
+    const existingMatch = existingIncidents.find(inc => inc.id === cluster.clusterId);
+    if (existingMatch && existingMatch.threshold_reached) {
+      cluster.thresholdReached = true;
+    } else {
+      cluster.thresholdReached = cluster.uniqueCount >= THRESHOLD_COUNT;
+    }
     clusters.push(cluster);
   }
 

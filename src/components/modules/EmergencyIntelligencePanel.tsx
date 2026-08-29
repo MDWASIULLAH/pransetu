@@ -1,5 +1,5 @@
 import React from 'react';
-import { ClusterInfo } from '../../services/sosProcessingService';
+import type { ClusterInfo } from '../../services/sosProcessingService';
 
 interface EmergencyIntelligencePanelProps {
   clusters: ClusterInfo[];

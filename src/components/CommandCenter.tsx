@@ -9,7 +9,7 @@ import { RescueDispatchModal } from './dispatch/RescueDispatchModal';
 import { RegisteredCitizensWidget } from './modules/RegisteredCitizensWidget';
 import { EmergencyIntelligencePanel } from './modules/EmergencyIntelligencePanel';
 import { RescueSimulationPanel } from './modules/RescueSimulationPanel';
-import { analyzeClusters, calculateEmergencyPriority, SOSEvent } from '../services/sosProcessingService';
+import { analyzeClusters, calculateEmergencyPriority, type SOSEvent } from '../services/sosProcessingService';
 import { apiFetch, isBackendOffline } from '../services/api';
 
 interface CommandCenterKPIs {
@@ -41,6 +41,7 @@ interface CommandCenterProps {
 export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigate }) => {
   const {
     signals,
+    incidents,
     realtimeEvents,
     selectedSignalId,
     setSelectedSignalId,
@@ -137,8 +138,43 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigate }) => {
 
   const [currentWeather, setCurrentWeather] = useState<any>(null);
 
-  const clusters = analyzeClusters(sosEventsForAnalysis);
+  const clusters = analyzeClusters(sosEventsForAnalysis, incidents);
   const highestRiskCluster = clusters.length > 0 ? clusters[0] : null;
+
+  // Sync computed clusters with Database Source of Truth
+  useEffect(() => {
+    if (clusters.length === 0) return;
+
+    const syncIncidents = async () => {
+      const { supabase } = await import('../lib/supabase');
+      for (const cluster of clusters) {
+        const existingMatch = incidents.find((i: any) => i.id === cluster.clusterId);
+        
+        // If it doesn't exist, or if threshold just changed locally but isn't in DB yet
+        if (!existingMatch || (cluster.thresholdReached && !existingMatch.threshold_reached)) {
+          const status = cluster.thresholdReached ? 'DISPATCH RECOMMENDED' : 'MONITORING';
+          
+          await supabase
+            .from('incidents')
+            .upsert({
+              id: cluster.clusterId,
+              district: currentWeather?.district || 'Unknown',
+              status: existingMatch ? (existingMatch.status === 'MONITORING' && cluster.thresholdReached ? 'DISPATCH RECOMMENDED' : existingMatch.status) : status,
+              priority_score: cluster.priority === 'CRITICAL' ? 100 : cluster.priority === 'HIGH' ? 80 : 50,
+              radius_m: cluster.radiusKm * 1000,
+              sos_count: cluster.uniqueCount,
+              critical_count: cluster.duplicateCount,
+              lat: cluster.center[1],
+              lng: cluster.center[0],
+              threshold_reached: cluster.thresholdReached,
+              updated_at: new Date().toISOString()
+            });
+        }
+      }
+    };
+    
+    syncIncidents();
+  }, [clusters, incidents]);
 
   // Apply Weather modifier to the highest risk cluster's priority
   if (highestRiskCluster) {
@@ -351,6 +387,7 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigate }) => {
                 showShelters={true}
                 showRescueUnits={true}
                 mapType={mapType}
+                clusters={clusters}
                 onMapTypeToggle={setMapType}
                 onInspectRoute={(routeId) => setInspectedRouteId(routeId)}
                 height="100%"

@@ -226,150 +226,6 @@ export interface EOCContextType {
 
 
 
-const initialShelters: ShelterFacility[] = [
-  {
-    id: 'SH-01',
-    name: 'Cuttack Municipal High School',
-    zone: 'Zone Alpha',
-    district: 'Cuttack',
-    lat: 20.4625,
-    lng: 85.8830,
-    tier: 'Tier 2 - Urgent',
-    tierColor: 'bg-error-container text-on-error-container',
-    tierText: 'Tier 2 - Urgent',
-    borderColor: 'bg-error-container',
-    occupancyColor: 'bg-error',
-    capacity: 850,
-    occupied: 782,
-    drinkingWaterLiters: 4200,
-    generatorStatus: 'Online (84% Tank)',
-    medicalStaff: '2 Doctors, 6 Paramedics',
-    medicalCapability: true,
-    facilities: ['Water Rig', 'Food Depot', 'Ambulance Bay'],
-    status: 'Active'
-  },
-  {
-    id: 'SH-02',
-    name: 'Bhubaneswar Indoor Stadium',
-    zone: 'Zone Beta',
-    district: 'Khordha',
-    lat: 20.2961,
-    lng: 85.8245,
-    tier: 'Tier 1 - Basic',
-    tierColor: 'bg-surface-container-high text-on-surface-variant border border-outline-variant',
-    tierText: 'Tier 1 - Basic',
-    borderColor: 'bg-on-surface-variant',
-    occupancyColor: 'bg-primary',
-    capacity: 3200,
-    occupied: 1440,
-    drinkingWaterLiters: 16000,
-    generatorStatus: 'Online (100% Grid & Diesel)',
-    medicalStaff: '4 Doctors, 12 Nurses',
-    medicalCapability: true,
-    facilities: ['Helipad', 'Water Filtration', 'Full Kitchen'],
-    status: 'Active'
-  },
-  {
-    id: 'SH-03',
-    name: 'Puri District Hospital Annexe',
-    zone: 'Zone Delta',
-    district: 'Puri',
-    lat: 19.8135,
-    lng: 85.8312,
-    tier: 'Tier 3 - Critical',
-    tierColor: 'bg-error text-on-error',
-    tierText: 'Tier 3 - Critical',
-    borderColor: 'bg-error',
-    occupancyColor: 'bg-error',
-    capacity: 450,
-    occupied: 441,
-    drinkingWaterLiters: 1800,
-    generatorStatus: 'Warning (Low Fuel 22%)',
-    medicalStaff: '6 Trauma Specialists, 14 Nurses',
-    medicalCapability: true,
-    facilities: ['ICU Backup', 'Trauma Unit', 'Oxygen Cylinders'],
-    status: 'Critical'
-  },
-  {
-    id: 'SH-04',
-    name: 'Khurda Community Center',
-    zone: 'Zone Gamma',
-    district: 'Khordha',
-    lat: 20.1824,
-    lng: 85.6200,
-    tier: 'Tier 1 - Basic',
-    tierColor: 'bg-surface-container-high text-on-surface',
-    tierText: 'Tier 1 - Basic',
-    borderColor: 'bg-on-surface-variant',
-    occupancyColor: 'bg-outline',
-    capacity: 600,
-    occupied: 72,
-    drinkingWaterLiters: 3500,
-    generatorStatus: 'Standby (Full Tank)',
-    medicalStaff: '1 Doctor, 2 Nurses',
-    medicalCapability: false,
-  activeCampaign: VoiceCampaign;
-  pastCampaigns: VoiceCampaign[];
-  toggleCampaignPause: () => void;
-  abortCampaign: () => void;
-  createCampaign: (data: { title: string; audience: string; script: string; scheduledTime: string; mode?: 'AI_TRIAGE' | 'DTMF_LEGACY' }) => void;
-  recordDTMF: (key: '1' | '2' | '3' | '4') => void;
-  voiceTriageResults: VoiceTriageResult[];
-  addVoiceTriageResult: (result: VoiceTriageResult) => void;
-  dispatchRescueFromTriage: (triageId: string, teamName?: string) => void;
-  simulateIncomingAITriageCall: () => void;
-
-  // Shelters & Resources
-  fleet: FleetStock;
-  dispatchFleetToShelter: (shelterId: string, resourceType: string, quantity: number) => void;
-  updateShelterOccupancy: (shelterId: string, deltaOccupancy: number) => void;
-  exportSheltersCSV: () => void;
-
-  // Alerts & Notifications
-  activeAlert: StateAlert | null;
-  raiseStateAlert: (severity: 'RED_CRITICAL' | 'ORANGE_WARNING' | 'YELLOW_WATCH', message: string) => void;
-  broadcastSystemAlert: (severity: string, message: string) => Promise<void>;
-  clearStateAlert: () => void;
-  activeDisasterAlert: { text: string; severity: string } | null;
-  clearDisasterAlert: () => void;
-  toastMessage: string | null;
-  showToast: (msg: string) => void;
-
-  // Simulation Engine
-  autoSimulate: boolean;
-  setAutoSimulate: React.Dispatch<React.SetStateAction<boolean>>;
-
-  // Metrics & Stats
-  metrics: {
-    activeSOSCount: number;
-    criticalCount: number;
-    totalAffectedCount: number;
-    sheltersOccupancyPercent: number;
-    teamsDeployedCount: number;
-    teamsTotalCount: number;
-  };
-  stats: {
-    activeSOS: number;
-    criticalSOS: number;
-    assistanceSOS: number;
-    trapped: number;
-    medical: number;
-    safe: number;
-    unaccounted: number;
-    totalAffected: number;
-    activeIncidents: number;
-    sheltersCount: number;
-    shelterOccupancy: number;
-    rescueTeams: number;
-    availableTeams: number;
-    ambulances: number;
-    availableBoats: number;
-    pendingSync: number;
-    avgDeliveryTime: string;
-  };
-}
-
-
 
 const initialShelters: ShelterFacility[] = [
   {
@@ -531,6 +387,156 @@ const mapDatabaseToSOSSignal = (row: any): SOSSignal => {
     rawText: citizenMessage || undefined
   };
 };
+
+export const EOCProvider = ({ children }: { children: React.ReactNode }) => {
+  const [signals, setSignals] = useState<SOSSignal[]>([]);
+  const [realtimeEvents, setRealtimeEvents] = useState<RealtimeEvent[]>([]);
+  const [incidents, setIncidents] = useState<IncidentCluster[]>([]);
+  const [resources, setResources] = useState<RescueResource[]>(mockResources);
+  const [shelters, setShelters] = useState<ShelterFacility[]>(initialShelters);
+  const [safeVerifyRecords, setSafeVerifyRecords] = useState<SafeVerifyRecord[]>([]);
+  const [selectedSignalId, setSelectedSignalId] = useState<string | null>(null);
+  
+  const [activeCampaign, setActiveCampaign] = useState<VoiceCampaign>({
+    id: 'CAMPAIGN-000',
+    title: 'Idle',
+    status: 'Completed',
+    mode: 'AI_TRIAGE',
+    audience: 'None',
+    script: '',
+    scheduledTime: '',
+    totalReach: 0,
+    answeredCount: 0,
+    safeCount: 0,
+    trappedCount: 0,
+    medicalCount: 0,
+    foodWaterCount: 0,
+    aiTranscribedCount: 0,
+    p1CriticalCount: 0,
+    p2UrgentCount: 0,
+    p3ModerateCount: 0,
+    p4SafeCount: 0
+  });
+  const [pastCampaigns, setPastCampaigns] = useState<VoiceCampaign[]>([]);
+  const [voiceTriageResults, setVoiceTriageResults] = useState<VoiceTriageResult[]>([]);
+  
+  const [fleet, setFleet] = useState<FleetStock>({
+    boats: { total: 45, deployed: 15, ready: 30, maintenance: 0 },
+    ambulances: { total: 60, deployed: 18, ready: 42, maintenance: 0 },
+    foodPallets: { total: 1000, deployed: 400, ready: 600 },
+    teams: { total: 24, deployed: 6, ready: 18 }
+  });
+  
+  const [activeAlert, setActiveAlert] = useState<StateAlert | null>(null);
+  const [activeDisasterAlert, setActiveDisasterAlert] = useState<{ text: string; severity: string } | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const { playAlert, playSuccess } = useSound();
+  const [autoSimulate, setAutoSimulate] = useState(false);
+
+  const showToast = useCallback((msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3500);
+  }, []);
+
+  const refetchSignals = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('sos_events')
+        .select('*')
+        .order('createdAt', { ascending: false })
+        .limit(100);
+
+      if (error) {
+        console.error('Error fetching sos_events:', error);
+        return;
+      }
+      if (data) {
+        setSignals(data.map(mapDatabaseToSOSSignal));
+      }
+    } catch (e) {
+      console.error('Fetch error:', e);
+    }
+  }, []);
+
+  useEffect(() => {
+    refetchSignals();
+
+    // Subscribe to incidents table for live database source of truth
+    const fetchIncidents = async () => {
+      const { data } = await supabase.from('incidents').select('*');
+      if (data) {
+        setIncidents(data.map((row: any) => ({
+          id: row.id,
+          district: row.district || 'Unknown',
+          lat: row.lat || (row.center ? row.center[1] : 0),
+          lng: row.lng || (row.center ? row.center[0] : 0),
+          radiusKm: (row.radius_m || 5000) / 1000,
+          sosCount: row.sos_count || 0,
+          affectedPeople: row.sos_count || 0,
+          criticalCount: row.critical_count || 0,
+          medicalCount: 0,
+          latestActivity: row.updated_at || new Date().toISOString(),
+          priorityScore: row.priority_score || 50,
+          priorityFactors: {
+            medicalUrgency: 0,
+            peopleAffected: row.sos_count || 0,
+            trapped: 0,
+            hazardSeverity: (row.priority_score || 50) > 80 ? 100 : 50,
+            sosAge: 0,
+            accessibility: 100
+          },
+          status: row.status || 'MONITORING',
+          threshold_reached: row.threshold_reached
+        } as IncidentCluster)));
+      }
+    };
+    
+    fetchIncidents();
+
+    const incidentSub = supabase.channel('public:incidents')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'incidents' }, fetchIncidents)
+      .subscribe();
+
+    const sosSub = supabase.channel('public:sos_events')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'sos_events' }, () => {
+        refetchSignals();
+      })
+      .subscribe();
+
+    const rtSub = supabase.channel('public:realtime_events')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'realtime_events' }, (payload) => {
+        setRealtimeEvents(prev => [payload.new as RealtimeEvent, ...prev].slice(0, 50));
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(sosSub);
+      supabase.removeChannel(rtSub);
+      supabase.removeChannel(incidentSub);
+    };
+  }, [refetchSignals]);
+
+  const clearAllSOSLogs = async () => {
+    try {
+      const { error } = await supabase
+        .from('sos_events')
+        .delete()
+        .neq('id', 'placeholder-uuid-to-delete-all');
+
+      if (error && error.code !== '23503') {
+        console.warn('Error clearing logs (might be empty table):', error);
+      }
+      
+      setSignals([]);
+      showToast('All SOS & Telemetry logs have been cleared.');
+    } catch (err) {
+      console.error('Clear logs error', err);
+    }
+  };
+
+  const acknowledgeSignal = async (signalId: string) => {
+    setSignals((prev) =>
+      prev.map((s) =>
         s.id === signalId
           ? {
               ...s,
