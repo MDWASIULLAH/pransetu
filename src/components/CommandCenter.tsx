@@ -6,6 +6,9 @@ import { LiveWeatherWidget } from './modules/LiveWeatherWidget';
 import { DisasterDominoEffect } from './modules/DisasterDominoEffect';
 import { RescueDispatchModal } from './dispatch/RescueDispatchModal';
 import { RegisteredCitizensWidget } from './modules/RegisteredCitizensWidget';
+import { EmergencyIntelligencePanel } from './modules/EmergencyIntelligencePanel';
+import { RescueSimulationPanel } from './modules/RescueSimulationPanel';
+import { analyzeClusters, calculateEmergencyPriority, SOSEvent } from '../services/sosProcessingService';
 import { apiFetch, isBackendOffline } from '../services/api';
 
 interface CommandCenterKPIs {
@@ -119,19 +122,32 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigate }) => {
   // Triage weights, applied to the top signal's own fields. The gauge shows the
   // sum of these three, so the ring and the breakdown can never disagree —
   // previously the ring was a hardcoded 98% clip and the rows summed to 94.
-  const triage = (() => {
-    const medical = topCriticalSignal?.medicalRequired ? 40 : 0;
-    const cluster = Math.min(30, Math.round((topCriticalSignal?.peopleCount ?? 0) * 2.5));
-    const relayDelay = Math.min(30, (topCriticalSignal?.hopCount ?? 1) * 8);
-    return {
-      total: medical + cluster + relayDelay,
-      factors: [
-        { label: 'Medical need', points: medical },
-        { label: `Cluster size (${topCriticalSignal?.peopleCount ?? 0})`, points: cluster },
-        { label: `Relay delay (${topCriticalSignal?.hopCount ?? 1} hops)`, points: relayDelay }
-      ]
-    };
-  })();
+  // Transform raw signals into SOSEvent for cluster analysis
+  const sosEventsForAnalysis: SOSEvent[] = signals.map(s => ({
+    id: s.id,
+    lat: s.lat,
+    lng: s.lng,
+    timestamp: s.createdAt || new Date().toISOString(),
+    deviceIdentifier: s.deviceId || s.id,
+    message: s.rawText,
+    duplicateStatus: 'UNIQUE'
+  }));
+
+  const [currentWeather, setCurrentWeather] = useState<any>(null);
+
+  const clusters = analyzeClusters(sosEventsForAnalysis);
+  const highestRiskCluster = clusters.length > 0 ? clusters[0] : null;
+
+  // Apply Weather modifier to the highest risk cluster's priority
+  if (highestRiskCluster && currentWeather) {
+    const { priority } = calculateEmergencyPriority(
+      'UNIQUE',
+      currentWeather,
+      highestRiskCluster.uniqueCount,
+      topCriticalSignal?.medicalRequired
+    );
+    highestRiskCluster.priority = priority;
+  }
 
   const headline = [
     {
@@ -451,53 +467,17 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigate }) => {
           </div>
         </div>
 
-        {/* 4. AI Priority Engine (Bottom Left) */}
-        <div className="col-span-12 xl:col-span-4 bg-surface border border-outline-variant/30 rounded-xl p-5 flex flex-col justify-between shadow-sm">
-          <div>
-            <div className="flex justify-between items-baseline mb-5">
-              <h2 className="text-base font-semibold text-on-surface">Priority triage</h2>
-              <span className="text-[11px] text-on-surface-variant">
-                {topCriticalSignal?.id ?? 'no active signal'}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-6">
-              <div className="relative w-20 h-20 shrink-0">
-                <svg viewBox="0 0 36 36" className="w-20 h-20 -rotate-90">
-                  <circle
-                    cx="18" cy="18" r="15.9" fill="none" strokeWidth="3"
-                    stroke="currentColor" className="text-outline-variant"
-                  />
-                  <circle
-                    cx="18" cy="18" r="15.9" fill="none" strokeWidth="3" strokeLinecap="round"
-                    stroke="currentColor" className={triage.total >= 80 ? 'text-error' : 'text-tertiary'}
-                    pathLength={100} strokeDasharray={`${triage.total} 100`}
-                  />
-                </svg>
-                <span className="absolute inset-0 flex items-center justify-center text-2xl font-semibold tabular-nums text-on-surface">
-                  {triage.total}
-                </span>
-              </div>
-
-              <dl className="flex-1 space-y-2.5 text-sm">
-                {triage.factors.map((f) => (
-                  <div key={f.label} className="flex justify-between items-baseline">
-                    <dt className="text-on-surface-variant">{f.label}</dt>
-                    <dd className="tabular-nums text-on-surface">
-                      {f.points > 0 ? `+${f.points}` : '—'}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
-          </div>
-
+        {/* 4. AI Emergency Intelligence & Simulation (Bottom Left) */}
+        <div className="col-span-12 xl:col-span-4 flex flex-col gap-4">
+          <EmergencyIntelligencePanel clusters={clusters} />
+          <RescueSimulationPanel highestRiskCluster={highestRiskCluster} />
+          
           <button
             onClick={() => setDispatchIncidentId(topCriticalSignal?.id || 'INC-2026-PURI-01')}
-            className="w-full mt-8 py-2.5 bg-primary hover:bg-primary/90 text-on-primary rounded-lg text-sm font-semibold transition-colors cursor-pointer shadow-sm flex items-center justify-center gap-2"
+            className={`w-full py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm flex items-center justify-center gap-2 ${highestRiskCluster?.thresholdReached ? 'bg-error hover:bg-error/90 text-on-error animate-pulse' : 'bg-primary hover:bg-primary/90 text-on-primary'}`}
           >
             <span className="material-symbols-outlined text-[18px]">local_shipping</span>
-            Deploy to {topCriticalSignal?.id || 'OD-7A92'}
+            {highestRiskCluster?.thresholdReached ? 'AUTHORIZE EMERGENCY DISPATCH' : `Deploy to ${topCriticalSignal?.id || 'OD-7A92'}`}
           </button>
         </div>
 
@@ -550,7 +530,7 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigate }) => {
 
         {/* 6. Weather & Environmental Radar */}
         <div className="col-span-12 xl:col-span-4 bg-surface border border-outline-variant/30 rounded-lg overflow-hidden flex">
-          <LiveWeatherWidget className="w-full h-full" />
+          <LiveWeatherWidget className="w-full h-full" onWeatherUpdate={setCurrentWeather} />
         </div>
 
         {/* 7. Real-Time Operational Event Bus Stream */}
