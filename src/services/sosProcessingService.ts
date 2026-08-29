@@ -34,7 +34,7 @@ export interface ClusterInfo {
 export const DUPLICATE_RADIUS_KM = 0.5; // 500 meters
 export const DUPLICATE_TIME_MINUTES = 30; // 30 minutes
 
-export function detectDuplicateSOS(newSos: SOSEvent, existingSosList: SOSEvent[]): DuplicateStatus {
+export function detectDuplicateSOS(newSos: SOSEvent, existingSosList: SOSEvent[]): { status: DuplicateStatus, explanation: string } {
   const newPoint = turf.point([newSos.lng, newSos.lat]);
   const newTime = new Date(newSos.timestamp).getTime();
 
@@ -46,7 +46,7 @@ export function detectDuplicateSOS(newSos: SOSEvent, existingSosList: SOSEvent[]
       const existingTime = new Date(existing.timestamp).getTime();
       const diffMinutes = Math.abs(newTime - existingTime) / (1000 * 60);
       if (diffMinutes <= DUPLICATE_TIME_MINUTES) {
-        return 'CONFIRMED_DUPLICATE';
+        return { status: 'CONFIRMED_DUPLICATE', explanation: `Same device transmitted within ${DUPLICATE_TIME_MINUTES} mins` };
       }
     }
 
@@ -59,34 +59,39 @@ export function detectDuplicateSOS(newSos: SOSEvent, existingSosList: SOSEvent[]
 
     if (distanceKm <= DUPLICATE_RADIUS_KM && diffMinutes <= DUPLICATE_TIME_MINUTES) {
       // Very close in both space and time -> Probable Duplicate
-      return 'PROBABLE_DUPLICATE';
+      return { status: 'PROBABLE_DUPLICATE', explanation: `SOS generated within ${distanceKm.toFixed(2)}km and ${diffMinutes.toFixed(1)} mins of incident #${existing.id.slice(0, 8)}` };
     }
     
     // 3. Same location cluster, slightly longer time -> RELATED INCIDENT
     if (distanceKm <= DUPLICATE_RADIUS_KM * 2 && diffMinutes <= DUPLICATE_TIME_MINUTES * 4) {
-      return 'RELATED_INCIDENT';
+      return { status: 'RELATED_INCIDENT', explanation: `Related to nearby incident #${existing.id.slice(0, 8)}` };
     }
   }
 
-  return 'UNIQUE';
+  return { status: 'UNIQUE', explanation: 'First SOS recorded at this location/time.' };
 }
 
 
 // ---------------------------------------------------------
-// PHASE 11: Emergency Priority Engine
+// PHASE 11, 31, 32: Emergency Priority Engine
 // ---------------------------------------------------------
 export function calculateEmergencyPriority(
   sosStatus: DuplicateStatus, 
-  weather: DistrictWeather | null, 
+  weather: DistrictWeather | null | 'UNAVAILABLE', 
   clusterUniqueCount: number,
-  hasMedicalEmergency: boolean = false
-): { priority: SOSPriority, reasons: string[] } {
+  hasMedicalEmergency: boolean = false,
+  aiUnavailable: boolean = false
+): { priority: SOSPriority | 'WEATHER VERIFICATION PENDING', reasons: string[], aiFallbackActive: boolean } {
   let score = 0;
   const reasons: string[] = [];
 
+  if (aiUnavailable) {
+    reasons.push('⚠️ AI ANALYSIS UNAVAILABLE. FALLBACK RULE ENGINE ACTIVE.');
+  }
+
   // 1. Validity / Duplicate Status
   if (sosStatus === 'CONFIRMED_DUPLICATE') {
-    return { priority: 'LOW', reasons: ['Confirmed Duplicate - Auto-demoted'] };
+    return { priority: 'LOW', reasons: ['Confirmed Duplicate - Auto-demoted'], aiFallbackActive: aiUnavailable };
   } else if (sosStatus === 'PROBABLE_DUPLICATE') {
     score += 1;
     reasons.push('Probable duplicate of existing incident (+1)');
@@ -96,7 +101,10 @@ export function calculateEmergencyPriority(
   }
 
   // 2. Weather & Disaster Alerts
-  if (weather) {
+  if (weather === 'UNAVAILABLE') {
+    reasons.push('⚠️ WEATHER STATUS: UNAVAILABLE');
+    return { priority: 'WEATHER VERIFICATION PENDING', reasons, aiFallbackActive: aiUnavailable };
+  } else if (weather) {
     if (weather.cycloneRiskLevel === 'EMERGENCY_RED' || weather.cycloneRiskLevel === 'WARNING') {
       score += 4;
       reasons.push(`Severe Weather Alert: ${weather.cycloneRiskLevel} (+4)`);
@@ -115,13 +123,13 @@ export function calculateEmergencyPriority(
   // 3. Cluster Density
   if (clusterUniqueCount >= 50) {
     score += 10; // Instantly critical
-    reasons.push('50-SOS Area Threshold Reached (+10)');
+    reasons.push(`50-SOS Area Threshold Reached: ${clusterUniqueCount} unique SOS (+10)`);
   } else if (clusterUniqueCount >= 20) {
     score += 5;
-    reasons.push('High concentration area (>20 unique SOS) (+5)');
+    reasons.push(`High concentration area (${clusterUniqueCount} unique SOS) (+5)`);
   } else if (clusterUniqueCount >= 5) {
     score += 2;
-    reasons.push('Growing hotspot (>5 unique SOS) (+2)');
+    reasons.push(`Growing hotspot (${clusterUniqueCount} unique SOS) (+2)`);
   }
 
   // 4. Medical
@@ -136,7 +144,7 @@ export function calculateEmergencyPriority(
   else if (score >= 6) priority = 'HIGH';
   else if (score >= 3) priority = 'MEDIUM';
 
-  return { priority, reasons };
+  return { priority, reasons, aiFallbackActive: aiUnavailable };
 }
 
 // ---------------------------------------------------------

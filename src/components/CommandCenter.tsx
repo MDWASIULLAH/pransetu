@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useEOC } from '../context/EOCContext';
 import { InteractiveEOCMap } from './map/InteractiveEOCMap';
+import { ErrorBoundary } from './common/ErrorBoundary';
 import { AIRouteInspector } from './modules/AIRouteInspector';
 import { LiveWeatherWidget } from './modules/LiveWeatherWidget';
 import { DisasterDominoEffect } from './modules/DisasterDominoEffect';
@@ -44,7 +45,9 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigate }) => {
     selectedSignalId,
     setSelectedSignalId,
     activeCampaign,
-    recordDTMF
+    recordDTMF,
+    autoSimulate,
+    setAutoSimulate
   } = useEOC();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -119,19 +122,18 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigate }) => {
       s.details.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Triage weights, applied to the top signal's own fields. The gauge shows the
-  // sum of these three, so the ring and the breakdown can never disagree —
-  // previously the ring was a hardcoded 98% clip and the rows summed to 94.
   // Transform raw signals into SOSEvent for cluster analysis
-  const sosEventsForAnalysis: SOSEvent[] = signals.map(s => ({
-    id: s.id,
-    lat: s.lat,
-    lng: s.lng,
-    timestamp: s.createdAt || new Date().toISOString(),
-    deviceIdentifier: s.deviceId || s.id,
-    message: s.rawText,
-    duplicateStatus: 'UNIQUE'
-  }));
+  const sosEventsForAnalysis: SOSEvent[] = signals
+    .filter(s => (s as any).is_simulated === autoSimulate)
+    .map(s => ({
+      id: s.id,
+      lat: s.lat,
+      lng: s.lng,
+      timestamp: s.createdAt || new Date().toISOString(),
+      deviceIdentifier: s.deviceId || s.id,
+      message: s.rawText,
+      duplicateStatus: (s as any).duplicateStatus || 'UNIQUE'
+    }));
 
   const [currentWeather, setCurrentWeather] = useState<any>(null);
 
@@ -139,14 +141,15 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigate }) => {
   const highestRiskCluster = clusters.length > 0 ? clusters[0] : null;
 
   // Apply Weather modifier to the highest risk cluster's priority
-  if (highestRiskCluster && currentWeather) {
+  if (highestRiskCluster) {
     const { priority } = calculateEmergencyPriority(
       'UNIQUE',
-      currentWeather,
+      currentWeather || 'UNAVAILABLE',
       highestRiskCluster.uniqueCount,
-      topCriticalSignal?.medicalRequired
+      topCriticalSignal?.medicalRequired,
+      false // aiUnavailable flag
     );
-    highestRiskCluster.priority = priority;
+    highestRiskCluster.priority = priority as any;
   }
 
   const headline = [
@@ -227,8 +230,6 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigate }) => {
           </div>
         </div>
 
-        {/* The four figures the duty officer reports upward. Everything else is
-            detail and lives in the strip below. */}
         <div className="grid grid-cols-2 lg:grid-cols-4 border border-outline-variant rounded-lg bg-surface lg:divide-x lg:divide-outline-variant">
           {headline.map((m, i) => (
             <button
@@ -247,7 +248,6 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigate }) => {
           ))}
         </div>
 
-        {/* Logistics readout. Dense on purpose — these get scanned, not studied. */}
         <div className="border border-outline-variant rounded-lg bg-surface px-4 py-3">
           <div className="flex flex-wrap items-start gap-x-7 gap-y-3">
             <div className="min-w-[116px]">
@@ -284,14 +284,23 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigate }) => {
         </div>
       </section>
 
-      {/* Main Operations Grid - Preserving Existing Layout */}
       <div className="grid grid-cols-12 gap-6">
         
-        {/* 2. Map Canvas (Center Left) */}
         <div className="col-span-12 xl:col-span-8 bg-surface border border-outline-variant/30 rounded-lg flex flex-col overflow-hidden h-[500px] relative">
           
-          {/* Floating Elegant Controls Over Map */}
-          <div className="absolute top-4 left-4 sm:left-14 right-4 z-[1000] flex flex-wrap justify-between items-start gap-2 pointer-events-none">
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[400] pointer-events-none">
+            {autoSimulate ? (
+              <div className="bg-error text-on-error px-4 py-1 rounded-full shadow-lg font-bold text-sm tracking-widest border-2 border-error-container animate-pulse">
+                SIMULATION MODE ACTIVE — DO NOT DEPLOY REAL RESCUE
+              </div>
+            ) : (
+              <div className="bg-primary/90 text-on-primary px-4 py-1 rounded-full shadow-lg font-bold text-sm tracking-widest backdrop-blur-sm">
+                LIVE PRODUCTION EOC
+              </div>
+            )}
+          </div>
+
+          <div className="absolute top-4 left-4 z-[400] flex flex-col gap-2 pointer-events-none">
             <div className="flex flex-wrap gap-2 pointer-events-auto">
               <div className="bg-surface-container-lowest/90 backdrop-blur border border-outline-variant/30 rounded flex items-center p-0.5 shadow">
                 <button
@@ -311,8 +320,6 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigate }) => {
                   Evac Routes
                 </button>
               </div>
-
-
             </div>
 
             <div className="flex flex-wrap gap-2 pointer-events-auto">
@@ -332,16 +339,23 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigate }) => {
           </div>
 
           <div className="flex-1 w-full h-full">
-            <InteractiveEOCMap
-              showFloodZones={floodZonesActive}
-              showRoutes={evacRoutesActive}
-              showShelters={true}
-              showRescueUnits={true}
-              mapType={mapType}
-              onMapTypeToggle={setMapType}
-              onInspectRoute={(routeId) => setInspectedRouteId(routeId)}
-              height="100%"
-            />
+            <ErrorBoundary fallback={
+              <div className="flex flex-col items-center justify-center h-full w-full bg-surface-container text-on-surface-variant p-4 text-center">
+                <h2 className="text-lg font-bold mb-2">MAP SYSTEM UNAVAILABLE</h2>
+                <p className="text-sm max-w-md">The geographic mapping service is currently disconnected. Operations can continue using the text-based dispatch logs below.</p>
+              </div>
+            }>
+              <InteractiveEOCMap
+                showFloodZones={floodZonesActive}
+                showRoutes={evacRoutesActive}
+                showShelters={true}
+                showRescueUnits={true}
+                mapType={mapType}
+                onMapTypeToggle={setMapType}
+                onInspectRoute={(routeId) => setInspectedRouteId(routeId)}
+                height="100%"
+              />
+            </ErrorBoundary>
           </div>
         </div>
 
@@ -470,8 +484,25 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigate }) => {
         {/* 4. AI Emergency Intelligence & Simulation (Bottom Left) */}
         <div className="col-span-12 xl:col-span-4 flex flex-col gap-4">
           <EmergencyIntelligencePanel clusters={clusters} />
+          
           <RescueSimulationPanel highestRiskCluster={highestRiskCluster} />
           
+          {/* Phase 37 & 38: Simulation Controls */}
+          <div className="bg-surface border border-outline-variant/30 rounded-xl p-4 flex justify-between items-center shadow-sm">
+            <div>
+              <h3 className="font-semibold text-sm text-on-surface">System Mode</h3>
+              <p className="text-[11px] text-on-surface-variant">Toggle Live vs. Demo Environment</p>
+            </div>
+            <button
+              onClick={() => setAutoSimulate(!autoSimulate)}
+              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                autoSimulate ? 'bg-error text-on-error hover:bg-error/90' : 'bg-surface-container-highest text-on-surface hover:bg-surface-container-high'
+              }`}
+            >
+              {autoSimulate ? 'STOP SIMULATION' : 'START SIMULATION'}
+            </button>
+          </div>
+
           <button
             onClick={() => setDispatchIncidentId(topCriticalSignal?.id || 'INC-2026-PURI-01')}
             className={`w-full py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm flex items-center justify-center gap-2 ${highestRiskCluster?.thresholdReached ? 'bg-error hover:bg-error/90 text-on-error animate-pulse' : 'bg-primary hover:bg-primary/90 text-on-primary'}`}
