@@ -14,6 +14,8 @@ export interface SOSEvent {
   message?: string;
   duplicateStatus?: DuplicateStatus;
   clusterId?: string;
+  clientIncidentId?: string;
+  isCancellation?: boolean;
 }
 
 export interface ClusterInfo {
@@ -41,7 +43,15 @@ export function detectDuplicateSOS(newSos: SOSEvent, existingSosList: SOSEvent[]
   for (const existing of existingSosList) {
     if (existing.id === newSos.id) continue;
 
-    // 1. Same Device within time window = CONFIRMED DUPLICATE
+    // 1. Session ID Match = RELATED INCIDENT (or duplicate if rapid)
+    if (newSos.clientIncidentId && existing.clientIncidentId === newSos.clientIncidentId) {
+      if (newSos.isCancellation) {
+         return { status: 'UNIQUE', explanation: 'User cancelled the distress signal.' };
+      }
+      return { status: 'CONFIRMED_DUPLICATE', explanation: `Multiple rapid SOS button taps linked to session ${newSos.clientIncidentId}` };
+    }
+
+    // 2. Same Device within time window = CONFIRMED DUPLICATE
     if (newSos.deviceIdentifier && existing.deviceIdentifier === newSos.deviceIdentifier) {
       const existingTime = new Date(existing.timestamp).getTime();
       const diffMinutes = Math.abs(newTime - existingTime) / (1000 * 60);

@@ -417,9 +417,15 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigate }) => {
                             <span className="font-bold text-sm text-on-surface truncate">
                               {item.userName || `Distress Beacon`}
                             </span>
-                            <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-error/15 text-error border border-error/30 uppercase tracking-wider">
-                              {item.timestamp === 'Just now' || isNewest ? 'LIVE SOS' : item.status}
-                            </span>
+                            {(item as any).isCancellation ? (
+                              <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-surface-container-high text-on-surface-variant border border-outline-variant/30 uppercase tracking-wider">
+                                USER CANCELLED
+                              </span>
+                            ) : (
+                              <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-error/15 text-error border border-error/30 uppercase tracking-wider">
+                                {item.timestamp === 'Just now' || isNewest ? 'LIVE SOS' : item.status}
+                              </span>
+                            )}
                           </div>
                           {item.userPhone && (
                             <span className="text-xs text-primary font-mono font-medium block mt-0.5">

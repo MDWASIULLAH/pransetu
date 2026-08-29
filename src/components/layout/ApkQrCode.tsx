@@ -3,13 +3,14 @@ import React, { useState } from 'react';
 const GOOGLE_DRIVE_URL = 'https://drive.google.com/drive/folders/1sfBkiY8N6JwEoT31e1hl9JH-vJ0JSuxi?usp=sharing';
 
 /**
- * Expandable QR Code button for downloading the latest PRANSETU Android APK from Google Drive.
+ * Expandable QR Code button for downloading the latest PRANSETU Android APK directly from the website.
  */
 export const ApkQrCode: React.FC<{ collapsed?: boolean }> = ({ collapsed = false }) => {
   const [expanded, setExpanded] = useState(false);
 
-  // Generate QR code using the free Google Charts API (no npm dependency)
-  const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(GOOGLE_DRIVE_URL)}&bgcolor=0d1117&color=58a6ff&format=png&margin=8`;
+  // Generate QR code pointing directly to the self-hosted APK
+  const apkUrl = typeof window !== 'undefined' ? `${window.location.origin}/assets/PRANSETU.apk` : GOOGLE_DRIVE_URL;
+  const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(apkUrl)}&bgcolor=0d1117&color=58a6ff&format=png&margin=8`;
 
   if (collapsed) {
     return (
@@ -67,7 +68,7 @@ export const ApkQrCode: React.FC<{ collapsed?: boolean }> = ({ collapsed = false
             <div className="relative rounded-lg overflow-hidden bg-white p-2 shadow-inner">
               <img
                 src={qrImageUrl}
-                alt="Scan to download PRANSETU APK from Google Drive"
+                alt="Scan to download PRANSETU APK directly"
                 className="w-[140px] h-[140px]"
                 loading="eager"
               />
@@ -83,19 +84,18 @@ export const ApkQrCode: React.FC<{ collapsed?: boolean }> = ({ collapsed = false
           {/* Info */}
           <div className="text-center space-y-1">
             <p className="text-[10px] text-on-surface-variant">
-              Scan to view folder on Google Drive
+              Scan to download APK to your Android device
             </p>
           </div>
 
           {/* Direct download link */}
           <a
-            href={GOOGLE_DRIVE_URL}
-            target="_blank"
-            rel="noopener noreferrer"
+            href={apkUrl}
+            download="PRANSETU.apk"
             className="w-full py-1.5 rounded bg-[#3DDC84]/15 hover:bg-[#3DDC84]/25 border border-[#3DDC84]/30 text-[#3DDC84] text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors"
           >
-            <span className="material-symbols-outlined text-[14px]">folder_open</span>
-            Open Drive Folder
+            <span className="material-symbols-outlined text-[14px]">download</span>
+            Download APK File
           </a>
         </div>
       </div>
